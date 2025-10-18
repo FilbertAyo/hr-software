@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\TaxTable;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -15,7 +16,10 @@ class DatabaseSeeder extends Seeder
     {
         // $this->call(RolesAndPermissionsSeeder::class);
         // $this->call(UsersSeeder::class);
-        $this->call(EmployeesSeeder::class);
+        // $this->call(EmployeesSeeder::class);
+        // $this->call(CompanyUserSeeder::class);
+        $this->call(TaxTableSeeder::class);
+
     }
 
 }

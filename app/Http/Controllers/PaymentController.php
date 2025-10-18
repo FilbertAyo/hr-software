@@ -30,32 +30,49 @@ class PaymentController extends Controller
      */
     public function store(Request $request)
     {
-        $payment = payment::create($request->all());
+        $request->validate([
+            'payment_name' => 'required|string|max:255',
+            'payment_type' => 'required|in:Dynamic,Static',
+            'rate_check' => 'nullable|boolean',
+            'payment_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:Active,Inactive'
+        ]);
 
-        return redirect()->back()->with('success','payment added successfully');
+        $payment = Payment::create([
+            'payment_name' => $request->payment_name,
+            'payment_type' => $request->payment_type,
+            'rate_check' => $request->has('rate_check') ? 1 : 0,
+            'payment_rate' => $request->payment_rate,
+            'status' => $request->status
+        ]);
+
+        return redirect()->back()->with('success','Payment added successfully');
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request,  string $id)
+    public function update(Request $request, string $id)
     {
-        // Validate the request data
         $request->validate([
-            'payment' => 'required|string|max:255',
+            'payment_name' => 'required|string|max:255',
+            'payment_type' => 'required|in:Dynamic,Static',
+            'rate_check' => 'nullable|boolean',
+            'payment_rate' => 'nullable|numeric|min:0|max:100',
+            'status' => 'required|in:Active,Inactive'
         ]);
 
-        // Find the payment by ID
-        $payment = payment::findOrFail($id);
+        $payment = Payment::findOrFail($id);
 
-        // Update the payment's name
-        $payment->payment = $request->input('payment');
+        $payment->update([
+            'payment_name' => $request->payment_name,
+            'payment_type' => $request->payment_type,
+            'rate_check' => $request->has('rate_check') ? 1 : 0,
+            'payment_rate' => $request->payment_rate,
+            'status' => $request->status
+        ]);
 
-        // Save the updated payment
-        $payment->save();
-
-        // Redirect back with a success message
-        return redirect()->back()->with('success', 'payment updated successfully!');
+        return redirect()->back()->with('success', 'Payment updated successfully!');
     }
 
     /**
@@ -63,13 +80,13 @@ class PaymentController extends Controller
      */
     public function destroy(string $id)
     {
-        $payment = payment::find($id);
+        $payment = Payment::find($id);
 
         if ($payment) {
             $payment->delete();
-            return redirect()->back()->with('success', 'payment deleted successfully');
+            return redirect()->back()->with('success', 'Payment deleted successfully');
         } else {
-            return redirect()->back()->with('error', 'payment not found');
+            return redirect()->back()->with('error', 'Payment not found');
         }
     }
 }

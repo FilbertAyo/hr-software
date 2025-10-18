@@ -97,7 +97,7 @@
                                                 Total Net Amount
                                             </div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                                ${{ number_format($payrollStats['total_net'], 2) }}
+                                                TZS {{ number_format($payrollStats['total_net'], 2) }}
                                             </div>
                                         </div>
                                         <div class="col-auto">
@@ -137,10 +137,13 @@
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <form method="GET" action="{{ route('payroll.index') }}">
+                                            @if($payrollPeriod)
+                                                <input type="hidden" name="payroll_period_id" value="{{ $payrollPeriod->id }}">
+                                            @endif
                                             <div class="row">
                                                 <div class="col-md-8">
                                                     <label for="payroll_period_id" class="form-label">Select Pay Period</label>
-                                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control">
+                                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control" {{ $payrollPeriod ? 'disabled' : '' }}>
                                                         <option value="">-- Select Pay Period --</option>
                                                         @foreach($payrollPeriods as $period)
                                                             <option value="{{ $period->id }}"
@@ -203,9 +206,9 @@
                                                         <th>Total Allowances</th>
                                                         <th>Gross Salary</th>
                                                         <th>Deductions</th>
+                                                        <th>Advance</th>
                                                         <th>Net Salary</th>
                                                         <th>Status</th>
-                                                        <th>Actions</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -219,7 +222,18 @@
                                                                              ($salaryDetails->medical_allowance ?? 0);
                                                             $grossSalary = $payroll ? $payroll->gross_salary : ($basicSalary + $totalAllowances);
                                                             $totalDeductions = $payroll ? $payroll->total_deductions : ($basicSalary * 0.15);
-                                                            $netSalary = $payroll ? $payroll->net_salary : ($grossSalary - $totalDeductions);
+
+                                                            // Get advance amount for this employee in this period
+                                                            $advanceAmount = 0;
+                                                            if ($payrollPeriod) {
+                                                                $advance = $employee->advances()
+                                                                    ->where('payroll_period_id', $payrollPeriod->id)
+                                                                    ->where('status', 'approved')
+                                                                    ->sum('advance_amount');
+                                                                $advanceAmount = $advance ?? 0;
+                                                            }
+
+                                                            $netSalary = $payroll ? $payroll->net_salary : ($grossSalary - $totalDeductions - $advanceAmount);
                                                         @endphp
                                                         <tr>
                                                             <td>
@@ -227,8 +241,7 @@
                                                                     <input type="checkbox" class="custom-control-input employee-checkbox"
                                                                            id="employee_{{ $employee->id }}"
                                                                            name="employee_ids[]"
-                                                                           value="{{ $employee->id }}"
-                                                                           {{ $payroll && $payroll->status == 'processed' ? 'disabled' : '' }}>
+                                                                           value="{{ $employee->id }}">
                                                                     <label class="custom-control-label" for="employee_{{ $employee->id }}"></label>
                                                                 </div>
                                                             </td>
@@ -240,11 +253,12 @@
                                                                     @endif
                                                                 </div>
                                                             </td>
-                                                            <td>${{ number_format($basicSalary, 2) }}</td>
-                                                            <td>${{ number_format($totalAllowances, 2) }}</td>
-                                                            <td><strong>${{ number_format($grossSalary, 2) }}</strong></td>
-                                                            <td>${{ number_format($totalDeductions, 2) }}</td>
-                                                            <td><strong class="text-success">${{ number_format($netSalary, 2) }}</strong></td>
+                                                            <td>{{ number_format($basicSalary, 2) }}</td>
+                                                            <td>{{ number_format($totalAllowances, 2) }}</td>
+                                                            <td><strong>{{ number_format($grossSalary, 2) }}</strong></td>
+                                                            <td>{{ number_format($totalDeductions, 2) }}</td>
+                                                            <td><strong class="text-danger">{{ number_format($advanceAmount, 2) }}</strong></td>
+                                                            <td><strong class="text-success">{{ number_format($netSalary, 2) }}</strong></td>
                                                             <td>
                                                                 @if($payroll)
                                                                     @if($payroll->status == 'processed')
@@ -256,25 +270,6 @@
                                                                     @endif
                                                                 @else
                                                                     <span class="badge badge-light">Not Processed</span>
-                                                                @endif
-                                                            </td>
-                                                            <td>
-                                                                @if($payroll && $payroll->status == 'processed')
-                                                                    <div class="btn-group btn-group-sm">
-                                                                        <a href="{{ route('payroll.show', $payroll->id) }}"
-                                                                           class="btn btn-outline-primary btn-sm">
-                                                                            <i class="fe fe-eye"></i> View
-                                                                        </a>
-                                                                        <button type="button" class="btn btn-outline-danger btn-sm"
-                                                                                onclick="cancelPayroll({{ $payroll->id }})">
-                                                                            <i class="fe fe-x"></i> Cancel
-                                                                        </button>
-                                                                    </div>
-                                                                @else
-                                                                    <button type="button" class="btn btn-outline-primary btn-sm"
-                                                                            onclick="processIndividual({{ $employee->id }})">
-                                                                        <i class="fe fe-play"></i> Process
-                                                                    </button>
                                                                 @endif
                                                             </td>
                                                         </tr>
@@ -327,9 +322,7 @@
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     employeeCheckboxes.forEach(checkbox => {
-                        if (!checkbox.disabled) {
-                            checkbox.checked = this.checked;
-                        }
+                        checkbox.checked = this.checked;
                     });
                     updateProcessButtonState();
                 });
@@ -353,16 +346,16 @@
             function updateSelectAllState() {
                 if (!selectAllCheckbox) return;
 
-                const enabledCheckboxes = document.querySelectorAll('.employee-checkbox:not(:disabled)');
-                const checkedEnabledBoxes = document.querySelectorAll('.employee-checkbox:not(:disabled):checked');
+                const allCheckboxes = document.querySelectorAll('.employee-checkbox');
+                const checkedBoxes = document.querySelectorAll('.employee-checkbox:checked');
 
-                if (enabledCheckboxes.length === 0) {
+                if (allCheckboxes.length === 0) {
                     selectAllCheckbox.checked = false;
                     selectAllCheckbox.indeterminate = false;
-                } else if (checkedEnabledBoxes.length === enabledCheckboxes.length) {
+                } else if (checkedBoxes.length === allCheckboxes.length) {
                     selectAllCheckbox.checked = true;
                     selectAllCheckbox.indeterminate = false;
-                } else if (checkedEnabledBoxes.length > 0) {
+                } else if (checkedBoxes.length > 0) {
                     selectAllCheckbox.checked = false;
                     selectAllCheckbox.indeterminate = true;
                 } else {

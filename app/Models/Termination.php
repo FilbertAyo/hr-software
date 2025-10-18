@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Termination extends Model
 {
     protected $fillable = [
-        'termination',
+        'termination_type',
     ];
 }

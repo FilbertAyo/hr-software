@@ -20,7 +20,8 @@ class PayrollPeriod extends Model
         'total_net_amount',
         'total_employees',
         'processed_at',
-        'processed_by'
+        'processed_by',
+        'company_id'
     ];
 
     protected $casts = [
@@ -40,6 +41,16 @@ class PayrollPeriod extends Model
     public function processedBy()
     {
         return $this->belongsTo(User::class, 'processed_by');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    public function advances()
+    {
+        return $this->hasMany(Advance::class);
     }
 
     public function scopeCompleted($query)

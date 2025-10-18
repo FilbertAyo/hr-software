@@ -8,7 +8,7 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                    role="tab" aria-controls="home" aria-selected="true">religions</a>
+                                    role="tab" aria-controls="home" aria-selected="true">Religions</a>
                             </li>
 
                         </ul>
@@ -18,7 +18,7 @@
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
-                            <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal" data-target="#varyModal" data-whatever="@mdo">New religion<span
+                            <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal" data-target="#varyModal" data-whatever="@mdo">New Religion<span
                                 class="fe fe-plus fe-16 ml-2"></span></button>
                     </div>
                 </div>
@@ -35,7 +35,7 @@
                                  <thead class="thead-light">
                                     <tr>
                                         <th>No</th>
-                                        <th>religion</th>
+                                        <th>Religion</th>
                                         <th class="text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -44,13 +44,13 @@
                                         @foreach ($religions as $index => $religion)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $religion->religion }}</td>
+                                                <td>{{ $religion->religion_name }}</td>
                                                 <td class="text-right">
                                                     <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                         <a href="javascript:void(0);"
                                                         class="btn btn-sm btn-primary edit-religion-btn"
                                                         data-religion-id="{{ $religion->id }}"
-                                                        data-religion-name="{{ $religion->religion }}">
+                                                        data-religion-name="{{ $religion->religion_name }}">
                                                          <span class="fe fe-edit fe-16"></span>
                                                      </a>
 
@@ -68,7 +68,7 @@
                                         @endforeach
                                     @else
                                         <tr>
-                                            <td colspan="3" class="text-center">No religion found</td>
+                                            <td colspan="3" class="text-center">No religions found</td>
                                         </tr>
                                     @endif
                                 </tbody>
@@ -87,7 +87,7 @@
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="varyModalLabel">New religion</h5>
+                    <h5 class="modal-title" id="varyModalLabel">New Religion</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 <span aria-hidden="true">&times;</span>
 </button>
@@ -99,7 +99,7 @@
                         <div class="form-row">
                             <div class="col-md-12 mb-3">
                                 <input type="text" class="form-control" id="validationCustom3"
-                                    name="religion" required>
+                                    name="religion_name" required>
                                 <div class="valid-feedback"> Looks good! </div>
                             </div>
 
@@ -122,7 +122,7 @@
 <div class="modal-dialog" role="document">
 <div class="modal-content">
     <div class="modal-header">
-        <h5 class="modal-title" id="editreligionModalLabel">Edit religion</h5>
+        <h5 class="modal-title" id="editreligionModalLabel">Edit Religion</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -134,7 +134,7 @@
 
             <div class="form-row">
                 <div class="col-md-12 mb-3">
-                    <input type="text" class="form-control" id="editreligionName" name="religion" required>
+                    <input type="text" class="form-control" id="editreligionName" name="religion_name" required>
                     <div class="valid-feedback"> Looks good! </div>
                 </div>
             </div>

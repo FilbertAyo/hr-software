@@ -1,16 +1,16 @@
 <style>
 
     .toast-container {
-  position: relative; /* Ensure this container is the reference for positioning */
-  width: 100%; /* Make sure the container spans the width of the screen */
+  position: relative;
+  width: 100%;
 }
 
 .toast {
   position: absolute;
-  top: 10px; /* Distance from the top */
-  right: 30px; /* Distance from the right edge */
-  z-index: 1050; /* Keep it above other elements */
-  width: auto; /* Ensure the toast doesn’t stretch unnecessarily */
+  top: 10px;
+  right: 30px;
+  z-index: 1050;
+  width: auto;
 }
 
 </style>
@@ -35,7 +35,7 @@
         <small>Now</small>
 
       </div>
-      <div class="toast-body bg-white">{{ session('success') }} </div>
+      <div class="toast-body bg-white">{{ session('error') }} </div>
     </div>
   </div>
 @endif

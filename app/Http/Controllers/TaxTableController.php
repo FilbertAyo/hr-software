@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\taxtable;
+use App\Models\TaxTable;
 use Illuminate\Http\Request;
 
 class taxtableController extends Controller
@@ -12,7 +12,7 @@ class taxtableController extends Controller
      */
     public function index()
     {
-        $taxtables = taxtable::all();
+        $taxtables = TaxTable::all();
 
         return view("settings.taxtable", compact("taxtables"));
     }
@@ -30,7 +30,7 @@ class taxtableController extends Controller
      */
     public function store(Request $request)
     {
-        $taxtable = taxtable::create($request->all());
+        $taxtable = TaxTable::create($request->all());
 
         return redirect()->back()->with('success','taxtable added successfully');
     }
@@ -46,7 +46,7 @@ class taxtableController extends Controller
         ]);
 
         // Find the taxtable by ID
-        $taxtable = taxtable::findOrFail($id);
+        $taxtable = TaxTable::findOrFail($id);
 
         // Update the taxtable's name
         $taxtable->taxtable = $request->input('taxtable');
@@ -63,7 +63,7 @@ class taxtableController extends Controller
      */
     public function destroy(string $id)
     {
-        $taxtable = taxtable::find($id);
+        $taxtable = TaxTable::find($id);
 
         if ($taxtable) {
             $taxtable->delete();

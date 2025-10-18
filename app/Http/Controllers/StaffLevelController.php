@@ -9,9 +9,9 @@ class StaffLevelController extends Controller
 {
     public function index()
     {
-        $stafflevels = stafflevel::all();
+        $level_names = StaffLevel::all();
 
-        return view("settings.stafflevel", compact("stafflevels"));
+        return view("settings.stafflevel", compact("level_names"));
     }
 
     /**
@@ -27,9 +27,21 @@ class StaffLevelController extends Controller
      */
     public function store(Request $request)
     {
-        $stafflevel = stafflevel::create($request->all());
+        // Validate the request data
+        $request->validate([
+            'level_name' => 'required|string|max:255',
+            'level_order' => 'nullable|integer|min:0',
+            'description' => 'nullable|string|max:500',
+        ]);
 
-        return redirect()->back()->with('success','stafflevel added successfully');
+        // Create the staff level with validated data
+        $level_name = StaffLevel::create([
+            'level_name' => $request->input('level_name'),
+            'level_order' => $request->input('level_order', 0),
+            'description' => $request->input('description'),
+        ]);
+
+        return redirect()->back()->with('success','Staff level added successfully');
     }
 
     /**
@@ -39,20 +51,23 @@ class StaffLevelController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'stafflevel' => 'required|string|max:255',
+            'level_name' => 'required|string|max:255',
+            'level_order' => 'nullable|integer|min:0',
+            'description' => 'nullable|string|max:500',
         ]);
 
-        // Find the stafflevel by ID
-        $stafflevel = stafflevel::findOrFail($id);
+        // Find the staff level by ID
+        $level_name = StaffLevel::findOrFail($id);
 
-        // Update the stafflevel's name
-        $stafflevel->stafflevel = $request->input('stafflevel');
-
-        // Save the updated stafflevel
-        $stafflevel->save();
+        // Update the staff level with validated data
+        $level_name->update([
+            'level_name' => $request->input('level_name'),
+            'level_order' => $request->input('level_order', 0),
+            'description' => $request->input('description'),
+        ]);
 
         // Redirect back with a success message
-        return redirect()->back()->with('success', 'stafflevel updated successfully!');
+        return redirect()->back()->with('success', 'Staff level updated successfully!');
     }
 
     /**
@@ -60,13 +75,12 @@ class StaffLevelController extends Controller
      */
     public function destroy(string $id)
     {
-        $stafflevel = stafflevel::find($id);
-
-        if ($stafflevel) {
-            $stafflevel->delete();
-            return redirect()->back()->with('success', 'stafflevel deleted successfully');
-        } else {
-            return redirect()->back()->with('error', 'stafflevel not found');
+        try {
+            $level_name = StaffLevel::findOrFail($id);
+            $level_name->delete();
+            return redirect()->back()->with('success', 'Staff level deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error deleting staff level: ' . $e->getMessage());
         }
     }
 }

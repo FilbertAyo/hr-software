@@ -38,6 +38,7 @@ class UsersController extends Controller
             'phone' => $request->phone,
             'email' => $request->email,
             'status' => 'active', // default status
+            'level' => 1, // default level (1 = regular user, 0 = super admin)
             'password' => Hash::make($request->password),
         ]);
 
@@ -73,6 +74,7 @@ class UsersController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['nullable', Rules\Password::defaults()->min(6)],
             'role_id' => ['required', 'exists:roles,id'],
+            'status' => ['required', 'in:active,inactive'],
             'companies' => ['nullable', 'array'],
             'companies.*' => ['exists:companies,id'],
         ]);
@@ -81,6 +83,7 @@ class UsersController extends Controller
             'name' => $request->name,
             'phone' => $request->phone,
             'email' => $request->email,
+            'status' => $request->status,
         ];
 
         // Only update password if provided
@@ -101,7 +104,19 @@ class UsersController extends Controller
             $user->companies()->detach();
         }
 
-        return redirect()->route('users.index')->with('success', 'User updated successfully');
+        return redirect()->back()->with('success', 'User updated successfully');
+    }
+
+    public function activate(User $user)
+    {
+        $user->update(['status' => 'active']);
+        return redirect()->back()->with('success', 'User activated successfully');
+    }
+
+    public function deactivate(User $user)
+    {
+        $user->update(['status' => 'inactive']);
+        return redirect()->back()->with('success', 'User deactivated successfully');
     }
 
     public function toggleStatus($id)

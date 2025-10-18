@@ -44,13 +44,13 @@
                                                 @foreach ($occupations as $index => $occupation)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $occupation->job_category }}</td>
+                                                        <td>{{ $occupation->occupation_name }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-occupation-btn"
                                                                 data-occupation-id="{{ $occupation->id }}"
-                                                                data-occupation-name="{{ $occupation->job_category }}">
+                                                                data-occupation-name="{{ $occupation->occupation_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -99,7 +99,7 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="job_category" required>
+                                            name="occupation_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
@@ -134,7 +134,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editoccupationName" name="job_category" required>
+                            <input type="text" class="form-control" id="editoccupationName" name="occupation_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

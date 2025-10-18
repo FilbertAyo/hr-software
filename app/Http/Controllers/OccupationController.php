@@ -11,14 +11,14 @@ class OccupationController extends Controller
 
     public function index()
     {
-        $occupations = occupation::all();
+        $occupations = Occupation::all();
 
         return view("settings.occupation", compact("occupations"));
     }
 
     public function store(Request $request)
     {
-        $occupation = occupation::create($request->all());
+        $occupation = Occupation::create($request->all());
 
         return redirect()->back()->with('success','occupation added successfully');
     }
@@ -28,13 +28,13 @@ class OccupationController extends Controller
     {
 
         $request->validate([
-            'job_category' => 'required|string|max:255',
+            'occupation_name' => 'required|string|max:255',
         ]);
 
-        $occupation = occupation::findOrFail($id);
+        $occupation = Occupation::findOrFail($id);
 
 
-        $occupation->job_category = $request->input('job_category');
+        $occupation->occupation_name = $request->input('occupation_name');
 
 
         $occupation->save();
@@ -43,7 +43,7 @@ class OccupationController extends Controller
 
     public function destroy(string $id)
     {
-        $occupation = occupation::find($id);
+        $occupation = Occupation::find($id);
 
     if ($occupation) {
         $occupation->delete();

@@ -7,8 +7,8 @@
         <div class="w-100 mb-4 d-flex">
             <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="{{ route('dashboard') }}">
 
-                <img src="{{ asset('images/marslogo.png') }}" class="navbar-brand-img" alt=""
-                    style="height: 60px">
+                <img src="{{ asset('images/logoNoBg.png') }}" class="navbar-brand-img" alt=""
+                    style="height: 30px">
             </a>
         </div>
 
@@ -55,11 +55,6 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('pension.index') }}">
-                            <span class="ml-1 item-text">Pension</span>
-                        </a>
-                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('termination.index') }}">
@@ -72,11 +67,7 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('taxrate.index') }}">
-                            <span class="ml-1 item-text">Tax Rates</span>
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('nationality.index') }}">
                             <span class="ml-1 item-text">Nationality</span>
@@ -98,12 +89,6 @@
                             <span class="ml-1 item-text">Job title/Qualifications</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('taxtable.index') }}">
-                            <span class="ml-1 item-text">Tax Tables</span>
-                        </a>
-                    </li>
-
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('bank.index') }}">
                             <span class="ml-1 item-text">Bank</span>
@@ -276,6 +261,16 @@
                 </a>
                 <ul class="collapse list-unstyled pl-4 w-100" id="forms">
                     <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('taxtable.index') }}">
+                            <span class="ml-1 item-text">Tax Tables/PAYE</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('taxrate.index') }}">
+                            <span class="ml-1 item-text">Tax Rates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('allowance.index') }}"><span class="ml-1 item-text">Benefit/Allowance</span></a>
                     </li>
                     <li class="nav-item">
@@ -294,11 +289,14 @@
                         <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Group
                                 Benefits</span></a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Direct
-                                Deductions</span></a>
+                        <a class="nav-link pl-3" href="{{ route('direct-deduction.index') }}">
+                            <span class="ml-1 item-text">Direct Deduction</span>
+                        </a>
                     </li>
-                    <li class="nav-item">
+
+                    {{-- <li class="nav-item">
                         <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Other
                                 Deductions</span></a>
                     </li>
@@ -309,6 +307,10 @@
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Emp
                                 Deductions</span></a>
+                    </li> --}}
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('cal.netpay') }}"><span class="ml-1 item-text">Calculator</span></a>
                     </li>
 
                     <li class="nav-item">

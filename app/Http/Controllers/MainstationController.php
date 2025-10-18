@@ -27,13 +27,13 @@ class MainstationController extends Controller
     {
 
         $request->validate([
-            'main_station' => 'required|string|max:255',
+            'station_name' => 'required|string|max:255',
         ]);
 
         $mainstation = mainstation::findOrFail($id);
 
 
-        $mainstation->main_station = $request->input('main_station');
+        $mainstation->station_name = $request->input('station_name');
 
 
         $mainstation->save();

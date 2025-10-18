@@ -16,8 +16,10 @@ class PayrollController extends Controller
      */
     public function index(Request $request)
     {
-        // Get all payroll periods for dropdown
-        $payrollPeriods = PayrollPeriod::orderBy('start_date', 'desc')->get();
+        // Get all payroll periods for dropdown filtered by company
+        $companyId = session('selected_company_id');
+        $payrollPeriods = PayrollPeriod::where('company_id', $companyId)
+            ->orderBy('start_date', 'desc')->get();
 
         // Get selected payroll period or default to latest
         $selectedPeriodId = $request->get('payroll_period_id');
@@ -45,10 +47,11 @@ class PayrollController extends Controller
             ]);
         }
 
-        // Get employees with their salary details and existing payroll if any
-        $employees = Employee::with(['salaryDetails', 'payrolls' => function($query) use ($payrollPeriod) {
-            $query->where('payroll_period_id', $payrollPeriod->id);
-        }])->get();
+        // Get employees with their salary details and existing payroll if any, filtered by company
+        $employees = Employee::where('company_id', $companyId)
+            ->with(['salaryDetails', 'payrolls' => function($query) use ($payrollPeriod) {
+                $query->where('payroll_period_id', $payrollPeriod->id);
+            }])->get();
 
         // Get payroll statistics for this period
         $payrollStats = [
@@ -85,15 +88,15 @@ class PayrollController extends Controller
             $processedCount = 0;
 
             foreach ($request->employee_ids as $employeeId) {
-                $employee = Employee::with('SalaryDetails')->findOrFail($employeeId);
+                $employee = Employee::with(['SalaryDetails', 'advances'])->findOrFail($employeeId);
 
-                // Check if payroll already exists for this period
+                // Check if payroll already exists for this period and delete it for reprocessing
                 $existingPayroll = Payroll::where('employee_id', $employeeId)
                     ->where('payroll_period_id', $payrollPeriod->id)
                     ->first();
 
                 if ($existingPayroll) {
-                    continue; // Skip if already processed
+                    $existingPayroll->delete(); // Delete existing payroll for reprocessing
                 }
 
                 // Get salary information from salary details or default
@@ -111,6 +114,12 @@ class PayrollController extends Controller
                 // Calculate insurance (example: 5% of basic salary)
                 $insuranceDeduction = $basicSalary * 0.05;
 
+                // Get advance amount for this employee in this period
+                $advanceAmount = $employee->advances()
+                    ->where('payroll_period_id', $payrollPeriod->id)
+                    ->where('status', 'approved')
+                    ->sum('advance_amount') ?? 0;
+
                 // Create payroll record
                 $payroll = Payroll::create([
                     'employee_id' => $employeeId,
@@ -122,7 +131,7 @@ class PayrollController extends Controller
                     'tax_deduction' => $taxDeduction,
                     'insurance_deduction' => $insuranceDeduction,
                     'loan_deduction' => 0,
-                    'other_deductions' => 0,
+                    'other_deductions' => $advanceAmount,
                     'status' => 'processed',
                     'processed_at' => now()
                 ]);
@@ -173,7 +182,7 @@ class PayrollController extends Controller
             'total_deductions' => $payrolls->sum('total_deductions'),
             'total_net_amount' => $payrolls->sum('net_salary'),
             'processed_at' => now(),
-            'processed_by' => auth()->id(),
+            'processed_by' => null,
             'status' => $payrolls->count() > 0 ? 'completed' : 'draft'
         ]);
     }

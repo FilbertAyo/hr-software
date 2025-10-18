@@ -4,16 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Bank;
 use App\Models\Department;
+use App\Models\DirectDeduction;
 use App\Models\Employee;
-use App\Models\EmployeeDepartment;
+use App\Models\EmployeeContact;
+use App\Models\EmployeeActivity;
 use App\Models\EmployeeBankDetail;
-use App\Models\EmployeeSalaryDetail;
+use App\Models\EmployeeDepartment;
 use App\Models\EmployeePensionDetail;
-use App\Models\EmployeeNhifDetail;
-use App\Models\EmployeeOvertimeDetail;
-use App\Models\EmployeeTimingDetail;
-use App\Models\EmployeePaymentDetail;
-use App\Models\EmployeePortalDetail;
+use App\Models\EmployeeSalaryDetail;
 use App\Models\Jobtitle;
 use App\Models\Mainstation;
 use App\Models\Nationality;
@@ -30,7 +28,14 @@ class EmployeeController extends Controller
 {
     public function index()
     {
-        $employees = Employee::with(['department', 'primaryBankDetail', 'salaryDetails'])
+        $companyId = session('selected_company_id');
+
+        if (!$companyId) {
+            return redirect()->route('company.index')->with('error', 'Please select a company to view employees.');
+        }
+
+        $employees = Employee::where('company_id', $companyId)
+            ->with(['department.department', 'department.jobtitle', 'department.staffLevel', 'nationality', 'religion'])
             ->paginate(15);
 
         return view('employees.index', compact('employees'));
@@ -38,10 +43,14 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        // Get data for dropdowns - adjust according to your existing models
-        $substations = DB::table('substations')->select('sub_station')->distinct()->get();
+        $companyId = session('selected_company_id');
+
+        if (!$companyId) {
+            return redirect()->route('company.index')->with('error', 'Please select a company before creating an employee.');
+        }
+
+        // Get data for dropdowns
         $banks = Bank::all();
-        $departments = DB::table('departments')->select('department_name')->distinct()->get();
         $nationalities = Nationality::all();
         $religions = Religion::all();
         $tax_rates = TaxRate::all();
@@ -49,12 +58,203 @@ class EmployeeController extends Controller
         $substations = Substation::all();
         $departments = Department::all();
         $jobtitles = Jobtitle::all();
-        $stafflevels = StaffLevel::all();
+        $level_names = StaffLevel::all();
+        $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
 
-        return view('employees.create', compact('substations', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'substations', 'departments', 'jobtitles', 'stafflevels'));
+        return view('employees.create', compact('substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names'));
     }
 
     public function store(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Validate all form data
+            $validatedData = $request->validate([
+                // Personal Details
+                'employee_name' => 'required|string|max:255',
+                'employeeID' => 'nullable|string|unique:employees,employeeID',
+                'biometricID' => 'nullable|string|unique:employees,biometricID',
+                'date_of_birth' => 'required|date',
+                'mobile_no' => 'nullable|string|unique:employees,mobile_no',
+                'email' => 'nullable|string|email|unique:employees,email',
+                'tin_no' => 'nullable|string|unique:employees,tin_no',
+                'gender' => 'required|in:male,female',
+                'marital_status' => 'required|in:single,married,divorced,widowed',
+                'nationality_id' => 'nullable|integer|exists:nationalities,id',
+                'religion_id' => 'nullable|integer|exists:religions,id',
+                'residential_status' => 'required|string',
+                'nida_no' => 'nullable|string',
+                'employee_type' => 'nullable|string',
+                'employee_status' => 'required|string',
+                'tax_rate_id' => 'nullable|integer|exists:tax_rates,id',
+                'address' => 'nullable|string',
+                'photo_path' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+                'wcf_no' => 'nullable|string|max:255',
+
+                // Employment Details
+                'joining_date' => 'required|date',
+                'mainstation_id' => 'required|integer|exists:mainstations,id',
+                'substation_id' => 'required|integer|exists:substations,id',
+                'department_id' => 'required|integer|exists:departments,id',
+                'jobtitle_id' => 'required|integer|exists:jobtitles,id',
+                'staff_level_id' => 'required|integer|exists:staff_levels,id',
+                'hod' => 'nullable|boolean',
+
+                // Payment Details
+                'payment_method' => 'required|in:cash,bank,both,other',
+                'bank_id' => 'nullable|integer|exists:banks,id',
+                'account_no' => 'nullable|string',
+
+                // Salary Details
+                'basic_salary' => 'nullable|numeric|min:0',
+                'advance_option' => 'nullable|boolean',
+                'advance_percentage' => 'nullable|numeric|min:0|max:100',
+                'advance_salary' => 'nullable|numeric|min:0',
+                'pension_details' => 'nullable|boolean',
+                'pension_id' => 'nullable|integer|exists:direct_deductions,id',
+                'employee_pension_no' => 'nullable|string|max:255',
+                'employee_pension_amount' => 'nullable|numeric|min:0',
+                'employer_pension_amount' => 'nullable|numeric|min:0',
+                'paye_exempt' => 'nullable|boolean',
+
+                // Allowances
+                'housing_allowance' => 'nullable|numeric|min:0',
+                'transport_allowance' => 'nullable|numeric|min:0',
+                'medical_allowance' => 'nullable|numeric|min:0',
+
+                // NHIF Details
+                'nhif' => 'nullable|boolean',
+                'nhif_fixed_amount' => 'nullable|boolean',
+                'nhif_amount' => 'nullable|numeric|min:0',
+
+                // Overtime Details
+                'overtime_given' => 'nullable|boolean',
+                'overtime_rate_weekday' => 'nullable|numeric|min:0',
+                'overtime_rate_saturday' => 'nullable|numeric|min:0',
+                'overtime_rate_weekend_holiday' => 'nullable|numeric|min:0',
+
+                // Timing Details
+                'use_office_timing' => 'nullable|boolean',
+                'use_biometrics' => 'nullable|boolean',
+
+                // Payment Details
+                'payments' => 'nullable|boolean',
+                'dynamic_payments_paid_in_rates' => 'nullable|boolean',
+            ], [
+                'bank_id.required_if' => 'Please select a bank when payment method is Bank or Both.',
+                'account_no.required_if' => 'Please enter an account number when payment method is Bank or Both.',
+            ]);
+
+            // Handle photo upload
+            if ($request->hasFile('photo_path')) {
+                $photoPath = $request->file('photo_path')->store('employee-photos', 'public');
+                $validatedData['photo_path'] = $photoPath;
+            }
+
+            // Get the current company ID from session
+            $companyId = session('selected_company_id');
+
+            if (!$companyId) {
+                return redirect()->back()->with('error', 'Please select a company before creating an employee.');
+            }
+
+            // Create consolidated employee record with all details
+            $employee = Employee::create([
+                // Basic Information
+                'employee_name' => $validatedData['employee_name'],
+                'date_of_birth' => $validatedData['date_of_birth'],
+                'biometricID' => $validatedData['biometricID'],
+                'employeeID' => $validatedData['employeeID'],
+                'mobile_no' => $validatedData['mobile_no'],
+                'email' => $validatedData['email'],
+                'tin_no' => $validatedData['tin_no'],
+                'gender' => strtolower($validatedData['gender']),
+                'marital_status' => strtolower($validatedData['marital_status']),
+                'nationality_id' => $validatedData['nationality_id'],
+                'religion_id' => $validatedData['religion_id'],
+                'residential_status' => $validatedData['residential_status'],
+                'nida_no' => $validatedData['nida_no'],
+                'employee_type' => $validatedData['employee_type'],
+                'employee_status' => $validatedData['employee_status'],
+                'tax_rate_id' => $validatedData['tax_rate_id'],
+                'address' => $validatedData['address'],
+                'photo_path' => $validatedData['photo_path'] ?? null,
+                'wcf_no' => $validatedData['wcf_no'],
+                'payment_method' => $validatedData['payment_method'],
+                'company_id' => $companyId,
+                'registration_step' => 'completed',
+
+                // Salary Details
+                'basic_salary' => $validatedData['basic_salary'] ?? 0,
+                'advance_option' => $validatedData['advance_option'] ?? false,
+                'advance_percentage' => $validatedData['advance_percentage'] ?? 0,
+                'advance_salary' => $validatedData['advance_salary'] ?? 0,
+                'paye_exempt' => $validatedData['paye_exempt'] ?? false,
+                'housing_allowance' => $validatedData['housing_allowance'] ?? 0,
+                'transport_allowance' => $validatedData['transport_allowance'] ?? 0,
+                'medical_allowance' => $validatedData['medical_allowance'] ?? 0,
+
+                // Bank Details
+                'is_primary_bank' => true,
+                'bank_id' => $validatedData['bank_id'],
+                'account_no' => $validatedData['account_no'],
+
+                // Pension Details
+                'pension_details' => $validatedData['pension_details'] ?? false,
+                'pension_id' => $validatedData['pension_id'],
+                'employee_pension_no' => $validatedData['employee_pension_no'],
+                'employee_pension_amount' => $validatedData['employee_pension_amount'] ?? 0,
+                'employer_pension_amount' => $validatedData['employer_pension_amount'] ?? 0,
+
+                // NHIF Details
+                'nhif' => $validatedData['nhif'] ?? false,
+                'nhif_fixed_amount' => $validatedData['nhif_fixed_amount'] ?? false,
+                'nhif_amount' => $validatedData['nhif_amount'] ?? 0,
+
+                // Overtime Details
+                'overtime_given' => $validatedData['overtime_given'] ?? false,
+                'overtime_rate_weekday' => $validatedData['overtime_rate_weekday'] ?? 1.50,
+                'overtime_rate_saturday' => $validatedData['overtime_rate_saturday'] ?? 1.50,
+                'overtime_rate_weekend_holiday' => $validatedData['overtime_rate_weekend_holiday'] ?? 2.00,
+
+                // Timing Details
+                'use_office_timing' => $validatedData['use_office_timing'] ?? true,
+                'use_biometrics' => $validatedData['use_biometrics'] ?? false,
+
+                // Payment Details
+                'payments' => $validatedData['payments'] ?? false,
+                'dynamic_payments_paid_in_rates' => $validatedData['dynamic_payments_paid_in_rates'] ?? false,
+            ]);
+
+            // Create department relationship
+            EmployeeDepartment::create([
+                'employee_id' => $employee->id,
+                'joining_date' => $validatedData['joining_date'],
+                'mainstation_id' => $validatedData['mainstation_id'],
+                'substation_id' => $validatedData['substation_id'],
+                'department_id' => $validatedData['department_id'],
+                'jobtitle_id' => $validatedData['jobtitle_id'],
+                'staff_level_id' => $validatedData['staff_level_id'],
+                'hod' => $validatedData['hod'] ?? false,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('employee.show', $employee)
+                ->with('success', 'Employee registered successfully!');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
+            return back()->withInput()->withErrors($e->validator);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withInput()
+                ->with('error', 'Error registering employee: ' . $e->getMessage());
+        }
+    }
+
+    private function storePersonalDetails(Request $request)
     {
         $validatedData = $request->validate([
             // Personal Details
@@ -90,43 +290,17 @@ class EmployeeController extends Controller
             'payment_method' => 'required|in:cash,bank,both,other',
             'bank_id'        => 'required_if:payment_method,bank,required_if:payment_method,both|nullable|integer|exists:banks,id',
             'account_no'     => 'required_if:payment_method,bank,required_if:payment_method,both|nullable|string|max:255',
-
-
-            // 'shiftType' => 'nullable|string|max:255',
-            // 'emergencyContact' => 'nullable|string|max:255',
-
-            // 'villageBorn' => 'required|string|max:255',
-            // 'wardBorn' => 'required|string|max:255',
-            // 'birthNo' => 'required|string|max:255',
-
-
-            // 'tribe' => 'required|string|max:255',
-
-            // 'baptizedYear' => 'required|integer|min:1900|max:' . date('Y'),
-            // 'baptizedWard' => 'required|string|max:255',
-            // 'churchMosque' => 'required|string|max:255',
-            // 'baptizedRegion' => 'required|string|max:255',
-            // 'baptizedDistrict' => 'required|string|max:255',
-            // 'baptizedVillage' => 'required|string|max:255',
-            // 'baptizedDivision' => 'required|string|max:255',
-
-
-
-            'basic_salary' => 'nullable|numeric|min:0',
-            // 'tax' => 'required|in:yes,no',
-            // 'pension' => 'nullable|string|max:255',
-            // 'pensionNo' => 'nullable|string|max:255',
-            // 'earningGroup' => 'nullable|string|max:255',
-            // 'payGrade' => 'nullable|string|max:255',
-            // 'directDeduction' => 'nullable|string|max:255',
-            // 'currencyID' => 'required|string|max:10',
-            // 'loan' => 'required|in:yes,no',
-            // 'payPeriod' => 'required|string|max:255',
-
         ]);
 
         try {
             DB::beginTransaction();
+
+            // Get the current company ID from session
+            $companyId = session('selected_company_id');
+
+            if (!$companyId) {
+                return redirect()->back()->with('error', 'Please select a company before creating an employee.');
+            }
 
             // Create main employee record
             $employee = Employee::create([
@@ -150,6 +324,8 @@ class EmployeeController extends Controller
                 'photo_path' => $validatedData['photo_path'],
                 'wcf_no' => $validatedData['wcf_no'],
                 'payment_method' => $validatedData['payment_method'],
+                'company_id' => $companyId,
+                'registration_step' => 'personal_saved'
             ]);
 
             // Create department details
@@ -165,7 +341,6 @@ class EmployeeController extends Controller
             ]);
 
             // Create bank details
-
             if (in_array($validatedData['payment_method'], ['bank', 'both'])) {
                 EmployeeBankDetail::create([
                     'employee_id' => $employee->id,
@@ -174,90 +349,123 @@ class EmployeeController extends Controller
                 ]);
             }
 
-            // Create salary details
+            DB::commit();
 
-            EmployeeSalaryDetail::create([
-                'employee_id' => $employee->id,
-                'basic_salary' => $validatedData['basic_salary'],
-                // 'total_payments' => $validatedData['basicSalary'],
-                // 'net_salary' => $validatedData['basicSalary'],
-            ]);
+            return redirect()->route('employee.edit', $employee)
+                ->with('success', 'Step 1 saved successfully! You can now proceed to Step 2.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withInput()
+                ->with('error', 'Error saving personal details: ' . $e->getMessage());
+        }
+    }
 
+    private function storeSalaryDetails(Request $request)
+    {
+        $employeeId = $request->input('employee_id');
+        $employee = Employee::findOrFail($employeeId);
 
-            // // Create pension details if provided
-            // if ($validatedData['pension'] || $validatedData['pensionNo']) {
-            //     EmployeePensionDetail::create([
-            //         'employee_id' => $employee->id,
-            //         'pension_details' => true,
-            //         'pension' => $validatedData['pension'],
-            //         'employee_pension_no' => $validatedData['pensionNo'],
-            //     ]);
-            // }
+        $validatedData = $request->validate([
+            'basic_salary' => 'nullable|numeric|min:0',
+            'advance_option' => 'nullable',
+            'advance_percentage' => 'nullable|numeric|min:0|max:100',
+            'advance_salary' => 'nullable|numeric|min:0',
+            'pension_details' => 'nullable|boolean',
+            'pension_id' => 'nullable|integer|exists:direct_deductions,id',
+            'employee_pension_no' => 'nullable|string|max:255',
+            'employee_pension_amount' => 'nullable|numeric|min:0',
+            'employer_pension_amount' => 'nullable|numeric|min:0',
+            'paye_exempt' => 'nullable|boolean',
+        ]);
 
-            // Create NHIF details (default)
-            // EmployeeNhifDetail::create([
-            //     'employee_id' => $employee->id,
-            //     'nhif' => false,
-            // ]);
+        try {
+            DB::beginTransaction();
 
-            // Create overtime details (default)
-            // EmployeeOvertimeDetail::create([
-            //     'employee_id' => $employee->id,
-            //     'overtime_given' => false,
-            // ]);
+            // Update or create salary details
+            EmployeeSalaryDetail::updateOrCreate(
+                ['employee_id' => $employee->id],
+                [
+                    'basic_salary' => $validatedData['basic_salary'],
+                    'advance_option' => $validatedData['advance_option'] ?? false,
+                    'advance_percentage' => $validatedData['advance_percentage'],
+                    'advance_salary' => $validatedData['advance_salary'],
+                    'paye_exempt' => $validatedData['paye_exempt'] ?? false,
+                ]
+            );
 
-            // // Create timing details (default)
-            // EmployeeTimingDetail::create([
-            //     'employee_id' => $employee->id,
-            //     'use_office_timing' => true,
-            //     'use_biometrics' => false,
-            // ]);
+            // Update or create pension details
+            if (($validatedData['pension_details'] ?? false) && ($validatedData['pension_id'] ?? false)) {
+                EmployeePensionDetail::updateOrCreate(
+                    ['employee_id' => $employee->id],
+                    [
+                        'pension_details' => true,
+                        'pension_id' => $validatedData['pension_id'],
+                        'employee_pension_no' => $validatedData['employee_pension_no'],
+                        'employee_pension_amount' => $validatedData['employee_pension_amount'],
+                        'employer_pension_amount' => $validatedData['employer_pension_amount'],
+                    ]
+                );
+            } else {
+                // Remove pension details if not enabled or no pension selected
+                EmployeePensionDetail::where('employee_id', $employee->id)->delete();
+            }
 
-            // // Create payment details
-            // EmployeePaymentDetail::create([
-            //     'employee_id' => $employee->id,
-            //     'payments' => $validatedData['loan'] === 'yes',
-            // ]);
-
-            // Create portal details with default credentials
-            // EmployeePortalDetail::create([
-            //     'employee_id' => $employee->id,
-            //     'username' => strtolower(str_replace(' ', '.', $employee->employee_name)),
-            //     'password' => Hash::make('password123'),
-            //     'login_permission' => true,
-            //     'payslips_permission' => true,
-            //     'leave_requests_permission' => true,
-            //     'loan_requests_permission' => $validatedData['loan'] === 'yes',
-            // ]);
+            // Update employee registration step
+            $employee->update(['registration_step' => 'salary_saved']);
 
             DB::commit();
 
-            return redirect()->back()
-                ->with('success', 'Employee created successfully!');
+            return redirect()->route('employee.edit', $employee)
+                ->with('success', 'Step 2 saved successfully! You can now complete the registration.');
         } catch (\Exception $e) {
             DB::rollback();
-
             return back()->withInput()
-                ->with('error', 'Error creating employee: ' . $e->getMessage());
+                ->with('error', 'Error saving salary details: ' . $e->getMessage());
+        }
+    }
+
+    private function completeRegistration(Request $request)
+    {
+        $employeeId = $request->input('employee_id');
+        $employee = Employee::findOrFail($employeeId);
+
+        try {
+            DB::beginTransaction();
+
+            // Update employee registration step to completed
+            $employee->update(['registration_step' => 'completed']);
+
+            DB::commit();
+
+            return redirect()->route('employee.index')
+                ->with('success', 'Employee registration completed successfully!');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withInput()
+                ->with('error', 'Error completing registration: ' . $e->getMessage());
         }
     }
 
     public function show(Employee $employee)
     {
+        $companyId = session('selected_company_id');
+
+        // Ensure the employee belongs to the selected company
+        if ($employee->company_id != $companyId) {
+            return redirect()->route('employee.index')->with('error', 'Employee not found or access denied.');
+        }
+
         $employee->load([
-            'department',
-            'bankDetails',
-            'salaryDetails',
-            'pensionDetails',
-            'nhifDetails',
-            'overtimeDetails',
-            'timingDetails',
-            'qualifications',
-            'guarantors',
-            'nextOfKin',
-            'paymentDetails',
-            'deductionDetails',
-            'portalDetails'
+            'department.department',
+            'department.jobtitle',
+            'department.staffLevel',
+            'department.mainstation',
+            'department.substation',
+            'nationality',
+            'religion',
+            'taxRate',
+            'bank',
+            'pension'
         ]);
 
         return view('employees.show', compact('employee'));
@@ -265,43 +473,219 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
+        $companyId = session('selected_company_id');
+
+        // Ensure the employee belongs to the selected company
+        if ($employee->company_id != $companyId) {
+            return redirect()->route('employee.index')->with('error', 'Employee not found or access denied.');
+        }
+
         $employee->load([
-            'department',
-            'primaryBankDetail',
-            'salaryDetails',
-            'pensionDetails'
+            'department.department',
+            'department.jobtitle',
+            'department.staffLevel',
+            'department.mainstation',
+            'department.substation',
+            'nationality',
+            'religion',
+            'taxRate',
+            'bank',
+            'pension'
         ]);
 
-        $substations = DB::table('substations')->select('sub_station')->distinct()->get();
-        $banks = DB::table('banks')->select('bank_name')->distinct()->get();
-        $departments = DB::table('departments')->select('department_name')->distinct()->get();
+        // Get data for dropdowns - same as create method
+        $banks = Bank::all();
+        $nationalities = Nationality::all();
+        $religions = Religion::all();
+        $tax_rates = TaxRate::all();
+        $mainstations = Mainstation::all();
+        $substations = Substation::all();
+        $departments = Department::all();
+        $jobtitles = Jobtitle::all();
+        $level_names = StaffLevel::all();
+        $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
 
-        return view('employees.edit', compact('employee', 'substations', 'banks', 'departments'));
+        return view('employees.edit', compact('employee', 'substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names'));
     }
 
     public function update(Request $request, Employee $employee)
     {
+        $step = $request->input('step', 'personal');
+
+        if ($step === 'personal') {
+            return $this->updatePersonalDetails($request, $employee);
+        } elseif ($step === 'salary') {
+            return $this->updateSalaryDetails($request, $employee);
+        } elseif ($step === 'complete') {
+            return $this->completeRegistration($request);
+        }
+
+        return back()->with('error', 'Invalid step');
+    }
+
+    private function updatePersonalDetails(Request $request, Employee $employee)
+    {
         $validatedData = $request->validate([
-            // Add your validation rules here - similar to store method
+            // Personal Details
+            'employee_name' => 'required|string|max:255',
+            'employeeID' => 'nullable|string|unique:employees,employeeID,' . $employee->id,
+            'biometricID' => 'nullable|string|unique:employees,biometricID,' . $employee->id,
+            'date_of_birth' => 'required|date',
+            'mobile_no' => 'nullable|string|unique:employees,mobile_no,' . $employee->id,
+            'email' => 'nullable|string|email|unique:employees,email,' . $employee->id,
+            'tin_no' => 'nullable|string|unique:employees,tin_no,' . $employee->id,
+            'gender' => 'required|in:male,female',
+            'marital_status' => 'required|in:single,married,divorced,widowed',
+            'nationality_id' => 'nullable|string',
+            'religion_id' => 'nullable|string|max:255',
+            'residential_status' => 'required|string',
+            'nida_no' => 'nullable|string',
+            'employee_type' => 'nullable|string',
+            'employee_status' => 'required|string',
+            'tax_rate_id' => 'nullable|integer|exists:tax_rates,id',
+            'address' => 'nullable|string',
+            'photo_path' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            'wcf_no' => 'nullable|string|max:255',
+
+            'joining_date'       => 'nullable|date',
+            'mainstation_id'     => 'nullable|integer|exists:mainstations,id',
+            'substation_id'      => 'nullable|integer|exists:substations,id',
+            'department_id'      => 'nullable|integer|exists:departments,id',
+            'main_division_branch' => 'nullable|string|max:255',
+            'jobtitle_id'        => 'nullable|integer|exists:jobtitles,id',
+            'staff_level_id'     => 'nullable|integer|exists:staff_levels,id',
+            'hod'                => 'nullable|boolean',
+
+            'payment_method' => 'required|in:cash,bank,both,other',
+            'bank_id'        => 'required_if:payment_method,bank,required_if:payment_method,both|nullable|integer|exists:banks,id',
+            'account_no'     => 'required_if:payment_method,bank,required_if:payment_method,both|nullable|string|max:255',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Update employee and related records
-            $employee->update($validatedData);
+            // Update main employee record
+            $employee->update([
+                'employee_name' => $validatedData['employee_name'],
+                'date_of_birth' => $validatedData['date_of_birth'],
+                'biometricID' => $validatedData['biometricID'],
+                'employeeID' => $validatedData['employeeID'],
+                'mobile_no' => $validatedData['mobile_no'],
+                'email' => $validatedData['email'],
+                'tin_no' => $validatedData['tin_no'],
+                'gender' => strtolower($validatedData['gender']),
+                'marital_status' => strtolower($validatedData['marital_status']),
+                'nationality_id' => $validatedData['nationality_id'],
+                'religion_id' => $validatedData['religion_id'],
+                'residential_status' => $validatedData['residential_status'],
+                'nida_no' => $validatedData['nida_no'],
+                'employee_type' => $validatedData['employee_type'],
+                'employee_status' => $validatedData['employee_status'],
+                'tax_rate_id' => $validatedData['tax_rate_id'],
+                'address' => $validatedData['address'],
+                'photo_path' => $validatedData['photo_path'],
+                'wcf_no' => $validatedData['wcf_no'],
+                'payment_method' => $validatedData['payment_method'],
+                'registration_step' => 'personal_saved'
+            ]);
 
-            // Update related tables as needed
+            // Update department details
+            $employee->department()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                [
+                    'joining_date' => $validatedData['joining_date'],
+                    'mainstation_id' => $validatedData['mainstation_id'],
+                    'substation_id' => $validatedData['substation_id'],
+                    'department_id' => $validatedData['department_id'],
+                    'jobtitle_id' => $validatedData['jobtitle_id'],
+                    'staff_level_id' => $validatedData['staff_level_id'],
+                    'hod' => $validatedData['hod'],
+                ]
+            );
+
+            // Update bank details
+            if (in_array($validatedData['payment_method'], ['bank', 'both'])) {
+                $employee->bankDetails()->updateOrCreate(
+                    ['employee_id' => $employee->id],
+                    [
+                        'bank_id'     => $validatedData['bank_id'],
+                        'account_no'  => $validatedData['account_no'],
+                    ]
+                );
+            } else {
+                // Remove bank details if payment method is not bank or both
+                $employee->bankDetails()->delete();
+            }
 
             DB::commit();
 
-            return redirect()->route('employee.show', $employee)
-                ->with('success', 'Employee updated successfully!');
+            return redirect()->route('employee.edit', $employee)
+                ->with('success', 'Step 1 updated successfully! You can now proceed to Step 2.');
         } catch (\Exception $e) {
             DB::rollback();
-
             return back()->withInput()
-                ->with('error', 'Error updating employee: ' . $e->getMessage());
+                ->with('error', 'Error updating personal details: ' . $e->getMessage());
+        }
+    }
+
+    private function updateSalaryDetails(Request $request, Employee $employee)
+    {
+        $validatedData = $request->validate([
+            'basic_salary' => 'nullable|numeric|min:0',
+            'advance_option' => 'nullable',
+            'advance_percentage' => 'nullable|numeric|min:0|max:100',
+            'advance_salary' => 'nullable|numeric|min:0',
+            'pension_details' => 'nullable|boolean',
+            'pension_id' => 'nullable|integer|exists:direct_deductions,id',
+            'employee_pension_no' => 'nullable|string|max:255',
+            'employee_pension_amount' => 'nullable|numeric|min:0',
+            'employer_pension_amount' => 'nullable|numeric|min:0',
+            'paye_exempt' => 'nullable|boolean',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update or create salary details
+            $employee->salaryDetails()->updateOrCreate(
+                ['employee_id' => $employee->id],
+                [
+                    'basic_salary' => $validatedData['basic_salary'],
+                    'advance_option' => $validatedData['advance_option'] ?? false,
+                    'advance_percentage' => $validatedData['advance_percentage'],
+                    'advance_salary' => $validatedData['advance_salary'],
+                    'paye_exempt' => $validatedData['paye_exempt'] ?? false,
+                ]
+            );
+
+            // Update or create pension details
+            if (($validatedData['pension_details'] ?? false) && ($validatedData['pension_id'] ?? false)) {
+                $employee->pensionDetails()->updateOrCreate(
+                    ['employee_id' => $employee->id],
+                    [
+                        'pension_details' => true,
+                        'pension_id' => $validatedData['pension_id'],
+                        'employee_pension_no' => $validatedData['employee_pension_no'],
+                        'employee_pension_amount' => $validatedData['employee_pension_amount'],
+                        'employer_pension_amount' => $validatedData['employer_pension_amount'],
+                    ]
+                );
+            } else {
+                // Remove pension details if not enabled or no pension selected
+                $employee->pensionDetails()->delete();
+            }
+
+            // Update employee registration step
+            $employee->update(['registration_step' => 'salary_saved']);
+
+            DB::commit();
+
+            return redirect()->route('employee.edit', $employee)
+                ->with('success', 'Step 2 updated successfully! You can now complete the registration.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withInput()
+                ->with('error', 'Error updating salary details: ' . $e->getMessage());
         }
     }
 
@@ -326,7 +710,7 @@ class EmployeeController extends Controller
 
     public function getSubstations()
     {
-        $substations = DB::table('substations')->select('sub_station')->distinct()->get();
+        $substations = DB::table('substations')->select('substation_name')->distinct()->get();
         return response()->json($substations);
     }
 

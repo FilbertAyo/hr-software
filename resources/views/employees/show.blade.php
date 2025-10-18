@@ -33,7 +33,7 @@
                                 @endif
 
                                 <h4 class="mb-1">{{ $employee->employee_name }}</h4>
-                                <p class="text-muted mb-2">{{ $employee->department->designation ?? 'No Position' }}</p>
+                                <p class="text-muted mb-2">{{ $employee->department?->jobtitle?->title ?? 'No Position' }}</p>
                                 <span class="badge badge-{{ $employee->employee_status === 'active' ? 'success' : 'danger' }} mb-3">
                                     {{ ucfirst($employee->employee_status) }}
                                 </span>
@@ -41,7 +41,11 @@
                                 <div class="row text-center border-top pt-3">
                                     <div class="col-6">
                                         <h6 class="text-muted mb-1">Department</h6>
-                                        <p class="mb-0">{{ $employee->department ? $employee->department->date_of_joining->format('M d, Y') : 'N/A' }}</p>
+                                        <p class="mb-0">{{ $employee->department?->department?->department_name ?? 'N/A' }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <h6 class="text-muted mb-1">Join Date</h6>
+                                        <p class="mb-0">{{ $employee->department?->joining_date?->format('M d, Y') ?? 'N/A' }}</p>
                                     </div>
                                 </div>
 
@@ -62,7 +66,7 @@
                             </div>
                         </div>
 
-                        @if($employee->salaryDetails)
+                        @if($employee->basic_salary)
                             <div class="card shadow-none border mt-3">
                                 <div class="card-header">
                                     <h6 class="mb-0">Salary Information</h6>
@@ -72,14 +76,14 @@
                                         <div class="col-12 mb-2">
                                             <small class="text-muted">Basic Salary</small>
                                             <h5 class="text-success mb-0">
-                                                TZS {{ number_format($employee->salaryDetails->basic_salary, 2) }}
+                                                TZS {{ number_format($employee->basic_salary, 2) }}
                                             </h5>
                                         </div>
-                                        @if($employee->salaryDetails->net_salary)
+                                        @if($employee->housing_allowance || $employee->transport_allowance || $employee->medical_allowance)
                                             <div class="col-12">
-                                                <small class="text-muted">Net Salary</small>
+                                                <small class="text-muted">Total Allowances</small>
                                                 <h6 class="mb-0">
-                                                    TZS {{ number_format($employee->salaryDetails->net_salary, 2) }}
+                                                    TZS {{ number_format(($employee->housing_allowance ?? 0) + ($employee->transport_allowance ?? 0) + ($employee->medical_allowance ?? 0), 2) }}
                                                 </h6>
                                             </div>
                                         @endif
@@ -138,11 +142,11 @@
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">Nationality:</td>
-                                                        <td>{{ $employee->nationality ?? 'N/A' }}</td>
+                                                        <td>{{ $employee->nationality?->nationality_name ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">Religion:</td>
-                                                        <td>{{ $employee->religion ?? 'N/A' }}</td>
+                                                        <td>{{ $employee->religion?->religion_name ?? 'N/A' }}</td>
                                                     </tr>
                                                 </table>
                                             </div>
@@ -167,7 +171,7 @@
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">NIDA Card:</td>
-                                                        <td>{{ $employee->nida_card_no ?? 'N/A' }}</td>
+                                                        <td>{{ $employee->nida_no ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="text-muted">TIN Number:</td>
@@ -187,35 +191,35 @@
                                                     <table class="table table-sm table-borderless">
                                                         <tr>
                                                             <td class="text-muted" width="25%">Department:</td>
-                                                            <td width="25%">{{ $employee->department->department }}</td>
+                                                            <td width="25%">{{ $employee->department?->department?->department_name ?? 'N/A' }}</td>
                                                             <td class="text-muted" width="25%">Date of Joining:</td>
-                                                            <td>{{ $employee->department->date_of_joining->format('F d, Y') }}</td>
+                                                            <td>{{ $employee->department?->joining_date?->format('F d, Y') ?? 'N/A' }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Designation:</td>
-                                                            <td>{{ $employee->department->designation ?? 'N/A' }}</td>
+                                                            <td>{{ $employee->department?->jobtitle?->title ?? 'N/A' }}</td>
                                                             <td class="text-muted">Staff Level:</td>
-                                                            <td>{{ $employee->department->staff_level ?? 'N/A' }}</td>
+                                                            <td>{{ $employee->department?->staffLevel?->level_name ?? 'N/A' }}</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="text-muted">Main Division:</td>
-                                                            <td>{{ $employee->department->main_division_branch ?? 'N/A' }}</td>
-                                                            <td class="text-muted">Sub Division:</td>
-                                                            <td>{{ $employee->department->sub_division ?? 'N/A' }}</td>
+                                                            <td class="text-muted">Main Station:</td>
+                                                            <td>{{ $employee->department?->mainstation?->station_name ?? 'N/A' }}</td>
+                                                            <td class="text-muted">Sub Station:</td>
+                                                            <td>{{ $employee->department?->substation?->substation_name ?? 'N/A' }}</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">WCF No:</td>
-                                                            <td>{{ $employee->department->wcf_no ?? 'N/A' }}</td>
+                                                            <td>{{ $employee->wcf_no ?? 'N/A' }}</td>
                                                             <td class="text-muted">HOD Status:</td>
                                                             <td>
-                                                                <span class="badge badge-{{ $employee->department->head_of_department ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->department->head_of_department ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->department?->hod ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->department?->hod ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
                                                     </table>
 
-                                                    @if($employee->department->job_description)
+                                                    @if($employee->department && $employee->department->job_description)
                                                         <div class="mt-3">
                                                             <h6 class="text-muted">Job Description</h6>
                                                             <p>{{ $employee->department->job_description }}</p>
@@ -234,68 +238,71 @@
                                     <div class="tab-pane fade" id="financial" role="tabpanel" aria-labelledby="financial-tab">
                                         <div class="row">
                                             <!-- Bank Details -->
-                                            @if($employee->bankDetails->count() > 0)
+                                            @if($employee->bank)
                                                 <div class="col-12 mb-4">
                                                     <h6 class="text-primary mb-3">Bank Details</h6>
-                                                    @foreach($employee->bankDetails as $bank)
-                                                        <div class="card border mb-2">
-                                                            <div class="card-body py-2">
-                                                                <div class="row align-items-center">
-                                                                    <div class="col-md-3">
-                                                                        <strong>{{ $bank->bank_name }}</strong>
-                                                                        @if($bank->is_primary)
-                                                                            <span class="badge badge-primary badge-sm ml-1">Primary</span>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <small class="text-muted">Account:</small><br>
-                                                                        {{ $bank->bank_account_no }}
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <small class="text-muted">Branch:</small><br>
-                                                                        {{ $bank->branch }}
-                                                                    </div>
-                                                                    <div class="col-md-3">
-                                                                        <small class="text-muted">Amount:</small><br>
-                                                                        TZS {{ number_format($bank->amount, 2) }}
-                                                                    </div>
+                                                    <div class="card border mb-2">
+                                                        <div class="card-body py-2">
+                                                            <div class="row align-items-center">
+                                                                <div class="col-md-4">
+                                                                    <strong>{{ $employee->bank->bank_name ?? 'N/A' }}</strong>
+                                                                    @if($employee->is_primary_bank)
+                                                                        <span class="badge badge-primary badge-sm ml-1">Primary</span>
+                                                                    @endif
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <small class="text-muted">Account:</small><br>
+                                                                    {{ $employee->account_no ?? 'N/A' }}
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <small class="text-muted">Payment Method:</small><br>
+                                                                    {{ ucfirst($employee->payment_method ?? 'N/A') }}
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    @endforeach
+                                                    </div>
+                                                </div>
+                                            @else
+                                                <div class="col-12 mb-4">
+                                                    <h6 class="text-primary mb-3">Bank Details</h6>
+                                                    <p class="text-muted">No bank details available</p>
                                                 </div>
                                             @endif
 
                                             <!-- Salary Details -->
-                                            @if($employee->salaryDetails)
+                                            @if($employee->basic_salary)
                                                 <div class="col-12">
                                                     <h6 class="text-primary mb-3">Salary Information</h6>
                                                     <table class="table table-sm table-borderless">
                                                         <tr>
                                                             <td class="text-muted" width="30%">Basic Salary:</td>
                                                             <td class="text-success font-weight-bold">
-                                                                TZS {{ number_format($employee->salaryDetails->basic_salary, 2) }}
+                                                                TZS {{ number_format($employee->basic_salary, 2) }}
                                                             </td>
                                                         </tr>
-                                                        @if($employee->salaryDetails->total_payments)
+                                                        @if($employee->housing_allowance)
                                                             <tr>
-                                                                <td class="text-muted">Total Payments:</td>
-                                                                <td>TZS {{ number_format($employee->salaryDetails->total_payments, 2) }}</td>
+                                                                <td class="text-muted">Housing Allowance:</td>
+                                                                <td>TZS {{ number_format($employee->housing_allowance, 2) }}</td>
                                                             </tr>
                                                         @endif
-                                                        @if($employee->salaryDetails->net_salary)
+                                                        @if($employee->transport_allowance)
                                                             <tr>
-                                                                <td class="text-muted">Net Salary:</td>
-                                                                <td class="text-success">
-                                                                    TZS {{ number_format($employee->salaryDetails->net_salary, 2) }}
-                                                                </td>
+                                                                <td class="text-muted">Transport Allowance:</td>
+                                                                <td>TZS {{ number_format($employee->transport_allowance, 2) }}</td>
+                                                            </tr>
+                                                        @endif
+                                                        @if($employee->medical_allowance)
+                                                            <tr>
+                                                                <td class="text-muted">Medical Allowance:</td>
+                                                                <td>TZS {{ number_format($employee->medical_allowance, 2) }}</td>
                                                             </tr>
                                                         @endif
                                                         <tr>
-                                                            <td class="text-muted">Housing Allowance:</td>
+                                                            <td class="text-muted">PAYE Exempt:</td>
                                                             <td>
-                                                                <span class="badge badge-{{ $employee->salaryDetails->housing ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->salaryDetails->housing ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->paye_exempt ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->paye_exempt ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
@@ -309,67 +316,71 @@
                                     <div class="tab-pane fade" id="benefits" role="tabpanel" aria-labelledby="benefits-tab">
                                         <div class="row">
                                             <!-- Pension Details -->
-                                            @if($employee->pensionDetails)
+                                            @if($employee->pension_details)
                                                 <div class="col-md-6 mb-4">
                                                     <h6 class="text-primary mb-3">Pension Details</h6>
                                                     <table class="table table-sm table-borderless">
                                                         <tr>
                                                             <td class="text-muted" width="50%">Pension Enrolled:</td>
                                                             <td>
-                                                                <span class="badge badge-{{ $employee->pensionDetails->pension_details ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->pensionDetails->pension_details ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->pension_details ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->pension_details ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                        @if($employee->pensionDetails->pension)
+                                                        @if($employee->pension)
                                                             <tr>
                                                                 <td class="text-muted">Pension Fund:</td>
-                                                                <td>{{ $employee->pensionDetails->pension }}</td>
+                                                                <td>{{ $employee->pension->name ?? 'N/A' }}</td>
                                                             </tr>
                                                         @endif
-                                                        @if($employee->pensionDetails->employee_pension_no)
+                                                        @if($employee->employee_pension_no)
                                                             <tr>
                                                                 <td class="text-muted">Pension Number:</td>
-                                                                <td>{{ $employee->pensionDetails->employee_pension_no }}</td>
+                                                                <td>{{ $employee->employee_pension_no }}</td>
                                                             </tr>
                                                         @endif
-                                                        <tr>
-                                                            <td class="text-muted">Employer %:</td>
-                                                            <td>{{ $employee->pensionDetails->employer_percentage }}%</td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-muted">Employee %:</td>
-                                                            <td>{{ $employee->pensionDetails->employee_percentage }}%</td>
-                                                        </tr>
+                                                        @if($employee->employee_pension_amount)
+                                                            <tr>
+                                                                <td class="text-muted">Employee Amount:</td>
+                                                                <td>TZS {{ number_format($employee->employee_pension_amount, 2) }}</td>
+                                                            </tr>
+                                                        @endif
+                                                        @if($employee->employer_pension_amount)
+                                                            <tr>
+                                                                <td class="text-muted">Employer Amount:</td>
+                                                                <td>TZS {{ number_format($employee->employer_pension_amount, 2) }}</td>
+                                                            </tr>
+                                                        @endif
                                                     </table>
                                                 </div>
                                             @endif
 
                                             <!-- NHIF Details -->
-                                            @if($employee->nhifDetails)
+                                            @if($employee->nhif)
                                                 <div class="col-md-6 mb-4">
                                                     <h6 class="text-primary mb-3">NHIF Details</h6>
                                                     <table class="table table-sm table-borderless">
                                                         <tr>
                                                             <td class="text-muted" width="50%">NHIF Enrolled:</td>
                                                             <td>
-                                                                <span class="badge badge-{{ $employee->nhifDetails->nhif ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->nhifDetails->nhif ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->nhif ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->nhif ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Fixed Amount:</td>
                                                             <td>
-                                                                <span class="badge badge-{{ $employee->nhifDetails->nhif_fixed_amount ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->nhifDetails->nhif_fixed_amount ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->nhif_fixed_amount ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->nhif_fixed_amount ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                        @if($employee->nhifDetails->nhif_amount > 0)
+                                                        @if($employee->nhif_amount > 0)
                                                             <tr>
                                                                 <td class="text-muted">Amount:</td>
-                                                                <td>TZS {{ number_format($employee->nhifDetails->nhif_amount, 2) }}</td>
+                                                                <td>TZS {{ number_format($employee->nhif_amount, 2) }}</td>
                                                             </tr>
                                                         @endif
                                                     </table>
@@ -377,25 +388,25 @@
                                             @endif
 
                                             <!-- Overtime Details -->
-                                            @if($employee->overtimeDetails)
+                                            @if($employee->overtime_given)
                                                 <div class="col-12">
                                                     <h6 class="text-primary mb-3">Overtime Configuration</h6>
                                                     <table class="table table-sm table-borderless">
                                                         <tr>
                                                             <td class="text-muted" width="25%">Overtime Eligible:</td>
                                                             <td width="25%">
-                                                                <span class="badge badge-{{ $employee->overtimeDetails->overtime_given ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->overtimeDetails->overtime_given ? 'Yes' : 'No' }}
+                                                                <span class="badge badge-{{ $employee->overtime_given ? 'success' : 'secondary' }}">
+                                                                    {{ $employee->overtime_given ? 'Yes' : 'No' }}
                                                                 </span>
                                                             </td>
                                                             <td class="text-muted" width="25%">Weekday Rate:</td>
-                                                            <td>{{ $employee->overtimeDetails->overtime_rate_weekday }}x</td>
+                                                            <td>{{ $employee->overtime_rate_weekday }}x</td>
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Saturday Rate:</td>
-                                                            <td>{{ $employee->overtimeDetails->overtime_rate_saturday }}x</td>
+                                                            <td>{{ $employee->overtime_rate_saturday }}x</td>
                                                             <td class="text-muted">Weekend/Holiday Rate:</td>
-                                                            <td>{{ $employee->overtimeDetails->overtime_rate_weekend_holiday }}x</td>
+                                                            <td>{{ $employee->overtime_rate_weekend_holiday }}x</td>
                                                         </tr>
                                                     </table>
                                                 </div>
@@ -440,4 +451,4 @@
             border-top: 1px solid #dee2e6 !important;
         }
     </style>
-</x-app-layout> 
+</x-app-layout>

@@ -38,7 +38,8 @@
                                             <th>No</th>
                                             <th>Holiday Name</th>
                                             <th>Holiday Date</th>
-                                            <th>Status</th>
+                                            <th>Is Recurring</th>
+                                            <th>Description</th>
                                             <th class="text-right">Action</th>
                                         </tr>
                                     </thead>
@@ -51,12 +52,11 @@
                                                     <td>{{ \Carbon\Carbon::parse($holiday->holiday_date)->format('d/m/Y') }}
                                                     </td>
                                                     <td>
-                                                        <span
-                                                            class="badge
-                                                            {{ $holiday->status == 'Active' ? 'badge-success' : 'badge-danger' }}">
-                                                            {{ $holiday->status }}
+                                                        <span class="badge {{ $holiday->is_recurring ? 'badge-success' : 'badge-secondary' }}">
+                                                            {{ $holiday->is_recurring ? 'Yes' : 'No' }}
                                                         </span>
                                                     </td>
+                                                    <td>{{ $holiday->description ?? '-' }}</td>
                                                     <td class="text-right">
                                                         <div
                                                             style="display: flex; gap: 4px; justify-content: flex-end;">
@@ -65,7 +65,8 @@
                                                                 data-holiday-id="{{ $holiday->id }}"
                                                                 data-holiday-name="{{ $holiday->holiday_name }}"
                                                                 data-holiday-date="{{ $holiday->holiday_date }}"
-                                                                data-holiday-status="{{ $holiday->status }}">
+                                                                data-holiday-is-recurring="{{ $holiday->is_recurring ? 1 : 0 }}"
+                                                                data-holiday-description="{{ $holiday->description }}">
                                                                 <span class="fe fe-edit fe-16"></span>
                                                             </a>
 
@@ -84,7 +85,7 @@
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="5" class="text-center">No holiday found</td>
+                                                <td colspan="6" class="text-center">No holiday found</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -123,11 +124,15 @@
                                         <input type="date" class="form-control" name="holiday_date" required>
                                     </div>
                                     <div class="col-md-12 mb-3">
-                                        <label>Status</label>
-                                        <select class="form-control" name="status" required>
-                                            <option value="Active" selected>Active</option>
-                                            <option value="Inactive">Inactive</option>
+                                        <label>Is Recurring</label>
+                                        <select class="form-control" name="is_recurring">
+                                            <option value="0" selected>No</option>
+                                            <option value="1">Yes</option>
                                         </select>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label>Description</label>
+                                        <textarea class="form-control" name="description" rows="3" placeholder="Optional description"></textarea>
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -172,11 +177,15 @@
                                             name="holiday_date" required>
                                     </div>
                                     <div class="col-md-12 mb-3">
-                                        <label>Status</label>
-                                        <select class="form-control" id="editholidayStatus" name="status" required>
-                                            <option value="Active">Active</option>
-                                            <option value="Inactive">Inactive</option>
+                                        <label>Is Recurring</label>
+                                        <select class="form-control" id="editholidayIsRecurring" name="is_recurring">
+                                            <option value="0">No</option>
+                                            <option value="1">Yes</option>
                                         </select>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label>Description</label>
+                                        <textarea class="form-control" id="editholidayDescription" name="description" rows="3" placeholder="Optional description"></textarea>
                                     </div>
                                 </div>
 
@@ -198,12 +207,14 @@
                         const holidayId = this.getAttribute('data-holiday-id');
                         const holidayName = this.getAttribute('data-holiday-name');
                         const holidayDate = this.getAttribute('data-holiday-date');
-                        const holidayStatus = this.getAttribute('data-holiday-status');
+                        const holidayIsRecurring = this.getAttribute('data-holiday-is-recurring');
+                        const holidayDescription = this.getAttribute('data-holiday-description');
 
                         document.getElementById('editholidayForm').setAttribute('action', `/holiday/${holidayId}`);
                         document.getElementById('editholidayName').value = holidayName;
                         document.getElementById('editholidayDate').value = holidayDate;
-                        document.getElementById('editholidayStatus').value = holidayStatus;
+                        document.getElementById('editholidayIsRecurring').value = holidayIsRecurring;
+                        document.getElementById('editholidayDescription').value = holidayDescription;
 
                         $('#editholidayModal').modal('show');
                     });

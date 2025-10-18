@@ -44,7 +44,7 @@
                 <div class="w-100 mb-4 d-flex">
                     <a class="navbar-brand mx-auto mt-2 flex-fill text-center" href="./index.html">
 
-                        <img src="{{ asset('images/marslogo.png') }}" class="navbar-brand-img" alt="" style="height: 60px">
+                        <img src="{{ asset('images/logoNoBg.png') }}" class="navbar-brand-img" alt="" style="height: 60px">
                     </a>
                 </div>
 

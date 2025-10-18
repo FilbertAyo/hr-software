@@ -44,13 +44,13 @@
                                         @foreach ($nationalitys as $index => $nationality)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $nationality->nationality }}</td>
+                                                <td>{{ $nationality->nationality_name }}</td>
                                                 <td class="text-right">
                                                     <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                         <a href="javascript:void(0);"
                                                         class="btn btn-sm btn-primary edit-nationality-btn"
                                                         data-nationality-id="{{ $nationality->id }}"
-                                                        data-nationality-name="{{ $nationality->nationality }}">
+                                                        data-nationality-name="{{ $nationality->nationality_name }}">
                                                          <span class="fe fe-edit fe-16"></span>
                                                      </a>
 
@@ -99,7 +99,7 @@
                         <div class="form-row">
                             <div class="col-md-12 mb-3">
                                 <input type="text" class="form-control" id="validationCustom3"
-                                    name="nationality" required>
+                                    name="nationality_name" required>
                                 <div class="valid-feedback"> Looks good! </div>
                             </div>
 
@@ -134,7 +134,7 @@
 
             <div class="form-row">
                 <div class="col-md-12 mb-3">
-                    <input type="text" class="form-control" id="editnationalityName" name="nationality" required>
+                    <input type="text" class="form-control" id="editnationalityName" name="nationality_name" required>
                     <div class="valid-feedback"> Looks good! </div>
                 </div>
             </div>

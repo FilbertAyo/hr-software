@@ -31,13 +31,13 @@ class SubstationController extends Controller
     {
 
         $request->validate([
-            'sub_station' => 'required|string|max:255',
+            'substation_name' => 'required|string|max:255',
         ]);
 
         $substation = substation::findOrFail($id);
 
 
-        $substation->sub_station = $request->input('sub_station');
+        $substation->substation_name = $request->input('substation_name');
 
 
         $substation->save();

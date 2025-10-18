@@ -24,7 +24,6 @@
                         </div>
 
                     <div class="row my-2">
-                        <!-- Small table -->
 
                         @include('elements.spinner')
                         <div class="col-md-12">

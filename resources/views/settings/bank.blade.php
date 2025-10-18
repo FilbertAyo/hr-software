@@ -8,7 +8,7 @@
                                 <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">banks</a>
+                                            role="tab" aria-controls="home" aria-selected="true">Banks</a>
                                     </li>
 
                                 </ul>
@@ -35,7 +35,7 @@
                                          <thead class="thead-light">
                                             <tr>
                                                 <th>No</th>
-                                                <th>bank</th>
+                                                <th>bank name</th>
                                                 <th class="text-right">Action</th>
                                             </tr>
                                         </thead>

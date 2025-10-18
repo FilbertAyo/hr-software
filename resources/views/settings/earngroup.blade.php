@@ -44,13 +44,13 @@
                                                 @foreach ($earngroups as $index => $earngroup)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $earngroup->earn_group }}</td>
+                                                        <td>{{ $earngroup->earngroup_name }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-earngroup-btn"
                                                                 data-earngroup-id="{{ $earngroup->id }}"
-                                                                data-earngroup-name="{{ $earngroup->earn_group }}">
+                                                                data-earngroup-name="{{ $earngroup->earngroup_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -99,7 +99,7 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="earn_group" required>
+                                            name="earngroup_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
@@ -134,7 +134,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editearngroupName" name="earn_group" required>
+                            <input type="text" class="form-control" id="editearngroupName" name="earngroup_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

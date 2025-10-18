@@ -88,44 +88,27 @@
                                             </small>
                                         </div>
 
-                                        @if (Auth::user()->level == 0)
-                                            <div class="col-auto">
-                                                <div class="file-action">
-                                                    <button type="button"
-                                                        class="btn btn-link dropdown-toggle more-vertical p-0 text-muted mx-auto"
-                                                        data-toggle="dropdown" aria-haspopup="true"
-                                                        aria-expanded="false">
+
+                                        <div class="col-auto">
+                                            <div class="file-action">
+                                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                                    onclick="editUser({{ $user->id }}, '{{ $user->name }}', '{{ $user->email }}', '{{ $user->phone }}', {{ $user->roles->first()->id ?? 'null' }}, [{{ $user->companies->pluck('id')->implode(',') }}], '{{ $user->status }}')">
+                                                    <i class="fe fe-edit fe-15"></i>
+                                                </button>
+                                                @if($user->status === 'active')
+                                                    <button type="button" class="btn btn-sm btn-outline-danger ml-1"
+                                                        onclick="deactivateUser({{ $user->id }}, '{{ $user->name }}')">
+                                                        <i class="fe fe-user-x fe-15"></i>
                                                     </button>
-                                                    <div class="dropdown-menu m-2">
-                                                        <a class="dropdown-item" href="{{ route('users.edit', $user) }}">
-                                                            <i class="fe fe-edit fe-15 mr-4"></i>Edit
-                                                        </a>
-
-                                                        <a class="dropdown-item text-primary" href="#"
-                                                            onclick="event.preventDefault(); document.getElementById('toggle-status-{{ $user->id }}').submit();">
-                                                            <i class="fe fe-user fe-15 mr-4 text-primary"></i>
-                                                            {{ $user->status === 'active' ? 'Deactivate' : 'Activate' }}
-                                                        </a>
-                                                        <form id="toggle-status-{{ $user->id }}"
-                                                            action="{{ route('user.toggleStatus', $user->id) }}"
-                                                            method="POST" style="display: none;">
-                                                            @csrf
-                                                        </form>
-
-                                                        <form action="{{ route('user.destroy', $user->id) }}"
-                                                            method="POST"
-                                                            onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <button type="submit" class="dropdown-item text-danger">
-                                                                <i class="fe fe-delete fe-15 mr-4 text-danger"></i>Delete
-                                                            </button>
-                                                        </form>
-
-                                                    </div>
-                                                </div>
+                                                @else
+                                                    <button type="button" class="btn btn-sm btn-outline-success ml-1"
+                                                        onclick="activateUser({{ $user->id }}, '{{ $user->name }}')">
+                                                        <i class="fe fe-user-check fe-15"></i>
+                                                    </button>
+                                                @endif
                                             </div>
-                                        @endif
+                                        </div>
+
 
                                     </div>
                                 </div>
@@ -140,16 +123,12 @@
         <!-- Create User Modal -->
         <div class="modal fade modal-full" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel"
             data-backdrop="static" aria-hidden="true">
-            <button aria-label="" type="button" class="close p-3" data-dismiss="modal" aria-hidden="true"
-                style="position: absolute; right: 20px; top: 20px; z-index: 1051;">
-                <span aria-hidden="true" style="font-size: 3rem;" class="text-danger">×</span>
-            </button>
 
-            <div class="modal-dialog bg-white" role="document" style="width: 100%; max-width: 800px;">
+
+            <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <form method="POST" action="{{ url('/register') }}" validate
-                            style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                        <form method="POST" action="{{ route('user.register') }}" validate>
                             @csrf
 
                             <div class="form-row text-center">
@@ -213,16 +192,20 @@
                                     @enderror
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="companies">Companies (Optional)</label>
-                                    <select class="form-control" id="companies" name="companies[]" multiple>
+                                    <label>Companies (Optional)</label>
+                                    <div class="form-group">
                                         @foreach($companies as $company)
-                                            <option value="{{ $company->id }}"
-                                                {{ in_array($company->id, old('companies', [])) ? 'selected' : '' }}>
-                                                {{ $company->name }}
-                                            </option>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="companies[]"
+                                                    value="{{ $company->id }}" id="company_{{ $company->id }}"
+                                                    {{ in_array($company->id, old('companies', [])) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="company_{{ $company->id }}">
+                                                    {{ $company->company_name }}
+                                                </label>
+                                            </div>
                                         @endforeach
-                                    </select>
-                                    <small class="text-muted">Hold Ctrl/Cmd to select multiple companies</small>
+                                    </div>
+                                    <small class="text-muted">Select one or more companies</small>
                                 </div>
                             </div>
 
@@ -234,11 +217,207 @@
                 </div>
             </div>
         </div>
+
+        <!-- Edit User Modal -->
+        <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" id="editUserForm" validate>
+                            @csrf
+                            @method('PUT')
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_name">Name</label>
+                                    <input type="text" class="form-control @error('name') is-invalid @enderror"
+                                        id="edit_name" name="name" required>
+                                    @error('name')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_email">Email</label>
+                                    <input type="email" class="form-control @error('email') is-invalid @enderror"
+                                        id="edit_email" name="email" required>
+                                    @error('email')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_phone">Phone</label>
+                                    <input type="text" class="form-control @error('phone') is-invalid @enderror"
+                                        id="edit_phone" name="phone">
+                                    @error('phone')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_status">Status</label>
+                                    <select class="form-control @error('status') is-invalid @enderror"
+                                        id="edit_status" name="status" required>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                    </select>
+                                    @error('status')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_password">Password</label>
+                                    <input type="password" class="form-control @error('password') is-invalid @enderror"
+                                        id="edit_password" name="password" placeholder="Leave blank to keep current password">
+                                    @error('password')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                    <small class="text-muted">Leave blank to keep current password</small>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="edit_role_id">Role</label>
+                                    <select class="form-control @error('role_id') is-invalid @enderror"
+                                        id="edit_role_id" name="role_id" required>
+                                        <option value="">Select Role</option>
+                                        @foreach($roles as $role)
+                                            <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('role_id')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label>Companies</label>
+                                    <div class="form-group">
+                                        @foreach($companies as $company)
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="companies[]"
+                                                    value="{{ $company->id }}" id="edit_company_{{ $company->id }}">
+                                                <label class="form-check-label" for="edit_company_{{ $company->id }}">
+                                                    {{ $company->company_name }}
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <small class="text-muted">Select one or more companies</small>
+                                </div>
+                            </div>
+
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="submit" form="editUserForm" class="btn btn-primary">
+                            <i class="fe fe-save fe-16 mr-2"></i>Update User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
         function reloadPage() {
             window.location.reload();
+        }
+
+        function editUser(userId, name, email, phone, roleId, companyIds, status) {
+            // Set form action
+            document.getElementById('editUserForm').action = '/users/' + userId;
+
+            // Fill form fields
+            document.getElementById('edit_name').value = name;
+            document.getElementById('edit_email').value = email;
+            document.getElementById('edit_phone').value = phone || '';
+            document.getElementById('edit_password').value = '';
+            document.getElementById('edit_status').value = status || 'active';
+
+            // Set role
+            if (roleId) {
+                document.getElementById('edit_role_id').value = roleId;
+            }
+
+            // Set companies
+            // First, uncheck all company checkboxes
+            document.querySelectorAll('input[name="companies[]"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Then check the ones that were selected
+            if (companyIds && companyIds.length > 0) {
+                companyIds.forEach(companyId => {
+                    const checkbox = document.getElementById('edit_company_' + companyId);
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
+                });
+            }
+
+            // Show modal
+            $('#editUserModal').modal('show');
+        }
+
+        function deactivateUser(userId, userName) {
+            if (confirm('Are you sure you want to deactivate ' + userName + '?')) {
+                // Create a form to submit the deactivation
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/users/' + userId + '/deactivate';
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'PATCH';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function activateUser(userId, userName) {
+            if (confirm('Are you sure you want to activate ' + userName + '?')) {
+                // Create a form to submit the activation
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/users/' + userId + '/activate';
+
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+
+                const methodField = document.createElement('input');
+                methodField.type = 'hidden';
+                methodField.name = '_method';
+                methodField.value = 'PATCH';
+
+                form.appendChild(csrfToken);
+                form.appendChild(methodField);
+                document.body.appendChild(form);
+                form.submit();
+            }
         }
     </script>
 </x-app-layout>

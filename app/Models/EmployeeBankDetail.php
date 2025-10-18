@@ -12,6 +12,8 @@ class EmployeeBankDetail extends Model
     protected $fillable = [
         'employee_id',
         'is_primary',
+        'bank_id',
+        'account_no',
         'bank_name',
         'branch',
         'branch_code',
@@ -28,5 +30,10 @@ class EmployeeBankDetail extends Model
     public function employee()
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function bank()
+    {
+        return $this->belongsTo(Bank::class);
     }
 }

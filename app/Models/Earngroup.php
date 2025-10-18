@@ -7,6 +7,6 @@ use Illuminate\Database\Eloquent\Model;
 class Earngroup extends Model
 {
     protected $fillable = [
-        'earn_group',
+        'earngroup_name',
     ];
 }

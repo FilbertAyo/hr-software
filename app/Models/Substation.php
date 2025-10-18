@@ -7,12 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Substation extends Model
 {
     protected $fillable = [
-        'sub_station',
-        'main_station_id'
+        'substation_name',
+        'mainstation_id'
     ];
 
     public function mainstation()
     {
-        return $this->belongsTo(Mainstation::class, 'main_station_id'); // Specify foreign key explicitly if needed
+        return $this->belongsTo(Mainstation::class, 'mainstation_id'); // Specify foreign key explicitly if needed
     }
 }

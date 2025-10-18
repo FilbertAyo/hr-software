@@ -25,7 +25,6 @@
                 </div>
 
                 <div class="row my-2">
-                    <!-- Small table -->
 
                     @include('elements.spinner')
                     <div class="col-md-12">
@@ -38,45 +37,32 @@
                                             <th>No</th>
                                             <th>payperiod</th>
                                             <th>Status</th>
-                                            <th class="text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @if ($payperiods->count() > 0)
                                             @foreach ($payperiods as $index => $payperiod)
-                                                <tr>
+                                                <tr class="{{ $payperiod->status === 'closed' ? 'table-secondary' : '' }}">
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $payperiod->period_name }}</td>
                                                     <td>
-                                                        {{ $payperiod->status }}
+                                                        {{ $payperiod->period_name }}
+                                                        @if($payperiod->status === 'draft')
+                                                            <span class="badge badge-warning ml-2">Current</span>
+                                                        @elseif($payperiod->status === 'closed')
+                                                            <span class="badge badge-secondary ml-2">Closed</span>
+                                                        @endif
                                                     </td>
-                                                    <td class="text-right">
-                                                        <div
-                                                            style="display: flex; gap: 4px; justify-content: flex-end;">
-                                                            <a href="javascript:void(0);"
-                                                                class="btn btn-sm btn-primary edit-payperiod-btn"
-                                                                data-payperiod-id="{{ $payperiod->id }}"
-                                                                data-payperiod-name="{{ $payperiod->payperiod }}">
-                                                                <span class="fe fe-edit fe-16"></span>
-                                                            </a>
+                                                    <td>
+                                                        <span class="badge badge-{{ $payperiod->status === 'draft' ? 'success' : ($payperiod->status === 'closed' ? 'secondary' : 'info') }}">
+                                                            {{ ucfirst($payperiod->status) }}
+                                                        </span>
+                                                    </td>
 
-                                                            <form
-                                                                action="{{ route('payperiod.destroy', $payperiod->id) }}"
-                                                                method="POST"
-                                                                onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                                    <span class="fe fe-trash-2 fe-16"></span>
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
                                                 </tr>
                                             @endforeach
                                         @else
                                             <tr>
-                                                <td colspan="3" class="text-center">No payperiod found</td>
+                                                <td colspan="4" class="text-center">No payroll periods found for this company</td>
                                             </tr>
                                         @endif
                                     </tbody>
@@ -107,12 +93,13 @@
 
                                 <div class="form-row">
                                     @php
-                                        $selMonth = old('month', $month ?? now()->month);
-                                        $selYear = old('year', $year ?? now()->year);
+                                        $selMonth = old('month', $nextMonthYear['month'] ?? now()->month);
+                                        $selYear = old('year', $nextMonthYear['year'] ?? now()->year);
                                     @endphp
 
                                     <div class="col-md-6">
-                                        <select name="month" class="form-control" required>
+                                        <label for="month">Month</label>
+                                        <select name="month" class="form-control" readonly>
                                             @for ($i = 1; $i <= 12; $i++)
                                                 <option value="{{ $i }}"
                                                     {{ $selMonth == $i ? 'selected' : '' }}>
@@ -123,7 +110,8 @@
                                     </div>
 
                                     <div class="col-md-6">
-                                        <select name="year" class="form-control" required>
+                                        <label for="year">Year</label>
+                                        <select name="year" class="form-control" readonly>
                                             @for($i = date('Y') - 2; $i <= date('Y') + 1; $i++)
                                                 <option value="{{ $i }}" {{ $selYear == $i ? 'selected' : '' }}>
                                                     {{ $i }}
@@ -132,6 +120,23 @@
                                         </select>
                                     </div>
                                 </div>
+
+                                @if(isset($nextMonthYear))
+                                <div class="alert alert-{{ $nextMonthYear['is_first_period'] ? 'success' : 'info' }} mt-2">
+                                    <small>
+                                        <i class="fe fe-{{ $nextMonthYear['is_first_period'] ? 'calendar' : 'info' }}"></i>
+                                        @if($nextMonthYear['is_first_period'])
+                                            <strong>First Payroll Period:</strong> {{ $nextMonthYear['month_name'] }} {{ $nextMonthYear['year'] }}
+                                            @if($company->start_month && $company->start_year)
+                                                <br><small>Based on company start date: {{ $company->start_month }} {{ $company->start_year }}</small>
+                                            @endif
+                                        @else
+                                            <strong>Next available period:</strong> {{ $nextMonthYear['month_name'] }} {{ $nextMonthYear['year'] }}
+                                            <br><small>Previous periods will be automatically closed when this one is created</small>
+                                        @endif
+                                    </small>
+                                </div>
+                                @endif
 
                                 <div class="modal-footer">
                                     <button type="button" class="btn mb-2 btn-secondary"
@@ -146,59 +151,15 @@
                 </div>
 
 
-                <!-- Edit payperiod Modal -->
-                <div class="modal fade" id="editpayperiodModal" tabindex="-1" role="dialog"
-                    aria-labelledby="editpayperiodModalLabel" aria-hidden="true">
-                    <div class="modal-dialog" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="editpayperiodModalLabel">Edit payperiod</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <form method="POST" action="" id="editpayperiodForm">
-                                    @csrf
-                                    @method('PUT')
 
-                                    <div class="form-row">
-                                        <div class="col-md-12 mb-3">
-                                            <input type="text" class="form-control" id="editpayperiodName"
-                                                name="payperiod" required>
-                                            <div class="valid-feedback"> Looks good! </div>
-                                        </div>
-                                    </div>
 
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn mb-2 btn-secondary"
-                                            data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <script>
-                    document.querySelectorAll('.edit-payperiod-btn').forEach(button => {
-                        button.addEventListener('click', function() {
-                            const payperiodId = this.getAttribute('data-payperiod-id');
-                            const payperiodName = this.getAttribute('data-payperiod-name');
-
-                            // Set the form's action attribute to the route for updating the payperiod
-                            document.getElementById('editpayperiodForm').setAttribute('action',
-                                `/payperiod/${payperiodId}`);
-
-                            // Populate the payperiod name in the modal
-                            document.getElementById('editpayperiodName').value = payperiodName;
-
-                            // Show the modal
-                            $('#editpayperiodModal').modal('show');
-                        });
-                    });
-                </script>
+                <style>
+                    select[readonly] {
+                        background-color: #f8f9fa;
+                        cursor: not-allowed;
+                        opacity: 0.8;
+                    }
+                </style>
 
 
 

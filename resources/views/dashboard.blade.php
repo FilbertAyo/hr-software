@@ -16,7 +16,6 @@
 
                                 </ul>
                             </div>
-
                         </div>
 
 
@@ -37,9 +36,8 @@
 
                                                     <span id="days">0</span>
                                                     <label>Days</label>
-
                                                 </span>
-                                            
+
                                             </div>
                                         </div>
                                     </div>
@@ -176,7 +174,7 @@
                                         </div>
                                     </div>
                                 </div> <!-- / .row -->
-                            </div> <!-- / .list-group -->
+                            </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary btn-block" data-dismiss="modal">Clear

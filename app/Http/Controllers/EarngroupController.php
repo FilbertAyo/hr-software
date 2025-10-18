@@ -9,14 +9,14 @@ class EarngroupController extends Controller
 {
     public function index()
     {
-        $earngroups = earngroup::all();
+        $earngroups = Earngroup::all();
 
         return view("settings.earngroup", compact("earngroups"));
     }
 
     public function store(Request $request)
     {
-        $earngroup = earngroup::create($request->all());
+        $earngroup = Earngroup::create($request->all());
 
         return redirect()->back()->with('success','earngroup added successfully');
     }
@@ -26,13 +26,13 @@ class EarngroupController extends Controller
     {
 
         $request->validate([
-            'earn_group' => 'required|string|max:255',
+            'earngroup_name' => 'required|string|max:255',
         ]);
 
-        $earngroup = earngroup::findOrFail($id);
+        $earngroup = Earngroup::findOrFail($id);
 
 
-        $earngroup->earn_group = $request->input('earn_group');
+        $earngroup->earngroup_name = $request->input('earngroup_name');
 
 
         $earngroup->save();
@@ -41,7 +41,7 @@ class EarngroupController extends Controller
 
     public function destroy(string $id)
     {
-        $earngroup = earngroup::find($id);
+        $earngroup = Earngroup::find($id);
 
     if ($earngroup) {
         $earngroup->delete();

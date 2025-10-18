@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\PayrollPeriod;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CompanyController extends Controller
 {
@@ -30,9 +33,43 @@ class CompanyController extends Controller
      */
     public function store(Request $request)
     {
-        $company = company::create($request->all());
+        // Validate the request
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'start_month' => 'nullable|string|in:January,February,March,April,May,June,July,August,September,October,November,December',
+            'start_year' => 'nullable|integer|min:1900|max:2099',
+        ]);
 
-        return redirect()->back()->with('success', 'company added successfully');
+        $company = Company::create($request->all());
+
+        $message = 'Company added successfully';
+
+        // Create the first payroll period if start month and year are provided
+        if ($company->start_month && $company->start_year) {
+            $this->createFirstPayrollPeriod($company);
+            $message .= ' and first payroll period (' . $company->start_month . ' ' . $company->start_year . ') created automatically';
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Create the first payroll period for a new company
+     */
+    private function createFirstPayrollPeriod($company)
+    {
+        $monthNumber = \Carbon\Carbon::parse($company->start_month . ' 1')->month;
+        $periodName = \Carbon\Carbon::createFromDate($company->start_year, $monthNumber, 1)->format('F Y');
+        $startDate = \Carbon\Carbon::createFromDate($company->start_year, $monthNumber, 1)->startOfMonth();
+        $endDate = \Carbon\Carbon::createFromDate($company->start_year, $monthNumber, 1)->endOfMonth();
+
+        PayrollPeriod::create([
+            'period_name' => $periodName,
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+            'status' => 'draft',
+            'company_id' => $company->id,
+        ]);
     }
 
     public function show(string $id)
@@ -81,5 +118,49 @@ class CompanyController extends Controller
         }
     }
 
-    
+    /**
+     * Switch to a different company
+     */
+    public function switch(Request $request)
+    {
+        $request->validate([
+            'company_id' => 'required|exists:companies,id'
+        ]);
+
+        $companyId = $request->input('company_id');
+        $user = Auth::user();
+
+        // Check if user has access to the selected company
+        if (!$user->companies()->where('company_id', $companyId)->exists()) {
+            return redirect()->back()->with('error', 'You do not have access to the selected company.');
+        }
+
+        // Update session with new company
+        session(['selected_company_id' => $companyId]);
+
+        $company = Company::find($companyId);
+        session(['selected_company' => $company]);
+
+        // Get current payroll period for the new company
+        $currentPayrollPeriod = $company->payrollPeriods()
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if ($currentPayrollPeriod) {
+            session(['current_payroll_period' => $currentPayrollPeriod]);
+        } else {
+            // If no current period, get the latest one
+            $latestPayrollPeriod = $company->payrollPeriods()
+                ->orderBy('start_date', 'desc')
+                ->first();
+
+            if ($latestPayrollPeriod) {
+                session(['current_payroll_period' => $latestPayrollPeriod]);
+            }
+        }
+
+        return redirect()->back()->with('success', 'Company switched successfully.');
+    }
+
 }

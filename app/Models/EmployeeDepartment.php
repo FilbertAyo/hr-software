@@ -19,7 +19,7 @@ class EmployeeDepartment extends Model
         'jobtitle_id',
         'staff_level_id',
         'wcf_no',
-        'head_of_department',
+        'hod',
     ];
 
     protected $casts = [
@@ -53,6 +53,6 @@ class EmployeeDepartment extends Model
 
     public function staffLevel()
     {
-        return $this->belongsTo(StaffLevel::class);
+        return $this->belongsTo(StaffLevel::class, 'staff_level_id');
     }
 }

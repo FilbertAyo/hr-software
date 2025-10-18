@@ -8,7 +8,7 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                    role="tab" aria-controls="home" aria-selected="true">terminations</a>
+                                    role="tab" aria-controls="home" aria-selected="true">Terminations</a>
                             </li>
 
                         </ul>
@@ -35,7 +35,7 @@
                                  <thead class="thead-light">
                                     <tr>
                                         <th>No</th>
-                                        <th>termination</th>
+                                        <th>Termination Type</th>
                                         <th class="text-right">Action</th>
                                     </tr>
                                 </thead>
@@ -44,13 +44,13 @@
                                         @foreach ($terminations as $index => $termination)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $termination->termination }}</td>
+                                                <td>{{ $termination->termination_type }}</td>
                                                 <td class="text-right">
                                                     <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                         <a href="javascript:void(0);"
                                                         class="btn btn-sm btn-primary edit-termination-btn"
                                                         data-termination-id="{{ $termination->id }}"
-                                                        data-termination-name="{{ $termination->termination }}">
+                                                        data-termination-name="{{ $termination->termination_type }}">
                                                          <span class="fe fe-edit fe-16"></span>
                                                      </a>
 
@@ -99,7 +99,7 @@
                         <div class="form-row">
                             <div class="col-md-12 mb-3">
                                 <input type="text" class="form-control" id="validationCustom3"
-                                    name="termination" required>
+                                    name="termination_type" required>
                                 <div class="valid-feedback"> Looks good! </div>
                             </div>
 
@@ -134,7 +134,7 @@
 
             <div class="form-row">
                 <div class="col-md-12 mb-3">
-                    <input type="text" class="form-control" id="editterminationName" name="termination" required>
+                    <input type="text" class="form-control" id="editterminationName" name="termination_type" required>
                     <div class="valid-feedback"> Looks good! </div>
                 </div>
             </div>

@@ -39,12 +39,18 @@
 
         @if (Auth::user()->status == 'active')
             <main role="main" class="main-content">
-                {{ $slot }}
-            </main> <!-- main -->
+                <div class="container">
+                    <div class="row justify-content-center">
+                        <div class="col-12">
+                            {{ $slot }}
+                        </div>
+                    </div>
+                </div>
+            </main>
         @else
             @include('errors.deactivated')
         @endif
-    </div> <!-- .wrapper -->
+    </div>
 
 
     <script src="{{ asset('js/jquery.min.js') }}"></script>

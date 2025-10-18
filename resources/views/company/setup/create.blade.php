@@ -123,8 +123,8 @@
                                                    value="{{ old('vat_no') }}">
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="start_month">Start Month</label>
-                                            <select class="form-control" name="start_month">
+                                            <label for="start_month">Start Month <small class="text-muted">(First Payroll Period)</small></label>
+                                            <select class="form-control" name="start_month" id="start_month">
                                                 <option value="">Select Month</option>
                                                 <option value="January" {{ old('start_month') == 'January' ? 'selected' : '' }}>January</option>
                                                 <option value="February" {{ old('start_month') == 'February' ? 'selected' : '' }}>February</option>
@@ -139,16 +139,37 @@
                                                 <option value="November" {{ old('start_month') == 'November' ? 'selected' : '' }}>November</option>
                                                 <option value="December" {{ old('start_month') == 'December' ? 'selected' : '' }}>December</option>
                                             </select>
+                                            @error('start_month')
+                                                <div class="text-danger">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="start_year">Start Year</label>
-                                            <input type="number" class="form-control" name="start_year"
+                                            <label for="start_year">Start Year <small class="text-muted">(First Payroll Period)</small></label>
+                                            <input type="number" class="form-control" name="start_year" id="start_year"
                                                    min="1900" max="2099" value="{{ old('start_year') }}">
+                                            @error('start_year')
+                                                <div class="text-danger">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="col-md-3">
                                             <label for="leave_accumulation_per_month">Leave Accumulation Per Month</label>
                                             <input type="number" class="form-control" name="leave_accumulation_per_month"
                                                    step="0.01" value="{{ old('leave_accumulation_per_month') }}">
+                                        </div>
+                                    </div>
+
+                                    <!-- Payroll Period Information -->
+                                    <div class="form-row mb-3">
+                                        <div class="col-md-12">
+                                            <div class="alert alert-info">
+                                                <h6><i class="fe fe-info"></i> Payroll Period Information</h6>
+                                                <p class="mb-0">
+                                                    <strong>If you provide Start Month and Start Year:</strong><br>
+                                                    • The first payroll period will be created automatically<br>
+                                                    • Future payroll periods will be created sequentially (next month)<br>
+                                                    • Previous periods will be closed when creating new ones
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -329,4 +350,36 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Show preview of payroll period that will be created
+        function updatePayrollPreview() {
+            const startMonth = document.getElementById('start_month').value;
+            const startYear = document.getElementById('start_year').value;
+            const previewDiv = document.getElementById('payroll-preview');
+
+            if (startMonth && startYear) {
+                if (!previewDiv) {
+                    // Create preview div if it doesn't exist
+                    const preview = document.createElement('div');
+                    preview.id = 'payroll-preview';
+                    preview.className = 'alert alert-success mt-2';
+                    preview.innerHTML = '<i class="fe fe-calendar"></i> <strong>Payroll Period Preview:</strong> <span id="preview-text"></span>';
+                    document.getElementById('start_year').parentNode.parentNode.appendChild(preview);
+                }
+
+                document.getElementById('preview-text').textContent = `${startMonth} ${startYear} will be created automatically`;
+                document.getElementById('payroll-preview').style.display = 'block';
+            } else if (previewDiv) {
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        // Add event listeners
+        document.getElementById('start_month').addEventListener('change', updatePayrollPreview);
+        document.getElementById('start_year').addEventListener('input', updatePayrollPreview);
+
+        // Initial call
+        updatePayrollPreview();
+    </script>
 </x-app-layout>

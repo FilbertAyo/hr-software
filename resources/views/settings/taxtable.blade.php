@@ -8,19 +8,17 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">taxtables</a>
+                                    aria-controls="home" aria-selected="true">Tax tables/ PAYE</a>
                             </li>
-
                         </ul>
                     </div>
                     <div class="col-auto">
-
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
-                        <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
+                        {{-- <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
                             data-target="#varyModal" data-whatever="@mdo">New taxtable<span
-                                class="fe fe-plus fe-16 ml-2"></span></button>
+                                class="fe fe-plus fe-16 ml-2"></span></button> --}}
                     </div>
                 </div>
 
@@ -33,7 +31,7 @@
                             <div class="card-body">
 
                                 <table class="table table-bordered datatables" id="dataTable-1">
-                                     <thead class="thead-light">
+                                    <thead class="thead-light">
                                         <tr>
                                             <th>No</th>
                                             <th>Min</th>
@@ -44,155 +42,104 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @if ($taxtables->count() > 0)
-                                            @foreach ($taxtables as $index => $taxtable)
-                                                <tr>
-                                                    <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $taxtable->min }}</td>
-                                                    <td>{{ $taxtable->max }}</td>
-                                                    <td>{{ $taxtable->tax_percent }}</td>
-                                                    <td>{{ $taxtable->add_amount }}</td>
-                                                    <td class="text-right">
-                                                        <div style="display: flex; gap: 4px; justify-content: flex-end;">
-                                                            <a href="javascript:void(0);"
-                                                               class="btn btn-sm btn-primary edit-taxtable-btn"
-                                                               data-taxtable-id="{{ $taxtable->id }}"
-                                                               data-min="{{ $taxtable->min }}"
-                                                               data-max="{{ $taxtable->max }}"
-                                                               data-tax-percent="{{ $taxtable->tax_percent }}"
-                                                               data-add-amount="{{ $taxtable->add_amount }}">
-                                                                <span class="fe fe-edit fe-16"></span>
-                                                            </a>
-
-                                                            <form action="{{ route('taxtable.destroy', $taxtable->id) }}" method="POST"
-                                                                  onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                                    <span class="fe fe-trash-2 fe-16"></span>
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        @else
+                                        @foreach ($taxtables as $index => $taxtable)
                                             <tr>
-                                                <td colspan="6" class="text-center">No taxtable found</td>
+                                                <td>{{ $index + 1 }}</td>
+                                                <td>{{ $taxtable->min_income }}</td>
+                                                <td>{{ $taxtable->max_income }}</td>
+                                                <td>{{ $taxtable->rate_percentage }}</td>
+                                                <td>{{ $taxtable->fixed_amount }}</td>
+                                                <td class="text-right">
+                                                    <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                                                        <a href="javascript:void(0);"
+                                                            class="btn btn-sm btn-primary edit-taxtable-btn"
+                                                            data-taxtable-id="{{ $taxtable->id }}"
+                                                            data-min="{{ $taxtable->min_income }}"
+                                                            data-max="{{ $taxtable->max_income }}"
+                                                            data-tax-percent="{{ $taxtable->rate_percentage }}"
+                                                            data-add-amount="{{ $taxtable->fixed_amount }}">
+                                                            <span class="fe fe-edit fe-16"></span>
+                                                        </a>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        @endif
+                                        @endforeach
                                     </tbody>
                                 </table>
-
 
                             </div>
                         </div>
                     </div> <!-- simple table -->
-
-
                 </div> <!-- .row -->
             </div> <!-- .container-fluid -->
 
+            <div class="modal fade" id="edittaxtableModal" tabindex="-1" role="dialog"
+                aria-labelledby="edittaxtableModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="edittaxtableModalLabel">Edit Tax Table</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="POST" action="" id="edittaxtableForm">
+                                @csrf
+                                @method('PUT')
 
-            <!-- Add Tax Table Modal -->
-<div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="varyModalLabel">New Tax Table</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="{{ route('taxtable.store') }}" validate>
-                    @csrf
+                                <div class="form-row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="">Minimum Amount</label>
+                                        <input type="number" step="0.01" class="form-control" id="editMin"
+                                            name="min_income" placeholder="Min" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="">Maximum Amount</label>
+                                        <input type="number" step="0.01" class="form-control" id="editMax"
+                                            name="max_income" placeholder="Max" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="">Tax Percentage</label>
+                                        <input type="number" step="0.01" class="form-control" id="editTaxPercent"
+                                            name="rate_percentage" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="">Additional Amount</label>
+                                        <input type="number" step="0.01" class="form-control" id="editAddAmount"
+                                            name="fixed_amount" required>
+                                    </div>
+                                </div>
 
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" name="min" placeholder="Min" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" name="max" placeholder="Max" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" name="tax_percent" placeholder="Tax %" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" name="add_amount" placeholder="Additional Amount" required>
-                        </div>
-                    </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn mb-2 btn-primary">Save and Close</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Tax Table Modal -->
-<div class="modal fade" id="edittaxtableModal" tabindex="-1" role="dialog" aria-labelledby="edittaxtableModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="edittaxtableModalLabel">Edit Tax Table</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form method="POST" action="" id="edittaxtableForm">
-                    @csrf
-                    @method('PUT')
-
-                    <div class="form-row">
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" id="editMin" name="min" placeholder="Min" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" id="editMax" name="max" placeholder="Max" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" id="editTaxPercent" name="tax_percent" placeholder="Tax %" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <input type="number" step="0.01" class="form-control" id="editAddAmount" name="add_amount" placeholder="Additional Amount" required>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn mb-2 btn-secondary"
+                                        data-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
-                        <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
-                    </div>
-                </form>
+                </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<script>
-    document.querySelectorAll('.edit-taxtable-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const taxtableId = this.getAttribute('data-taxtable-id');
-            const min = this.getAttribute('data-min');
-            const max = this.getAttribute('data-max');
-            const taxPercent = this.getAttribute('data-tax-percent');
-            const addAmount = this.getAttribute('data-add-amount');
+            <script>
+                document.querySelectorAll('.edit-taxtable-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const taxtableId = this.getAttribute('data-taxtable-id');
+                        const min = this.getAttribute('data-min');
+                        const max = this.getAttribute('data-max');
+                        const taxPercent = this.getAttribute('data-tax-percent');
+                        const addAmount = this.getAttribute('data-add-amount');
 
-            document.getElementById('edittaxtableForm').setAttribute('action', `/taxtable/${taxtableId}`);
-            document.getElementById('editMin').value = min;
-            document.getElementById('editMax').value = max;
-            document.getElementById('editTaxPercent').value = taxPercent;
-            document.getElementById('editAddAmount').value = addAmount;
+                        document.getElementById('edittaxtableForm').setAttribute('action',
+                            `/taxtable/${taxtableId}`);
+                        document.getElementById('editMin').value = min;
+                        document.getElementById('editMax').value = max;
+                        document.getElementById('editTaxPercent').value = taxPercent;
+                        document.getElementById('editAddAmount').value = addAmount;
 
-            $('#edittaxtableModal').modal('show');
-        });
-    });
-</script>
-
-
-
+                        $('#edittaxtableModal').modal('show');
+                    });
+                });
+            </script>
 </x-app-layout>

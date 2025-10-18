@@ -8,7 +8,7 @@
                                 <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">reportings  method</a>
+                                            role="tab" aria-controls="home" aria-selected="true">Reportings  method</a>
                                     </li>
 
                                 </ul>
@@ -35,22 +35,22 @@
                                          <thead class="thead-light">
                                             <tr>
                                                 <th>No</th>
-                                                <th>reporting</th>
+                                                <th>method</th>
                                                 <th class="text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if ($reportings->count() > 0)
                                                 @foreach ($reportings as $index => $reporting)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $reporting->reporting }}</td>
+                                                        <td>{{ $reporting->reporting_name }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-reporting-btn"
                                                                 data-reporting-id="{{ $reporting->id }}"
-                                                                data-reporting-name="{{ $reporting->reporting }}">
+                                                                data-reporting-name="{{ $reporting->reporting_name }}"
+                                                                data-description="{{ $reporting->description }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -66,11 +66,7 @@
                                                         </td>
                                                     </tr>
                                                 @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="3" class="text-center">No reporting method found</td>
-                                                </tr>
-                                            @endif
+                                         
                                         </tbody>
                                     </table>
 
@@ -98,11 +94,15 @@
 
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
-                                        <input type="text" class="form-control" id="validationCustom3"
-                                            name="reporting" required>
+                                        <label for="reporting_name">Reporting Method</label>
+                                        <input type="text" class="form-control" id="reporting_name"
+                                            name="reporting_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
-
+                                    <div class="col-md-12 mb-3">
+                                        <label for="description">Description</label>
+                                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                                    </div>
                                 </div>
 
                                 <div class="modal-footer">
@@ -134,8 +134,13 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editreportingName" name="reporting" required>
+                            <label for="editreportingName">Reporting Method</label>
+                            <input type="text" class="form-control" id="editreportingName" name="reporting_name" required>
                             <div class="valid-feedback"> Looks good! </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="editDescription">Description</label>
+                            <textarea class="form-control" id="editDescription" name="description" rows="3"></textarea>
                         </div>
                     </div>
 
@@ -154,12 +159,14 @@
     button.addEventListener('click', function () {
         const reportingId = this.getAttribute('data-reporting-id');
         const reportingName = this.getAttribute('data-reporting-name');
+        const description = this.getAttribute('data-description') || '';
 
         // Set the form's action attribute to the route for updating the reporting
         document.getElementById('editreportingForm').setAttribute('action', `/reporting/${reportingId}`);
 
-        // Populate the reporting name in the modal
+        // Populate the reporting name and description in the modal
         document.getElementById('editreportingName').value = reportingName;
+        document.getElementById('editDescription').value = description;
 
         // Show the modal
         $('#editreportingModal').modal('show');

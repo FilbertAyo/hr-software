@@ -16,7 +16,11 @@ class EmployeeSalaryDetail extends Model
         'net_salary',
         'housing',
         'advance_salary',
-        'advance_rate'
+        'advance_option',
+        'advance_percentage',
+        'advance_salary',
+        'advance_rate',
+        'paye_exempt',
     ];
 
     protected $casts = [
@@ -24,8 +28,10 @@ class EmployeeSalaryDetail extends Model
         'total_payments' => 'decimal:2',
         'net_salary' => 'decimal:2',
         'housing' => 'boolean',
+        'advance_option' => 'boolean',
         'advance_salary' => 'boolean',
-        'advance_rate' => 'decimal:2'
+        'advance_rate' => 'decimal:2',
+        'paye_exempt' => 'boolean'
     ];
 
     public function employee()

@@ -16,7 +16,15 @@ class ReportingController extends Controller
 
     public function store(Request $request)
     {
-        $reporting = reporting::create($request->all());
+        $request->validate([
+            'reporting_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $reporting = reporting::create([
+            'reporting_name' => $request->input('reporting_name'),
+            'description' => $request->input('description'),
+        ]);
 
         return redirect()->back()->with('success','reporting added successfully');
     }
@@ -24,16 +32,15 @@ class ReportingController extends Controller
 
     public function update(Request $request, string $id)
     {
-
         $request->validate([
-            'reporting' => 'required|string|max:255',
+            'reporting_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         $reporting = reporting::findOrFail($id);
 
-
-        $reporting->reporting = $request->input('reporting');
-
+        $reporting->reporting_name = $request->input('reporting_name');
+        $reporting->description = $request->input('description');
 
         $reporting->save();
         return redirect()->back()->with('success', 'reporting updated successfully!');

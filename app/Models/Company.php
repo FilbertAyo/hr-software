@@ -49,6 +49,16 @@ class Company extends Model
         return $this->belongsToMany(User::class, 'company_users', 'company_id', 'user_id');
     }
 
+    public function employees()
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    public function payrollPeriods()
+    {
+        return $this->hasMany(PayrollPeriod::class);
+    }
+
     /**
      * Check if company is active
      */

@@ -8,12 +8,12 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">taxrates</a>
+                                    aria-controls="home" aria-selected="true">Tax rates</a>
                             </li>
 
                         </ul>
                     </div>
-                    <div class="col-auto">
+                    {{-- <div class="col-auto">
 
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
@@ -21,7 +21,7 @@
                         <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
                             data-target="#varyModal" data-whatever="@mdo">New taxrate<span
                                 class="fe fe-plus fe-16 ml-2"></span></button>
-                    </div>
+                    </div> --}}
                 </div>
 
                 <div class="row my-2">
@@ -42,41 +42,26 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @if ($taxrates->count() > 0)
                                             @foreach ($taxrates as $index => $taxrate)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $taxrate->name }}</td>
-                                                    <td>{{ number_format($taxrate->tax_rate, 2) }}</td>
+                                                    <td>{{ $taxrate->tax_name }}</td>
+                                                    <td>{{ number_format($taxrate->rate, 2) }}</td>
                                                     <td class="text-right">
                                                         <div
                                                             style="display: flex; gap: 4px; justify-content: flex-end;">
                                                             <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-taxrate-btn"
                                                                 data-taxrate-id="{{ $taxrate->id }}"
-                                                                data-taxrate-name="{{ $taxrate->name }}"
-                                                                data-taxrate-value="{{ $taxrate->tax_rate }}">
+                                                                data-taxrate-table-name="{{ $taxrate->tax_name }}"
+                                                                data-taxrate-rate="{{ $taxrate->rate }}">
                                                                 <span class="fe fe-edit fe-16"></span>
                                                             </a>
-
-                                                            <form action="{{ route('taxrate.destroy', $taxrate->id) }}"
-                                                                method="POST"
-                                                                onsubmit="return confirm('Are you sure you want to delete this item?');">
-                                                                @csrf
-                                                                @method('DELETE')
-                                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                                    <span class="fe fe-trash-2 fe-16"></span>
-                                                                </button>
-                                                            </form>
                                                         </div>
                                                     </td>
                                                 </tr>
                                             @endforeach
-                                        @else
-                                            <tr>
-                                                <td colspan="4" class="text-center">No taxrate found</td>
-                                            </tr>
-                                        @endif
+
                                     </tbody>
                                 </table>
 
@@ -86,7 +71,7 @@
 
 
                 </div> <!-- .row -->
-            </div> <!-- .container-fluid -->
+            </div>
 
 
             <div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel"
@@ -106,11 +91,11 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <label>Tax Name</label>
-                                        <input type="text" class="form-control" name="name" required>
+                                        <input type="text" class="form-control" name="tax_name" required>
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label>Tax Rate (%)</label>
-                                        <input type="number" step="0.01" class="form-control" name="tax_rate"
+                                        <input type="number" step="0.01" class="form-control" name="rate"
                                             required>
                                     </div>
                                 </div>
@@ -148,13 +133,13 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <label>Tax Name</label>
-                                        <input type="text" class="form-control" id="edittaxrateName"
-                                            name="name" required>
+                                        <input type="text" class="form-control" id="editTaxrateTableName"
+                                            name="tax_name" required>
                                     </div>
                                     <div class="col-md-12 mb-3">
                                         <label>Tax Rate (%)</label>
                                         <input type="number" step="0.01" class="form-control"
-                                            id="edittaxrateValue" name="tax_rate" required>
+                                            id="editTaxrateRate" name="rate" required>
                                     </div>
                                 </div>
 
@@ -174,23 +159,21 @@
                 document.querySelectorAll('.edit-taxrate-btn').forEach(button => {
                     button.addEventListener('click', function() {
                         const taxrateId = this.getAttribute('data-taxrate-id');
-                        const taxrateName = this.getAttribute('data-taxrate-name');
-                        const taxrateValue = this.getAttribute('data-taxrate-value');
+                        const taxrateTableName = this.getAttribute('data-taxrate-table-name');
+                        const taxrateRate = this.getAttribute('data-taxrate-rate');
 
                         // Set form action
                         document.getElementById('edittaxrateForm')
                             .setAttribute('action', `/taxrate/${taxrateId}`);
 
                         // Populate fields
-                        document.getElementById('edittaxrateName').value = taxrateName;
-                        document.getElementById('edittaxrateValue').value = taxrateValue;
+                        document.getElementById('editTaxrateTableName').value = taxrateTableName;
+                        document.getElementById('editTaxrateRate').value = taxrateRate;
 
                         // Show modal
                         $('#edittaxrateModal').modal('show');
                     });
                 });
             </script>
-
-
 
 </x-app-layout>

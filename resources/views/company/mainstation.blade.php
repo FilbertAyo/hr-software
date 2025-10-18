@@ -8,7 +8,7 @@
                                 <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">mainstations</a>
+                                            role="tab" aria-controls="home" aria-selected="true">Main Station</a>
                                     </li>
 
                                 </ul>
@@ -37,25 +37,22 @@
                                                 <th>No</th>
                                                 <th>main station</th>
                                                 <th>sub station</th>
-                                                <th>Created by</th>
                                                 <th class="text-right">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if ($mainstations->count() > 0)
                                                 @foreach ($mainstations as $index => $mainstation)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
 
-                                                        <td>{{ $mainstation->main_station }}</td>
+                                                        <td>{{ $mainstation->station_name }}</td>
                                                         <td>{{ $mainstation->substations_count }}</td>
-                                                        <td>{{ $mainstation->created_by }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-mainstation-btn"
                                                                 data-mainstation-id="{{ $mainstation->id }}"
-                                                                data-mainstation-name="{{ $mainstation->main_station }}">
+                                                                data-mainstation-name="{{ $mainstation->station_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -71,11 +68,7 @@
                                                         </td>
                                                     </tr>
                                                 @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center">No mainstation found</td>
-                                                </tr>
-                                            @endif
+
                                         </tbody>
                                     </table>
 
@@ -105,12 +98,8 @@
                                     <div class="col-md-12 mb-3">
                                         <label for="">Main station Name</label>
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="main_station" required>
+                                            name="station_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
-                                    </div>
-                                    <div class="col-md-12 mb-3" style="display: none;">
-                                        <input type="text" class="form-control" value="{{ Auth::user()->name }} {{ Auth::user()->last_name }}"
-                                            name="created_by" required>
                                     </div>
                                 </div>
 
@@ -143,7 +132,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editmainstationName" name="main_station" required>
+                            <input type="text" class="form-control" id="editmainstationName" name="station_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

@@ -11,14 +11,14 @@ class SupervisorController extends Controller
 
     public function index()
     {
-        $supervisors = supervisor::all();
+        $supervisors = Supervisor::all();
 
         return view("settings.supervisor", compact("supervisors"));
     }
 
     public function store(Request $request)
     {
-        $supervisor = supervisor::create($request->all());
+        $supervisor = Supervisor::create($request->all());
 
         return redirect()->back()->with('success','supervisor added successfully');
     }
@@ -28,13 +28,13 @@ class SupervisorController extends Controller
     {
 
         $request->validate([
-            'supervisor' => 'required|string|max:255',
+            'supervisor_name' => 'required|string|max:255',
         ]);
 
-        $supervisor = supervisor::findOrFail($id);
+        $supervisor = Supervisor::findOrFail($id);
 
 
-        $supervisor->supervisor = $request->input('supervisor');
+        $supervisor->supervisor_name = $request->input('supervisor_name');
 
 
         $supervisor->save();
@@ -43,7 +43,7 @@ class SupervisorController extends Controller
 
     public function destroy(string $id)
     {
-        $supervisor = supervisor::find($id);
+        $supervisor = Supervisor::find($id);
 
     if ($supervisor) {
         $supervisor->delete();

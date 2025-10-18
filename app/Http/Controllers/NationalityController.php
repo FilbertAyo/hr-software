@@ -9,7 +9,7 @@ class NationalityController extends Controller
 {
     public function index()
     {
-        $nationalitys = nationality::all();
+        $nationalitys = Nationality::all();
 
         return view("settings.nationality", compact("nationalitys"));
     }
@@ -27,7 +27,7 @@ class NationalityController extends Controller
      */
     public function store(Request $request)
     {
-        $nationality = nationality::create($request->all());
+        $nationality = Nationality::create($request->all());
 
         return redirect()->back()->with('success','nationality added successfully');
     }
@@ -39,14 +39,14 @@ class NationalityController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'nationality' => 'required|string|max:255',
+            'nationality_name' => 'required|string|max:255',
         ]);
 
         // Find the nationality by ID
-        $nationality = nationality::findOrFail($id);
+        $nationality = Nationality::findOrFail($id);
 
         // Update the nationality's name
-        $nationality->nationality = $request->input('nationality');
+        $nationality->nationality_name = $request->input('nationality_name');
 
         // Save the updated nationality
         $nationality->save();
@@ -60,7 +60,7 @@ class NationalityController extends Controller
      */
     public function destroy(string $id)
     {
-        $nationality = nationality::find($id);
+        $nationality = Nationality::find($id);
 
         if ($nationality) {
             $nationality->delete();

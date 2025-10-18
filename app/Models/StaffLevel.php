@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class StaffLevel extends Model
 {
     protected $fillable = [
-        'stafflevel',
+        'level_name',
+        'level_order',
+        'description',
     ];
 }

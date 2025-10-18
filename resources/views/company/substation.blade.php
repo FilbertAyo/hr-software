@@ -10,7 +10,7 @@
                                 <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">substations</a>
+                                            role="tab" aria-controls="home" aria-selected="true">Sub Station</a>
                                     </li>
 
                                 </ul>
@@ -45,20 +45,19 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @if ($substations->count() > 0)
                                                 @foreach ($substations as $index => $substation)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
 
-                                                        <td>{{ $substation->sub_station }}</td>
-                                                        <td>{{ $substation->mainstation->main_station ?? 'N/A' }}</td>
+                                                        <td>{{ $substation->substation_name }}</td>
+                                                        <td>{{ $substation->mainstation->station_name ?? 'N/A' }}</td>
 
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-substation-btn"
                                                                 data-substation-id="{{ $substation->id }}"
-                                                                data-substation-name="{{ $substation->sub_station }}">
+                                                                data-substation-name="{{ $substation->substation_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -74,11 +73,7 @@
                                                         </td>
                                                     </tr>
                                                 @endforeach
-                                            @else
-                                                <tr>
-                                                    <td colspan="5" class="text-center">No substation found</td>
-                                                </tr>
-                                            @endif
+
                                         </tbody>
                                     </table>
 
@@ -108,16 +103,16 @@
                                     <div class="col-md-12 mb-3">
                                         <label for="">Sub station Name</label>
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="sub_station" required>
+                                            name="substation_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
                                     <div class="col-md-12 mb-3">
                                         <label for="">Main Station</label>
-                                        <select class="form-control" id="validationCustom3" name="main_station_id" required>
+                                        <select class="form-control" id="validationCustom3" name="mainstation_id" required>
                                             <option value="" disabled selected>Select a category</option>
                                             @foreach($mainstations as $main)
-                                                <option value="{{ $main->id }}">{{ $main->main_station }}</option>
+                                                <option value="{{ $main->id }}">{{ $main->station_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -152,7 +147,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editsubstationName" name="sub_station" required>
+                            <input type="text" class="form-control" id="editsubstationName" name="substation_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

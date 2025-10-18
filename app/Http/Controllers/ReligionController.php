@@ -12,7 +12,7 @@ class ReligionController extends Controller
      */
     public function index()
     {
-        $religions = religion::all();
+        $religions = Religion::all();
 
         return view("settings.religion", compact("religions"));
     }
@@ -30,7 +30,7 @@ class ReligionController extends Controller
      */
     public function store(Request $request)
     {
-        $religion = religion::create($request->all());
+        $religion = Religion::create($request->all());
 
         return redirect()->back()->with('success','religion added successfully');
     }
@@ -42,14 +42,14 @@ class ReligionController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'religion' => 'required|string|max:255',
+            'religion_name' => 'required|string|max:255',
         ]);
 
         // Find the religion by ID
-        $religion = religion::findOrFail($id);
+        $religion = Religion::findOrFail($id);
 
         // Update the religion's name
-        $religion->religion = $request->input('religion');
+        $religion->religion_name = $request->input('religion_name');
 
         // Save the updated religion
         $religion->save();
@@ -63,7 +63,7 @@ class ReligionController extends Controller
      */
     public function destroy(string $id)
     {
-        $religion = religion::find($id);
+        $religion = Religion::find($id);
 
         if ($religion) {
             $religion->delete();

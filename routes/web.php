@@ -12,18 +12,19 @@ use App\Http\Controllers\holidayController;
 use App\Http\Controllers\companyController;
 use App\Http\Controllers\advanceController;
 use App\Http\Controllers\allowanceController;
+use App\Http\Controllers\CalculatorController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\loanController;
-use App\Http\Controllers\pensionController;
+use App\Http\Controllers\directdeductionController;
 use App\Http\Controllers\terminationController;
-use App\Http\Controllers\religionController;
+use App\Http\Controllers\ReligionController;
 use App\Http\Controllers\paymentController;
 use App\Http\Controllers\leavetypeController;
 use App\Http\Controllers\loantypeController;
 use App\Http\Controllers\taxrateController;
 use App\Http\Controllers\taxtableController;
-use App\Http\Controllers\stafflevelController;
+use App\Http\Controllers\StaffLevelController;
 use App\Http\Controllers\nationalityController;
 use App\Http\Controllers\MainstationController;
 use App\Http\Controllers\OccupationController;
@@ -70,14 +71,19 @@ Route::middleware('auth')->group(function () {
     Route::resource('loan', loanController::class);
     Route::post('loan/{loan}/installments', [LoanController::class, 'storeInstallments'])->name('loan.installments.store');
     Route::resource('advance', advanceController::class);
+    Route::get('/api/advance/employee-limit', [advanceController::class, 'getEmployeeAdvanceLimit'])->name('api.advance.employee-limit');
+    Route::patch('/advance/{advance}/approve', [advanceController::class, 'approve'])->name('advance.approve');
+    Route::patch('/advance/{advance}/reject', [advanceController::class, 'reject'])->name('advance.reject');
+    Route::post('/advance/approve-all', [advanceController::class, 'approveAll'])->name('advance.approve-all');
 
     Route::resource('language', LanguageController::class);
     Route::resource('company', companyController::class);
-    Route::resource('pension', pensionController::class);
+    Route::post('/company/switch', [companyController::class, 'switch'])->name('company.switch');
+    Route::resource('direct-deduction', directdeductionController::class);
     Route::resource('holiday', holidayController::class);
-    Route::resource('religion', religionController::class);
+    Route::resource('religion', ReligionController::class);
     Route::resource('payment', paymentController::class);
-    Route::resource('stafflevel', stafflevelController::class);
+    Route::resource('stafflevel', StaffLevelController::class);
     Route::resource('taxtable', taxtableController::class);
     Route::resource('taxrate', taxrateController::class);
     Route::resource('education', EducationController::class);
@@ -93,13 +99,20 @@ Route::middleware('auth')->group(function () {
     Route::resource('pay_grade', PaygradeController::class);
     Route::resource('mainstation',  MainstationController::class);
     Route::resource('substation',  SubstationController::class);
-    // Route::resource('employee',  EmployeeController::class);
+
+    Route::get('calculator/netpay', [CalculatorController::class, 'netpay'])->name('cal.netpay');
+    Route::get('calculator/grosspay', [CalculatorController::class, 'grosspay'])->name('cal.grosspay');
+    Route::post('calculator/calculate-netpay', [CalculatorController::class, 'calculateNetpay'])->name('cal.calculate.netpay');
+    Route::post('calculator/calculate-grosspay', [CalculatorController::class, 'calculateGrosspay'])->name('cal.calculate.grosspay');
+
 
     Route::resource('roles', RolesController::class);
     Route::get('/users', [UsersController::class, 'user'])->name('users.index');
     Route::post('/users/register', [UsersController::class, 'register'])->name('user.register');
     Route::get('/users/{user}/edit', [UsersController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UsersController::class, 'update'])->name('users.update');
+    Route::patch('/users/{user}/activate', [UsersController::class, 'activate'])->name('users.activate');
+    Route::patch('/users/{user}/deactivate', [UsersController::class, 'deactivate'])->name('users.deactivate');
     Route::post('/user/toggle-status/{id}', [UsersController::class, 'toggleStatus'])->name('user.toggleStatus');
     Route::delete('/user/{id}', [UsersController::class, 'destroy'])->name('user.destroy');
 
@@ -128,50 +141,50 @@ Route::middleware('auth')->group(function () {
 
 
 
-// Performance Management Routes
-Route::prefix('performance')->name('performance.')->group(function () {
+    // Performance Management Routes
+    Route::prefix('performance')->name('performance.')->group(function () {
 
-    // General Factors Management
+        // General Factors Management
+        Route::resource('general-factors', GeneralFactorController::class);
+
+        // Factors Management
+        Route::resource('factors', FactorController::class);
+
+        // Sub Factors Management
+        Route::resource('sub-factors', SubFactorController::class);
+
+        // Rating Scales Management
+        Route::resource('rating-scales', RatingScaleController::class);
+
+        // Evaluations Management
+        Route::resource('evaluations', EvaluationController::class);
+    });
+
+    // Alternative route structure (if you prefer without prefix)
     Route::resource('general-factors', GeneralFactorController::class);
-
-    // Factors Management
     Route::resource('factors', FactorController::class);
-
-    // Sub Factors Management
     Route::resource('sub-factors', SubFactorController::class);
-
-    // Rating Scales Management
     Route::resource('rating-scales', RatingScaleController::class);
-
-    // Evaluations Management
     Route::resource('evaluations', EvaluationController::class);
-});
 
-// Alternative route structure (if you prefer without prefix)
-Route::resource('general-factors', GeneralFactorController::class);
-Route::resource('factors', FactorController::class);
-Route::resource('sub-factors', SubFactorController::class);
-Route::resource('rating-scales', RatingScaleController::class);
-Route::resource('evaluations', EvaluationController::class);
+    // API routes for dynamic data loading
+    Route::prefix('api')->name('api.')->group(function () {
+        // Get factors by general factor
+        Route::get('general-factors/{id}/factors', [GeneralFactorController::class, 'getFactors'])
+            ->name('general-factors.factors');
 
-// API routes for dynamic data loading
-Route::prefix('api')->name('api.')->group(function () {
-    // Get factors by general factor
-    Route::get('general-factors/{id}/factors', [GeneralFactorController::class, 'getFactors'])
-         ->name('general-factors.factors');
+        // Get sub-factors by factor
+        Route::get('factors/{id}/sub-factors', [FactorController::class, 'getSubFactors'])
+            ->name('factors.sub-factors');
 
-    // Get sub-factors by factor
-    Route::get('factors/{id}/sub-factors', [FactorController::class, 'getSubFactors'])
-         ->name('factors.sub-factors');
+        // Get rating scale items by rating scale
+        Route::get('rating-scales/{id}/items', [RatingScaleController::class, 'getRatingScaleItems'])
+            ->name('rating-scales.items');
 
-    // Get rating scale items by rating scale
-    Route::get('rating-scales/{id}/items', [RatingScaleController::class, 'getRatingScaleItems'])
-         ->name('rating-scales.items');
-
-    // Get general factor details
-    Route::get('general-factors/{id}', [GeneralFactorController::class, 'show'])
-         ->name('general-factors.show');
-});
+        // Get general factor details
+        Route::get('general-factors/{id}', [GeneralFactorController::class, 'show'])
+            ->name('general-factors.show');
+    });
 
 
     Route::get('/employees', [EmployeeController::class, 'index'])->name('employee.index');
@@ -188,7 +201,7 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('/api/departments', [EmployeeController::class, 'getDepartments'])->name('api.departments');
 
 
-    Route::get('payroll/process',[PayrollController::class,'index'])->name('payroll.index');
+    Route::get('payroll/process', [PayrollController::class, 'index'])->name('payroll.index');
     Route::post('payroll/process-selected', [PayrollController::class, 'processSelected'])->name('payroll.processSelected');
     Route::post('payroll/process-all', [PayrollController::class, 'processAll'])->name('payroll.processAll');
     Route::get('payroll/{id}', [PayrollController::class, 'show'])->name('payroll.show');
@@ -199,4 +212,7 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::post('/user/toggle-status/{id}', [ProfileController::class, 'toggleStatus'])->name('user.toggleStatus');
 });
 
+
 require __DIR__ . '/auth.php';
+
+

@@ -29,6 +29,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
+            'company_id' => ['required', 'exists:companies,id'],
         ];
     }
 
@@ -48,6 +49,22 @@ class LoginRequest extends FormRequest
                 'email' => trans('auth.failed'),
             ]);
         }
+
+        // Check if user has access to the selected company
+        $user = Auth::user();
+        $companyId = $this->input('company_id');
+
+        if (!$user->companies()->where('company_id', $companyId)->exists()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'company_id' => 'You do not have access to the selected company.',
+            ]);
+        }
+
+        // Store selected company in session
+        session(['selected_company_id' => $companyId]);
 
         RateLimiter::clear($this->throttleKey());
     }

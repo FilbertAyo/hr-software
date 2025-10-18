@@ -16,6 +16,16 @@ class PaygradeController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'paygrade_name' => 'required|string|max:255',
+            'grade' => 'required|string|max:255',
+            'currency' => 'required|in:TZS,USD',
+            'initial_amount' => 'required|numeric|min:0',
+            'optimal_amount' => 'required|numeric|min:0',
+            'step_increase' => 'required|numeric|min:0',
+            'description' => 'nullable|string'
+        ]);
+
         $paygrade = paygrade::create($request->all());
 
         return redirect()->back()->with('success','paygrade added successfully');
@@ -24,18 +34,20 @@ class PaygradeController extends Controller
 
     public function update(Request $request, string $id)
     {
-
         $request->validate([
             'paygrade_name' => 'required|string|max:255',
+            'grade' => 'required|string|max:255',
+            'currency' => 'required|in:TZS,USD',
+            'initial_amount' => 'required|numeric|min:0',
+            'optimal_amount' => 'required|numeric|min:0',
+            'step_increase' => 'required|numeric|min:0',
+            'description' => 'nullable|string'
         ]);
 
         $paygrade = paygrade::findOrFail($id);
 
+        $paygrade->update($request->all());
 
-        $paygrade->paygrade_name = $request->input('paygrade_name');
-
-
-        $paygrade->save();
         return redirect()->back()->with('success', 'paygrade updated successfully!');
     }
 

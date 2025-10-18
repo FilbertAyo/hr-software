@@ -12,7 +12,7 @@ class TerminationController extends Controller
      */
     public function index()
     {
-        $terminations = termination::all();
+        $terminations = Termination::all();
 
         return view("settings.termination", compact("terminations"));
     }
@@ -30,7 +30,7 @@ class TerminationController extends Controller
      */
     public function store(Request $request)
     {
-        $termination = termination::create($request->all());
+        $termination = Termination::create($request->all());
 
         return redirect()->back()->with('success','termination added successfully');
     }
@@ -42,14 +42,14 @@ class TerminationController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'termination' => 'required|string|max:255',
+            'termination_type' => 'required|string|max:255',
         ]);
 
         // Find the termination by ID
-        $termination = termination::findOrFail($id);
+        $termination = Termination::findOrFail($id);
 
         // Update the termination's name
-        $termination->termination = $request->input('termination');
+        $termination->termination_type = $request->input('termination_type');
 
         // Save the updated termination
         $termination->save();
@@ -63,7 +63,7 @@ class TerminationController extends Controller
      */
     public function destroy(string $id)
     {
-        $termination = termination::find($id);
+        $termination = Termination::find($id);
 
         if ($termination) {
             $termination->delete();

@@ -2,211 +2,120 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12">
-                <div class="row align-items-center mb-3 border-bottom no-gutters">
+                <!-- Header Section -->
+                <div class="row align-items-center mb-4 border-bottom">
                     <div class="col">
-                        <h2 class="mb-0">Employee Registration</h2>
+                        <h2 class="mb-1">Employee Registration</h2>
+                        <p class="text-muted mb-0">Register a new employee in the system</p>
+
+                    </div>
+                    <div class="col-auto">
+                        <a href="{{ route('employee.index') }}" class="btn btn-outline-secondary">
+                            <i class="fe fe-arrow-left"></i> Back to List
+                        </a>
                     </div>
                 </div>
 
-                <div class="row my-2">
-                    @include('elements.spinner')
+                <!-- Progress Indicator -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="progress-indicator">
+                            <div class="step active" data-step="1">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Personal & Department</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step" data-step="2">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Payment & Salary</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-12">
                         <div class="card shadow-none border">
                             <div class="card-body">
-
+                                <!-- Alert Messages -->
                                 @if (session('success'))
-                                    <div class="alert alert-success">
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-check-circle mr-2"></i>
                                         {{ session('success') }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
                                 @if (session('error'))
-                                    <div class="alert alert-danger">
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-alert-circle mr-2"></i>
                                         {{ session('error') }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
                                 @if ($errors->any())
-                                    <div class="alert alert-danger">
-                                        <ul class="mb-0">
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-alert-circle mr-2"></i>
+                                        <strong>Please fix the following errors:</strong>
+                                        <ul class="mb-0 mt-2">
                                             @foreach ($errors->all() as $error)
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
-                                <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">Personal
-                                            Details</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" id="profile-tab" data-toggle="tab" href="#profile"
-                                            role="tab" aria-controls="profile" aria-selected="false">Earning and
-                                            Deduction</a>
-                                    </li>
-                                </ul>
-
+                                <!-- Registration Form -->
                                 <form method="POST" class="needs-validation" action="{{ route('employee.store') }}"
-                                    novalidate>
+                                      id="employeeForm" enctype="multipart/form-data" novalidate>
                                     @csrf
-                                    <div class="tab-content mb-3" id="myTabContent">
-                                        <!-- Personal Details Tab -->
-                                        <div class="tab-pane fade show active" id="home" role="tabpanel"
-                                            aria-labelledby="home-tab">
-                                            <div class="accordion w-100" id="accordion1">
 
-                                                @include('employees.partials.personal')
-
-                                                @include('employees.partials.departments')
-
-                                                @include('employees.partials.payments')
-
-                                            </div>
+                                    <!-- Step 1: Personal & Department Details -->
+                                    <div class="form-step active" id="step1">
+                                        <div class="step-header mb-4">
+                                            <h4 class="text-primary mb-2">
+                                                <i class="fe fe-user mr-2"></i>Personal & Department Details
+                                            </h4>
+                                            <p class="text-muted">Enter the employee's personal and department information</p>
                                         </div>
 
-                                        <!-- Earning and Deduction Tab -->
-                                        <div class="tab-pane fade" id="profile" role="tabpanel"
-                                            aria-labelledby="profile-tab">
-                                            <div class="accordion w-100" id="accordion5">
+                                        @include('employees.partials.personal_and_department')
 
-                                                <div class="card shadow-none border">
-                                                    <div class="card-header">
-
-                                                        <strong>Employee Salary Details</strong>
-                                                    </div>
-                                                    <div>
-                                                        <div class="card-body">
-                                                            <div class="form-row">
-                                                                <!-- Basic Salary -->
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="basic_salary">Basic Salary</label>
-                                                                    <input type="number" class="form-control"
-                                                                        id="basic_salary" name="basic_salary"
-                                                                        value="{{ old('basic_salary') }}" min="0"
-                                                                        step="0.01">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <!-- Use Tax Table -->
-                                                                {{-- <div class="col-md-3 mb-3">
-                                                                    <label for="tax">Use Tax Table *</label>
-                                                                    <select class="form-control" id="tax"
-                                                                        name="tax" required>
-                                                                        <option value="">Select...</option>
-                                                                        <option value="yes"
-                                                                            {{ old('tax') == 'yes' ? 'selected' : '' }}>
-                                                                            Yes</option>
-                                                                        <option value="no"
-                                                                            {{ old('tax') == 'no' ? 'selected' : '' }}>
-                                                                            No</option>
-                                                                    </select>
-
-                                                                </div>
-
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="pension">Pension Fund</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="pension" name="pension"
-                                                                        value="{{ old('pension') }}">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="pensionNo">Pension No</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="pensionNo" name="pensionNo"
-                                                                        value="{{ old('pensionNo') }}">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="earningGroup">Earning Group</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="earningGroup" name="earningGroup"
-                                                                        value="{{ old('earningGroup') }}">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="payGrade">Pay Grade</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="payGrade" name="payGrade"
-                                                                        value="{{ old('payGrade') }}">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="directDeduction">Select Direct
-                                                                        Deductions (e.g., HESLB)</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="directDeduction" name="directDeduction"
-                                                                        value="{{ old('directDeduction') }}">
-                                                                    <div class="valid-feedback">Looks good!</div>
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="currencyID">Currency ID *</label>
-                                                                    <input type="text" class="form-control"
-                                                                        id="currencyID" name="currencyID"
-                                                                        value="{{ old('currencyID', 'TZS') }}"
-                                                                        required>
-
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="loan">Allow to Apply Employee Loans
-                                                                        *</label>
-                                                                    <select class="form-control" id="loan"
-                                                                        name="loan" required>
-                                                                        <option value="">Select...</option>
-                                                                        <option value="yes"
-                                                                            {{ old('loan') == 'yes' ? 'selected' : '' }}>
-                                                                            Yes</option>
-                                                                        <option value="no"
-                                                                            {{ old('loan') == 'no' ? 'selected' : '' }}>
-                                                                            No</option>
-                                                                    </select>
-
-                                                                </div>
-
-                                                                <div class="col-md-3 mb-3">
-                                                                    <label for="payPeriod">Pay Period *</label>
-                                                                    <select class="form-control" id="payPeriod"
-                                                                        name="payPeriod" required>
-                                                                        <option value="">Select Pay Period
-                                                                        </option>
-                                                                        <option value="Monthly"
-                                                                            {{ old('payPeriod') == 'Monthly' ? 'selected' : '' }}>
-                                                                            Monthly</option>
-                                                                        <option value="Bi-Weekly"
-                                                                            {{ old('payPeriod') == 'Bi-Weekly' ? 'selected' : '' }}>
-                                                                            Bi-Weekly</option>
-                                                                        <option value="Weekly"
-                                                                            {{ old('payPeriod') == 'Weekly' ? 'selected' : '' }}>
-                                                                            Weekly</option>
-                                                                    </select>
-
-                                                                </div> --}}
-
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <div class="step-actions mt-4">
+                                            <button type="button" class="btn btn-primary" onclick="nextStep()">
+                                                Next <i class="fe fe-arrow-right ml-1"></i>
+                                            </button>
                                         </div>
                                     </div>
 
+                                    <!-- Step 2: Payment & Salary -->
+                                    <div class="form-step" id="step2">
+                                        <div class="step-header mb-4">
+                                            <h4 class="text-primary mb-2">
+                                                <i class="fe fe-dollar-sign mr-2"></i>Payment & Salary Details
+                                            </h4>
+                                            <p class="text-muted">Configure payment method and salary information</p>
+                                        </div>
 
-                                    <div class="form-row">
-                                        <div class="col-12">
-                                            <button class="btn btn-primary mr-2" type="submit">Save and
-                                                Close</button>
-                                            <a href="{{ route('employee.index') }}"
-                                                class="btn btn-secondary">Cancel</a>
+                                        @include('employees.partials.payments')
+                                        @include('employees.partials.salary')
+                                        @include('employees.partials.nhif_deductions')
+
+                                        <div class="step-actions mt-4">
+                                            <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
+                                                <i class="fe fe-arrow-left mr-1"></i> Previous
+                                            </button>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fe fe-save mr-1"></i> Complete Registration
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -218,72 +127,243 @@
         </div>
     </div>
 
-    <!-- Custom JavaScript for Form Validation -->
-    <script>
-        // Bootstrap form validation
-        (function() {
-            'use strict';
-            window.addEventListener('load', function() {
-                var forms = document.getElementsByClassName('needs-validation');
-                var validation = Array.prototype.filter.call(forms, function(form) {
-                    form.addEventListener('submit', function(event) {
-                        if (form.checkValidity() === false) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                        form.classList.add('was-validated');
-                    }, false);
-                });
-            }, false);
-        })();
-
-        // Auto-generate Employee ID based on name
-        document.addEventListener('DOMContentLoaded', function() {
-            const firstNameInput = document.getElementById('firstName');
-            const lastNameInput = document.getElementById('lastName');
-            const employeeIDInput = document.getElementById('employeeID');
-
-            function generateEmployeeID() {
-                const firstName = firstNameInput.value.trim();
-                const lastName = lastNameInput.value.trim();
-
-                if (firstName && lastName && !employeeIDInput.value) {
-                    const id = (firstName.substring(0, 3) + lastName.substring(0, 3) +
-                        Math.floor(Math.random() * 1000).toString().padStart(3, '0')).toUpperCase();
-                    employeeIDInput.value = id;
-                }
-            }
-
-            firstNameInput.addEventListener('blur', generateEmployeeID);
-            lastNameInput.addEventListener('blur', generateEmployeeID);
-        });
-    </script>
-
     <style>
-        .accordion .card-header a {
-            color: #495057;
-            text-decoration: none;
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
         }
 
-        .accordion .card-header a:hover {
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .step.active .step-label {
             color: #007bff;
         }
 
-        .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        .step.completed .step-label {
+            color: #28a745;
+        }
+
+        .step-line {
+            width: 100px;
+            height: 2px;
+            background-color: #e9ecef;
+            margin: 0 1rem;
+            margin-top: -20px;
+        }
+
+        .step.completed + .step-line {
+            background-color: #28a745;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .step-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1rem;
+        }
+
+        .step-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .form-control.is-valid {
+            border-color: #28a745;
         }
 
         .invalid-feedback {
             display: block;
         }
 
-        .was-validated .form-control:valid {
-            border-color: #28a745;
+        .valid-feedback {
+            display: block;
         }
 
-        .was-validated .form-control:invalid {
-            border-color: #dc3545;
+        .card {
+            border-radius: 0.5rem;
+        }
+
+        .alert {
+            border-radius: 0.5rem;
         }
     </style>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 2;
+
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    // Hide current step
+                    document.getElementById(`step${currentStep}`).classList.remove('active');
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
+
+                    // Show next step
+                    currentStep++;
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+
+                    updateProgressIndicator();
+                }
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
+
+                // Show previous step
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
+
+                updateProgressIndicator();
+            }
+        }
+
+        function validateCurrentStep() {
+            const currentStepElement = document.getElementById(`step${currentStep}`);
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
+            });
+
+            // Special validation for step 1
+            if (currentStep === 1) {
+                const email = document.getElementById('email');
+                const mobile = document.getElementById('mobile_no');
+
+                if (email.value && !isValidEmail(email.value)) {
+                    email.classList.add('is-invalid');
+                    isValid = false;
+                }
+
+                if (mobile.value && !isValidMobile(mobile.value)) {
+                    mobile.classList.add('is-invalid');
+                    isValid = false;
+                }
+            }
+
+            return isValid;
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidMobile(mobile) {
+            const mobileRegex = /^[0-9+\-\s()]+$/;
+            return mobileRegex.test(mobile) && mobile.length >= 10;
+        }
+
+        function updateProgressIndicator() {
+            for (let i = 1; i <= totalSteps; i++) {
+                const stepElement = document.querySelector(`.step[data-step="${i}"]`);
+                if (i < currentStep) {
+                    stepElement.classList.add('completed');
+                    stepElement.classList.remove('active');
+                } else if (i === currentStep) {
+                    stepElement.classList.add('active');
+                    stepElement.classList.remove('completed');
+                } else {
+                    stepElement.classList.remove('active', 'completed');
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('employeeForm').addEventListener('submit', function(e) {
+            if (!validateCurrentStep()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('employeeForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    } else if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+
+                input.addEventListener('input', function() {
+                    if (this.classList.contains('is-invalid') && this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            });
+        });
+    </script>
 </x-app-layout>

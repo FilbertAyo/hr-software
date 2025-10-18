@@ -44,13 +44,13 @@
                                                 @foreach ($supervisors as $index => $supervisor)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $supervisor->supervisor }}</td>
+                                                        <td>{{ $supervisor->supervisor_name }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-supervisor-btn"
                                                                 data-supervisor-id="{{ $supervisor->id }}"
-                                                                data-supervisor-name="{{ $supervisor->supervisor }}">
+                                                                data-supervisor-name="{{ $supervisor->supervisor_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -99,7 +99,7 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="supervisor" required>
+                                            name="supervisor_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
@@ -134,7 +134,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editsupervisorName" name="supervisor" required>
+                            <input type="text" class="form-control" id="editsupervisorName" name="supervisor_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

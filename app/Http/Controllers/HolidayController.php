@@ -12,7 +12,7 @@ class HolidayController extends Controller
      */
     public function index()
     {
-        $holidays = holiday::all();
+        $holidays = Holiday::all();
 
         return view("settings.holiday", compact("holidays"));
     }
@@ -30,9 +30,18 @@ class HolidayController extends Controller
      */
     public function store(Request $request)
     {
-        $holiday = holiday::create($request->all());
+        $validatedData = $request->validate([
+            'holiday_name' => 'required|string|max:255',
+            'holiday_date' => 'required|date',
+            'is_recurring' => 'boolean',
+            'description' => 'nullable|string',
+        ]);
 
-        return redirect()->back()->with('success','holiday added successfully');
+        $validatedData['is_recurring'] = $request->has('is_recurring') ? (bool)$request->is_recurring : false;
+
+        Holiday::create($validatedData);
+
+        return redirect()->back()->with('success','Holiday added successfully');
     }
 
     /**
@@ -41,21 +50,21 @@ class HolidayController extends Controller
     public function update(Request $request,  string $id)
     {
         // Validate the request data
-        $request->validate([
-            'holiday' => 'required|string|max:255',
+        $validatedData = $request->validate([
+            'holiday_name' => 'required|string|max:255',
+            'holiday_date' => 'required|date',
+            'is_recurring' => 'boolean',
+            'description' => 'nullable|string',
         ]);
 
         // Find the holiday by ID
-        $holiday = holiday::findOrFail($id);
+        $holiday = Holiday::findOrFail($id);
 
-        // Update the holiday's name
-        $holiday->holiday = $request->input('holiday');
-
-        // Save the updated holiday
-        $holiday->save();
+        // Update the holiday data
+        $holiday->update($validatedData);
 
         // Redirect back with a success message
-        return redirect()->back()->with('success', 'holiday updated successfully!');
+        return redirect()->back()->with('success', 'Holiday updated successfully!');
     }
 
     /**
@@ -63,7 +72,7 @@ class HolidayController extends Controller
      */
     public function destroy(string $id)
     {
-        $holiday = holiday::find($id);
+        $holiday = Holiday::find($id);
 
         if ($holiday) {
             $holiday->delete();

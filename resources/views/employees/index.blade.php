@@ -2,16 +2,29 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12">
+
+
                 <div class="row align-items-center mb-3 border-bottom no-gutters">
                     <div class="col">
-                        <h2 class="mb-0">Employee Management</h2>
+                        <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                                    aria-controls="home" aria-selected="true">Employee Management</a>
+                            </li>
+
+                        </ul>
                     </div>
                     <div class="col-auto">
-                        <a href="{{ route('employee.create') }}" class="btn btn-primary">
+
+                        <button type="button" class="btn btn-sm" onclick="reloadPage()">
+                            <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
+                        </button>
+                        <a href="{{ route('employee.create') }}" class="btn btn-primary btn-sm">
                             <i class="fe fe-plus"></i> Add New Employee
                         </a>
                     </div>
                 </div>
+
 
                 <div class="row my-2">
                     <div class="col-md-12">
@@ -110,19 +123,18 @@
                                                         </div>
                                                     </td>
                                                     <td>
-                                                        {{ $employee->department->department->department_name ?? 'N/A' }}
+                                                        {{ $employee->department?->department?->department_name ?? 'N/A' }}
                                                     </td>
                                                     <td>
-                                                        {{ $employee->department->jobtitle->title ?? 'N/A' }}
+                                                        {{ $employee->department?->jobtitle?->title ?? 'N/A' }}
                                                     </td>
                                                     <td>
                                                         {{ $employee->department?->joining_date?->format('M d, Y') ?? 'N/A' }}
                                                     </td>
                                                     <td>
-                                                        @if ($employee->salaryDetails)
+                                                        @if ($employee->basic_salary)
                                                             <span class="text-success font-weight-bold">
-                                                           
-                                                                {{ number_format($employee->salaryDetails->basic_salary, 2) }}
+                                                                TZS {{ number_format($employee->basic_salary, 2) }}
                                                             </span>
                                                         @else
                                                             <span class="text-muted">Not Set</span>
