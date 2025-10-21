@@ -8,5 +8,11 @@ class Earngroup extends Model
 {
     protected $fillable = [
         'earngroup_name',
+        'description',
     ];
+
+    public function groupBenefits()
+    {
+        return $this->hasMany(GroupBenefit::class);
+    }
 }

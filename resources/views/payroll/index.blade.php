@@ -5,13 +5,13 @@
                 <div class="row align-items-center mb-3 border-bottom no-gutters">
                     <div class="col">
                         <h2 class="mb-0">Process Payroll
-                            @if($payrollPeriod)
+                            @if ($payrollPeriod)
                                 - {{ $payrollPeriod->period_name }}
                             @endif
                         </h2>
                     </div>
                     <div class="col-auto">
-                        @if($payrollPeriod)
+                        @if ($payrollPeriod)
                             <div class="btn-group">
                                 <button type="button" class="btn btn-primary" id="processSelectedBtn" disabled>
                                     <i class="fe fe-check"></i> Process Selected
@@ -28,7 +28,7 @@
                     </div>
                 </div>
 
-                @if($payrollPeriod)
+                @if ($payrollPeriod)
                     <!-- Payroll Statistics -->
                     <div class="row mb-4">
                         <div class="col-md-3">
@@ -137,19 +137,22 @@
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <form method="GET" action="{{ route('payroll.index') }}">
-                                            @if($payrollPeriod)
-                                                <input type="hidden" name="payroll_period_id" value="{{ $payrollPeriod->id }}">
+                                            @if ($payrollPeriod)
+                                                <input type="hidden" name="payroll_period_id"
+                                                    value="{{ $payrollPeriod->id }}">
                                             @endif
                                             <div class="row">
                                                 <div class="col-md-8">
-                                                    <label for="payroll_period_id" class="form-label">Select Pay Period</label>
-                                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control" {{ $payrollPeriod ? 'disabled' : '' }}>
+                                                    <label for="payroll_period_id" class="form-label">Select Pay
+                                                        Period</label>
+                                                    <select name="payroll_period_id" id="payroll_period_id"
+                                                        class="form-control" {{ $payrollPeriod ? 'disabled' : '' }}>
                                                         <option value="">-- Select Pay Period --</option>
-                                                        @foreach($payrollPeriods as $period)
+                                                        @foreach ($payrollPeriods as $period)
                                                             <option value="{{ $period->id }}"
                                                                 {{ $payrollPeriod && $payrollPeriod->id == $period->id ? 'selected' : '' }}>
                                                                 {{ $period->period_name }}
-                                                                @if($period->status == 'completed')
+                                                                @if ($period->status == 'completed')
                                                                     (Completed)
                                                                 @elseif($period->status == 'processing')
                                                                     (Processing)
@@ -161,19 +164,21 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-md-4 d-flex align-items-end">
-                                                    <button type="submit" class="btn btn-outline-primary">Load Period</button>
+                                                    <button type="submit" class="btn btn-outline-primary">Load
+                                                        Period</button>
                                                 </div>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
 
-                                @if(!$payrollPeriod)
+                                @if (!$payrollPeriod)
                                     <!-- Empty State -->
                                     <div class="text-center py-5">
                                         <i class="fe fe-calendar mb-3" style="font-size: 48px; color: #ccc;"></i>
                                         <h4>No Pay Period Selected</h4>
-                                        <p class="text-muted">Please select a pay period from the dropdown above or create a new one.</p>
+                                        <p class="text-muted">Please select a pay period from the dropdown above or
+                                            create a new one.</p>
                                         <a href="{{ route('payroll.payperiod') }}" class="btn btn-primary">
                                             <i class="fe fe-plus"></i> Create New Pay Period
                                         </a>
@@ -183,93 +188,144 @@
                                     <div class="text-center py-5">
                                         <i class="fe fe-users mb-3" style="font-size: 48px; color: #ccc;"></i>
                                         <h4>No Employees Found</h4>
-                                        <p class="text-muted">Add employees to start processing payroll for {{ $payrollPeriod->period_name }}.</p>
+                                        <p class="text-muted">Add employees to start processing payroll for
+                                            {{ $payrollPeriod->period_name }}.</p>
                                     </div>
                                 @else
                                     <!-- Employee Table -->
                                     <form id="payrollForm">
                                         @csrf
-                                        <input type="hidden" name="payroll_period_id" value="{{ $payrollPeriod->id }}">
+                                        <input type="hidden" name="payroll_period_id"
+                                            value="{{ $payrollPeriod->id }}">
 
                                         <div class="table-responsive">
-                                            <table class="table table-striped table-hover" id="employeeTable">
+                                            <table class="table table-bordered table-hover" id="employeeTable">
                                                 <thead class="thead-light">
                                                     <tr>
                                                         <th width="50">
                                                             <div class="custom-control custom-checkbox">
-                                                                <input type="checkbox" class="custom-control-input" id="selectAll">
-                                                                <label class="custom-control-label" for="selectAll"></label>
+                                                                <input type="checkbox" class="custom-control-input"
+                                                                    id="selectAll">
+                                                                <label class="custom-control-label"
+                                                                    for="selectAll"></label>
                                                             </div>
                                                         </th>
                                                         <th>Employee Name</th>
                                                         <th>Basic Salary</th>
                                                         <th>Total Allowances</th>
                                                         <th>Gross Salary</th>
+                                                        <th>Pension</th>
+                                                        <th>Taxable Income</th>
                                                         <th>Deductions</th>
+                                                        <th>PAYE</th>
                                                         <th>Advance</th>
                                                         <th>Net Salary</th>
                                                         <th>Status</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    @foreach($employees as $employee)
+                                                    @foreach ($employees as $employee)
                                                         @php
                                                             $payroll = $employee->payrolls->first();
-                                                            $salaryDetails = $employee->salaryDetails()->first();
-                                                            $basicSalary = $salaryDetails->basic_salary ?? 0;
-                                                            $totalAllowances = ($salaryDetails->housing_allowance ?? 0) +
-                                                                             ($salaryDetails->transport_allowance ?? 0) +
-                                                                             ($salaryDetails->medical_allowance ?? 0);
-                                                            $grossSalary = $payroll ? $payroll->gross_salary : ($basicSalary + $totalAllowances);
-                                                            $totalDeductions = $payroll ? $payroll->total_deductions : ($basicSalary * 0.15);
 
-                                                            // Get advance amount for this employee in this period
-                                                            $advanceAmount = 0;
-                                                            if ($payrollPeriod) {
-                                                                $advance = $employee->advances()
-                                                                    ->where('payroll_period_id', $payrollPeriod->id)
-                                                                    ->where('status', 'approved')
-                                                                    ->sum('advance_amount');
-                                                                $advanceAmount = $advance ?? 0;
+                                                            // If payroll exists (processed), use payroll data
+                                                            if ($payroll) {
+                                                                $basicSalary = $payroll->basic_salary;
+                                                                $totalAllowances = $payroll->allowances;
+                                                                $grossSalary = $payroll->gross_salary;
+                                                                $pensionAmount = $payroll->pension_amount;
+                                                                $taxableIncome = $payroll->taxable_income;
+                                                                $totalDeductions = $payroll->total_deductions;
+                                                                $advanceAmount = $payroll->advance_salary; // Now using dedicated advance_salary column
+                                                                $payeTax = $payroll->tax_deduction; // PAYE tax
+                                                                $netSalary = $payroll->net_salary;
+                                                            } else {
+                                                                // If not processed, show employee data for preview
+                                                                $basicSalary = $employee->basic_salary ?? 0;
+                                                                $totalAllowances = ($employee->housing_allowance ?? 0) +
+                                                                                   ($employee->transport_allowance ?? 0) +
+                                                                                   ($employee->medical_allowance ?? 0);
+                                                                $grossSalary = $basicSalary + $totalAllowances;
+
+                                                                // Get pension amount directly from employee table
+                                                                $pensionAmount = 0;
+                                                                if ($employee->pension_details && $employee->employee_pension_amount) {
+                                                                    $pensionAmount = $employee->employee_pension_amount;
+                                                                }
+
+                                                                // Calculate taxable income (gross salary minus pension)
+                                                                $taxableIncome = $grossSalary - $pensionAmount;
+
+                                                                $payeTax = 0; // No PAYE until processed
+
+                                                                // Get advance amount for preview
+                                                                $advanceAmount = 0;
+                                                                if ($payrollPeriod) {
+                                                                    $advance = $employee
+                                                                        ->advances()
+                                                                        ->where('payroll_period_id', $payrollPeriod->id)
+                                                                        ->where('status', 'approved')
+                                                                        ->sum('advance_amount');
+                                                                    $advanceAmount = $advance ?? 0;
+                                                                }
+
+                                                                // Calculate total deductions (preview: pension + advance only)
+                                                                $totalDeductions = $pensionAmount + $advanceAmount;
+
+                                                                // Calculate net salary (gross - total deductions)
+                                                                $netSalary = $grossSalary - $totalDeductions;
                                                             }
-
-                                                            $netSalary = $payroll ? $payroll->net_salary : ($grossSalary - $totalDeductions - $advanceAmount);
                                                         @endphp
                                                         <tr>
                                                             <td>
                                                                 <div class="custom-control custom-checkbox">
-                                                                    <input type="checkbox" class="custom-control-input employee-checkbox"
-                                                                           id="employee_{{ $employee->id }}"
-                                                                           name="employee_ids[]"
-                                                                           value="{{ $employee->id }}">
-                                                                    <label class="custom-control-label" for="employee_{{ $employee->id }}"></label>
+                                                                    <input type="checkbox"
+                                                                        class="custom-control-input employee-checkbox"
+                                                                        id="employee_{{ $employee->id }}"
+                                                                        name="employee_ids[]"
+                                                                        value="{{ $employee->id }}">
+                                                                    <label class="custom-control-label"
+                                                                        for="employee_{{ $employee->id }}"></label>
                                                                 </div>
                                                             </td>
                                                             <td>
                                                                 <div>
                                                                     <strong>{{ $employee->employee_name }}</strong>
-                                                                    @if($employee->employee_id)
-                                                                        <br><small class="text-muted">ID: {{ $employee->employee_id }}</small>
+                                                                    @if ($employee->employee_id)
+                                                                        <br><small class="text-muted">ID:
+                                                                            {{ $employee->employee_id }}</small>
                                                                     @endif
                                                                 </div>
                                                             </td>
                                                             <td>{{ number_format($basicSalary, 2) }}</td>
                                                             <td>{{ number_format($totalAllowances, 2) }}</td>
-                                                            <td><strong>{{ number_format($grossSalary, 2) }}</strong></td>
+                                                            <td>{{ number_format($grossSalary, 2) }}
+                                                            </td>
+                                                            <td>{{ number_format($pensionAmount, 2) }}</td>
+                                                            <td>{{ number_format($taxableIncome, 2) }}</td>
                                                             <td>{{ number_format($totalDeductions, 2) }}</td>
-                                                            <td><strong class="text-danger">{{ number_format($advanceAmount, 2) }}</strong></td>
-                                                            <td><strong class="text-success">{{ number_format($netSalary, 2) }}</strong></td>
                                                             <td>
-                                                                @if($payroll)
-                                                                    @if($payroll->status == 'processed')
-                                                                        <span class="badge badge-success">Processed</span>
+                                                                {{ number_format($payeTax, 2) }}
+                                                            </td>
+                                                            <td>{{ number_format($advanceAmount, 2) }}
+                                                            </td>
+                                                            <td>{{ number_format($netSalary, 2) }}
+                                                            </td>
+                                                            <td>
+                                                                @if ($payroll)
+                                                                    @if ($payroll->status == 'processed')
+                                                                        <span
+                                                                            class="badge badge-success">Processed</span>
                                                                     @elseif($payroll->status == 'pending')
-                                                                        <span class="badge badge-warning">Pending</span>
+                                                                        <span
+                                                                            class="badge badge-warning">Pending</span>
                                                                     @else
-                                                                        <span class="badge badge-secondary">{{ ucfirst($payroll->status) }}</span>
+                                                                        <span
+                                                                            class="badge badge-secondary">{{ ucfirst($payroll->status) }}</span>
                                                                     @endif
                                                                 @else
-                                                                    <span class="badge badge-light">Not Processed</span>
+                                                                    <span class="badge badge-light">Not
+                                                                        Processed</span>
                                                                 @endif
                                                             </td>
                                                         </tr>
@@ -309,166 +365,166 @@
         </div>
     </div>
 
-    @if($payrollPeriod)
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const selectAllCheckbox = document.getElementById('selectAll');
-            const employeeCheckboxes = document.querySelectorAll('.employee-checkbox');
-            const processSelectedBtn = document.getElementById('processSelectedBtn');
-            const processAllBtn = document.getElementById('processAllBtn');
-            let payrollToCancel = null;
+    @if ($payrollPeriod)
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const selectAllCheckbox = document.getElementById('selectAll');
+                const employeeCheckboxes = document.querySelectorAll('.employee-checkbox');
+                const processSelectedBtn = document.getElementById('processSelectedBtn');
+                const processAllBtn = document.getElementById('processAllBtn');
+                let payrollToCancel = null;
 
-            // Handle Select All checkbox
-            if (selectAllCheckbox) {
-                selectAllCheckbox.addEventListener('change', function() {
-                    employeeCheckboxes.forEach(checkbox => {
-                        checkbox.checked = this.checked;
+                // Handle Select All checkbox
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.addEventListener('change', function() {
+                        employeeCheckboxes.forEach(checkbox => {
+                            checkbox.checked = this.checked;
+                        });
+                        updateProcessButtonState();
                     });
-                    updateProcessButtonState();
-                });
-            }
+                }
 
-            // Handle individual checkboxes
-            employeeCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    updateProcessButtonState();
-                    updateSelectAllState();
+                // Handle individual checkboxes
+                employeeCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        updateProcessButtonState();
+                        updateSelectAllState();
+                    });
                 });
-            });
 
-            function updateProcessButtonState() {
-                const checkedBoxes = document.querySelectorAll('.employee-checkbox:checked');
+                function updateProcessButtonState() {
+                    const checkedBoxes = document.querySelectorAll('.employee-checkbox:checked');
+                    if (processSelectedBtn) {
+                        processSelectedBtn.disabled = checkedBoxes.length === 0;
+                    }
+                }
+
+                function updateSelectAllState() {
+                    if (!selectAllCheckbox) return;
+
+                    const allCheckboxes = document.querySelectorAll('.employee-checkbox');
+                    const checkedBoxes = document.querySelectorAll('.employee-checkbox:checked');
+
+                    if (allCheckboxes.length === 0) {
+                        selectAllCheckbox.checked = false;
+                        selectAllCheckbox.indeterminate = false;
+                    } else if (checkedBoxes.length === allCheckboxes.length) {
+                        selectAllCheckbox.checked = true;
+                        selectAllCheckbox.indeterminate = false;
+                    } else if (checkedBoxes.length > 0) {
+                        selectAllCheckbox.checked = false;
+                        selectAllCheckbox.indeterminate = true;
+                    } else {
+                        selectAllCheckbox.checked = false;
+                        selectAllCheckbox.indeterminate = false;
+                    }
+                }
+
+                // Process Selected button click
                 if (processSelectedBtn) {
-                    processSelectedBtn.disabled = checkedBoxes.length === 0;
+                    processSelectedBtn.addEventListener('click', function() {
+                        const form = document.getElementById('payrollForm');
+                        form.action = '{{ route('payroll.processSelected') }}';
+                        form.method = 'POST';
+                        form.submit();
+                    });
                 }
-            }
 
-            function updateSelectAllState() {
-                if (!selectAllCheckbox) return;
+                // Process All button click
+                if (processAllBtn) {
+                    processAllBtn.addEventListener('click', function() {
+                        if (confirm('Are you sure you want to process payroll for all employees?')) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '{{ route('payroll.processAll') }}';
 
-                const allCheckboxes = document.querySelectorAll('.employee-checkbox');
-                const checkedBoxes = document.querySelectorAll('.employee-checkbox:checked');
+                            const csrfToken = document.createElement('input');
+                            csrfToken.type = 'hidden';
+                            csrfToken.name = '_token';
+                            csrfToken.value = '{{ csrf_token() }}';
+                            form.appendChild(csrfToken);
 
-                if (allCheckboxes.length === 0) {
-                    selectAllCheckbox.checked = false;
-                    selectAllCheckbox.indeterminate = false;
-                } else if (checkedBoxes.length === allCheckboxes.length) {
-                    selectAllCheckbox.checked = true;
-                    selectAllCheckbox.indeterminate = false;
-                } else if (checkedBoxes.length > 0) {
-                    selectAllCheckbox.checked = false;
-                    selectAllCheckbox.indeterminate = true;
-                } else {
-                    selectAllCheckbox.checked = false;
-                    selectAllCheckbox.indeterminate = false;
+                            const periodId = document.createElement('input');
+                            periodId.type = 'hidden';
+                            periodId.name = 'payroll_period_id';
+                            periodId.value = '{{ $payrollPeriod->id }}';
+                            form.appendChild(periodId);
+
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
                 }
-            }
 
-            // Process Selected button click
-            if (processSelectedBtn) {
-                processSelectedBtn.addEventListener('click', function() {
-                    const form = document.getElementById('payrollForm');
-                    form.action = '{{ route("payroll.processSelected") }}';
+                // Initialize button states
+                updateProcessButtonState();
+                updateSelectAllState();
+
+                // Cancel payroll modal handler
+                if (document.getElementById('confirmCancelBtn')) {
+                    document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+                        if (payrollToCancel) {
+                            const form = document.createElement('form');
+                            form.method = 'POST';
+                            form.action = '{{ route('payroll.cancel') }}';
+
+                            const csrfToken = document.createElement('input');
+                            csrfToken.type = 'hidden';
+                            csrfToken.name = '_token';
+                            csrfToken.value = '{{ csrf_token() }}';
+                            form.appendChild(csrfToken);
+
+                            const methodInput = document.createElement('input');
+                            methodInput.type = 'hidden';
+                            methodInput.name = '_method';
+                            methodInput.value = 'DELETE';
+                            form.appendChild(methodInput);
+
+                            const payrollIdInput = document.createElement('input');
+                            payrollIdInput.type = 'hidden';
+                            payrollIdInput.name = 'payroll_ids[]';
+                            payrollIdInput.value = payrollToCancel;
+                            form.appendChild(payrollIdInput);
+
+                            document.body.appendChild(form);
+                            form.submit();
+                        }
+                    });
+                }
+
+                // Global functions for inline onclick handlers
+                window.processIndividual = function(employeeId) {
+                    const form = document.createElement('form');
                     form.method = 'POST';
+                    form.action = '{{ route('payroll.processSelected') }}';
+
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfToken);
+
+                    const periodId = document.createElement('input');
+                    periodId.type = 'hidden';
+                    periodId.name = 'payroll_period_id';
+                    periodId.value = '{{ $payrollPeriod->id }}';
+                    form.appendChild(periodId);
+
+                    const employeeIdInput = document.createElement('input');
+                    employeeIdInput.type = 'hidden';
+                    employeeIdInput.name = 'employee_ids[]';
+                    employeeIdInput.value = employeeId;
+                    form.appendChild(employeeIdInput);
+
+                    document.body.appendChild(form);
                     form.submit();
-                });
-            }
+                };
 
-            // Process All button click
-            if (processAllBtn) {
-                processAllBtn.addEventListener('click', function() {
-                    if (confirm('Are you sure you want to process payroll for all employees?')) {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = '{{ route("payroll.processAll") }}';
-
-                        const csrfToken = document.createElement('input');
-                        csrfToken.type = 'hidden';
-                        csrfToken.name = '_token';
-                        csrfToken.value = '{{ csrf_token() }}';
-                        form.appendChild(csrfToken);
-
-                        const periodId = document.createElement('input');
-                        periodId.type = 'hidden';
-                        periodId.name = 'payroll_period_id';
-                        periodId.value = '{{ $payrollPeriod->id }}';
-                        form.appendChild(periodId);
-
-                        document.body.appendChild(form);
-                        form.submit();
-                    }
-                });
-            }
-
-            // Initialize button states
-            updateProcessButtonState();
-            updateSelectAllState();
-
-            // Cancel payroll modal handler
-            if (document.getElementById('confirmCancelBtn')) {
-                document.getElementById('confirmCancelBtn').addEventListener('click', function() {
-                    if (payrollToCancel) {
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = '{{ route("payroll.cancel") }}';
-
-                        const csrfToken = document.createElement('input');
-                        csrfToken.type = 'hidden';
-                        csrfToken.name = '_token';
-                        csrfToken.value = '{{ csrf_token() }}';
-                        form.appendChild(csrfToken);
-
-                        const methodInput = document.createElement('input');
-                        methodInput.type = 'hidden';
-                        methodInput.name = '_method';
-                        methodInput.value = 'DELETE';
-                        form.appendChild(methodInput);
-
-                        const payrollIdInput = document.createElement('input');
-                        payrollIdInput.type = 'hidden';
-                        payrollIdInput.name = 'payroll_ids[]';
-                        payrollIdInput.value = payrollToCancel;
-                        form.appendChild(payrollIdInput);
-
-                        document.body.appendChild(form);
-                        form.submit();
-                    }
-                });
-            }
-
-            // Global functions for inline onclick handlers
-            window.processIndividual = function(employeeId) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '{{ route("payroll.processSelected") }}';
-
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = '_token';
-                csrfToken.value = '{{ csrf_token() }}';
-                form.appendChild(csrfToken);
-
-                const periodId = document.createElement('input');
-                periodId.type = 'hidden';
-                periodId.name = 'payroll_period_id';
-                periodId.value = '{{ $payrollPeriod->id }}';
-                form.appendChild(periodId);
-
-                const employeeIdInput = document.createElement('input');
-                employeeIdInput.type = 'hidden';
-                employeeIdInput.name = 'employee_ids[]';
-                employeeIdInput.value = employeeId;
-                form.appendChild(employeeIdInput);
-
-                document.body.appendChild(form);
-                form.submit();
-            };
-
-            window.cancelPayroll = function(payrollId) {
-                payrollToCancel = payrollId;
-                $('#cancelPayrollModal').modal('show');
-            };
-        });
-    </script>
+                window.cancelPayroll = function(payrollId) {
+                    payrollToCancel = payrollId;
+                    $('#cancelPayrollModal').modal('show');
+                };
+            });
+        </script>
     @endif
 </x-app-layout>

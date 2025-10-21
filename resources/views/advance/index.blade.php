@@ -91,7 +91,7 @@
                                             <th>Employee</th>
                                             <th>Advance Amount</th>
                                             <th>Payroll Period</th>
-                                            <th>Remarks</th>
+                                            <th>Reason</th>
                                             <th>Status</th>
                                             <th class="text-right">Action</th>
                                         </tr>
@@ -103,7 +103,7 @@
                                                 <td>{{ $advance->employee->employee_name ?? '' }}</td>
                                                 <td>{{ number_format($advance->advance_amount, 2) }}</td>
                                                 <td>{{ $advance->payrollPeriod ? $advance->payrollPeriod->period_name : 'N/A' }}</td>
-                                                <td>{{ $advance->remarks ?? '-' }}</td>
+                                                <td>{{ $advance->reason ?? '-' }}</td>
                                                 <td>
                                                     @if($advance->status === 'pending')
                                                         <span class="badge badge-warning">{{ $advance->status }}</span>
@@ -143,7 +143,7 @@
                                                                data-advance-id="{{ $advance->id }}"
                                                                data-employee-id="{{ $advance->employee_id }}"
                                                                data-advance-amount="{{ $advance->advance_amount }}"
-                                                               data-remarks="{{ $advance->remarks }}">
+                                                               data-reason="{{ $advance->reason }}">
                                                                <span class="fe fe-edit fe-16"></span>
                                                             </a>
 
@@ -207,8 +207,8 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Remarks</label>
-                                    <textarea name="remarks" class="form-control"></textarea>
+                                    <label>Reason</label>
+                                    <textarea name="reason" class="form-control"></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -256,8 +256,8 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label>Remarks</label>
-                                    <textarea name="remarks" id="editRemarks" class="form-control"></textarea>
+                                    <label>Reason</label>
+                                    <textarea name="reason" id="editReason" class="form-control"></textarea>
                                 </div>
                             </div>
                             <div class="modal-footer">
@@ -313,7 +313,7 @@
                         document.getElementById('editadvanceForm').setAttribute('action', `/advance/${advanceId}`);
                         document.getElementById('editEmployeeId').value = this.dataset.employeeId;
                         document.getElementById('editAdvanceAmount').value = this.dataset.advanceAmount;
-                        document.getElementById('editRemarks').value = this.dataset.remarks;
+                        document.getElementById('editReason').value = this.dataset.reason;
 
                         // Trigger the change event to update the limit info
                         document.getElementById('editEmployeeId').dispatchEvent(new Event('change'));

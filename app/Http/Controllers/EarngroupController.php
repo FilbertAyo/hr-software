@@ -11,7 +11,7 @@ class EarngroupController extends Controller
     {
         $earngroups = Earngroup::all();
 
-        return view("settings.earngroup", compact("earngroups"));
+        return view("allowance.earngroup", compact("earngroups"));
     }
 
     public function store(Request $request)

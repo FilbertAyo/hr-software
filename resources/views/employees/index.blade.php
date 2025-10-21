@@ -82,7 +82,7 @@
 
                                 <!-- Employee Table -->
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-hover" id="employeeTable">
+                                    <table class="table table-bordered datatables" id="dataTable-1">
                                         <thead class="thead-light">
                                             <tr>
                                                 <th>#</th>
@@ -126,7 +126,7 @@
                                                         {{ $employee->department?->department?->department_name ?? 'N/A' }}
                                                     </td>
                                                     <td>
-                                                        {{ $employee->department?->jobtitle?->title ?? 'N/A' }}
+                                                        {{ $employee->department?->jobtitle?->job_title ?? 'N/A' }}
                                                     </td>
                                                     <td>
                                                         {{ $employee->department?->joining_date?->format('M d, Y') ?? 'N/A' }}

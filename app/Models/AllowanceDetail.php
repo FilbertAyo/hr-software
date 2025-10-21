@@ -8,7 +8,9 @@ class AllowanceDetail extends Model
 {
     protected $fillable = [
         'allowance_id',
+        'calculation_type',
         'amount',
+        'percentage',
         'taxable',
         'status',
     ];

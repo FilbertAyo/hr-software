@@ -7,12 +7,27 @@ use Illuminate\Database\Eloquent\Model;
 class Jobtitle extends Model
 {
     protected $fillable = [
-        'title',
-        'category',
+        'job_title',
         'description',
-        'pay_grade',
-        'department'
+        'occupation_id',
+        'pay_grade_id',
+        'department_id',
     ];
+
+    public function occupation()
+    {
+        return $this->belongsTo(Occupation::class);
+    }
+
+    public function paygrade()
+    {
+        return $this->belongsTo(Paygrade::class, 'pay_grade_id');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
 
     public function employee()
     {

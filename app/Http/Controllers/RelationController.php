@@ -18,7 +18,11 @@ class RelationController extends Controller
 
     public function store(Request $request)
     {
-        $relation = relation::create($request->all());
+        $validated = $request->validate([
+            'relation_name' => 'required|string|max:255',
+        ]);
+
+        $relation = Relation::create($validated);
 
         return redirect()->back()->with('success','relation added successfully');
     }
@@ -28,13 +32,13 @@ class RelationController extends Controller
     {
 
         $request->validate([
-            'relation_type' => 'required|string|max:255',
+            'relation_name' => 'required|string|max:255',
         ]);
 
         $relation = Relation::findOrFail($id);
 
 
-        $relation->relation_type = $request->input('relation_type');
+        $relation->relation_name = $request->input('relation_name');
 
 
         $relation->save();

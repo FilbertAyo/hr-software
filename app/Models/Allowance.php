@@ -7,11 +7,17 @@ use Illuminate\Database\Eloquent\Model;
 class Allowance extends Model
 {
     protected $fillable = [
-        'name',
+        'allowance_name',
+        'description',
     ];
 
     public function allowanceDetails()
-{
-    return $this->hasMany(AllowanceDetail::class);
-}
+    {
+        return $this->hasMany(AllowanceDetail::class);
+    }
+
+    public function groupBenefits()
+    {
+        return $this->hasMany(GroupBenefit::class);
+    }
 }

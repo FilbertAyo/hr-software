@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Employee;
 use App\Models\Payroll;
 use App\Models\PayrollPeriod;
+use App\Models\Advance;
+use App\Models\TaxRate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -49,7 +51,7 @@ class PayrollController extends Controller
 
         // Get employees with their salary details and existing payroll if any, filtered by company
         $employees = Employee::where('company_id', $companyId)
-            ->with(['salaryDetails', 'payrolls' => function($query) use ($payrollPeriod) {
+            ->with(['payrolls' => function($query) use ($payrollPeriod) {
                 $query->where('payroll_period_id', $payrollPeriod->id);
             }])->get();
 
@@ -88,7 +90,7 @@ class PayrollController extends Controller
             $processedCount = 0;
 
             foreach ($request->employee_ids as $employeeId) {
-                $employee = Employee::with(['SalaryDetails', 'advances'])->findOrFail($employeeId);
+                $employee = Employee::with(['advances', 'taxRate'])->findOrFail($employeeId);
 
                 // Check if payroll already exists for this period and delete it for reprocessing
                 $existingPayroll = Payroll::where('employee_id', $employeeId)
@@ -99,26 +101,46 @@ class PayrollController extends Controller
                     $existingPayroll->delete(); // Delete existing payroll for reprocessing
                 }
 
-                // Get salary information from salary details or default
-                $salaryDetails = $employee->salaryDetails()->first(); // Use first() to get single record
-                $basicSalary = $salaryDetails->basic_salary ?? 0;
-                $housingAllowance = $salaryDetails->housing_allowance ?? 0;
-                $transportAllowance = $salaryDetails->transport_allowance ?? 0;
-                $medicalAllowance = $salaryDetails->medical_allowance ?? 0;
+                // Get basic salary from employee table
+                $basicSalary = $employee->basic_salary ?? 0;
 
+                // Get allowances from employee table
+                $housingAllowance = $employee->housing_allowance ?? 0;
+                $transportAllowance = $employee->transport_allowance ?? 0;
+                $medicalAllowance = $employee->medical_allowance ?? 0;
                 $totalAllowances = $housingAllowance + $transportAllowance + $medicalAllowance;
 
-                // Calculate tax (example: 10% of basic salary)
-                $taxDeduction = $basicSalary * 0.10;
+                // Calculate gross salary (basic + allowances)
+                $grossSalary = $basicSalary + $totalAllowances;
 
-                // Calculate insurance (example: 5% of basic salary)
-                $insuranceDeduction = $basicSalary * 0.05;
+                // Get pension amount directly from employee table if pension is enabled
+                $pensionAmount = 0;
+                if ($employee->pension_details && $employee->employee_pension_amount) {
+                    $pensionAmount = $employee->employee_pension_amount;
+                }
+
+                // Calculate taxable income (gross salary minus pension for PAYE calculation)
+                $taxableIncome = $grossSalary - $pensionAmount;
+
+                // Calculate PAYE tax based on employee's tax rate
+                $taxDeduction = $this->calculatePAYE($employee, $taxableIncome);
+
+                // Other deductions
+                $insuranceDeduction = 0;
+                $loanDeduction = 0;
+                $otherDeductions = 0;
 
                 // Get advance amount for this employee in this period
                 $advanceAmount = $employee->advances()
                     ->where('payroll_period_id', $payrollPeriod->id)
                     ->where('status', 'approved')
                     ->sum('advance_amount') ?? 0;
+
+                // Calculate total deductions (including pension, PAYE tax, and advance)
+                $totalDeductions = $pensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $otherDeductions + $advanceAmount;
+
+                // Calculate net salary (gross - total deductions)
+                $netSalary = $grossSalary - $totalDeductions;
 
                 // Create payroll record
                 $payroll = Payroll::create([
@@ -128,10 +150,16 @@ class PayrollController extends Controller
                     'allowances' => $totalAllowances,
                     'overtime_amount' => 0,
                     'bonus' => 0,
+                    'advance_salary' => $advanceAmount,
+                    'gross_salary' => $grossSalary,
+                    'pension_amount' => $pensionAmount,
+                    'taxable_income' => $taxableIncome,
                     'tax_deduction' => $taxDeduction,
                     'insurance_deduction' => $insuranceDeduction,
-                    'loan_deduction' => 0,
-                    'other_deductions' => $advanceAmount,
+                    'loan_deduction' => $loanDeduction,
+                    'other_deductions' => $otherDeductions,
+                    'total_deductions' => $totalDeductions,
+                    'net_salary' => $netSalary,
                     'status' => 'processed',
                     'processed_at' => now()
                 ]);
@@ -161,12 +189,43 @@ class PayrollController extends Controller
             'payroll_period_id' => 'required|exists:payroll_periods,id'
         ]);
 
-        $employees = Employee::with('SalaryDetails')->get();
+        $companyId = session('selected_company_id');
+        $employees = Employee::where('company_id', $companyId)->get();
         $employeeIds = $employees->pluck('id')->toArray();
 
         $request->merge(['employee_ids' => $employeeIds]);
 
         return $this->processSelected($request);
+    }
+
+    /**
+     * Calculate PAYE tax for an employee based on their tax rate
+     *
+     * @param Employee $employee
+     * @param float $taxableIncome
+     * @return float
+     */
+    private function calculatePAYE(Employee $employee, $taxableIncome)
+    {
+        // Check if employee is PAYE exempt
+        if ($employee->paye_exempt) {
+            return 0;
+        }
+
+        // If no tax rate is assigned, use PRIMARY by default
+        if (!$employee->tax_rate_id) {
+            $taxRate = TaxRate::where('tax_name', 'PRIMARY')->first();
+        } else {
+            $taxRate = $employee->taxRate;
+        }
+
+        // If no tax rate found, return 0
+        if (!$taxRate) {
+            return 0;
+        }
+
+        // Calculate tax using the tax rate's method
+        return round($taxRate->calculateTax($taxableIncome), 2);
     }
 
     /**

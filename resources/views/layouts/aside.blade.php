@@ -13,10 +13,10 @@
         </div>
 
         <ul class="navbar-nav flex-fill w-100">
-            <li class="nav-item active">
-                <a href="{{ route('dashboard') }}" class=" nav-link">
+            <li class="nav-item">
+                <a href="{{ route('dashboard') }}" class="nav-link">
                     <i class="fe fe-home fe-16"></i>
-                    <span cl ass="ml-3 item-text">Dashboard</span><span
+                    <span class="ml-3 item-text">Dashboard</span><span
                         class="badge badge-pill badge-primary">Analytics</span>
                 </a>
             </li>
@@ -67,7 +67,6 @@
                         </a>
                     </li>
 
-
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('nationality.index') }}">
                             <span class="ml-1 item-text">Nationality</span>
@@ -115,11 +114,6 @@
                             <span class="ml-1 item-text">Reporting Method</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('earngroup.index') }}">
-                            <span class="ml-1 item-text">Earning Group</span>
-                        </a>
-                    </li>
 
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('pay_grade.index') }}">
@@ -163,7 +157,11 @@
                     <span class="ml-3 item-text">Company</span><span class="sr-only">(current)</span>
                 </a>
                 <ul class="collapse list-unstyled pl-4 w-100" id="dashboard">
-                    <li class="nav-item active">
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('company.index') }}"><span
+                                class="ml-1 item-text">Company Setup</span></a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('mainstation.index') }}"><span
                                 class="ml-1 item-text">Main stations</span></a>
                     </li>
@@ -198,6 +196,83 @@
             <span>Management</span>
         </p>
         <ul class="navbar-nav flex-fill w-100">
+
+            <li class="nav-item dropdown">
+                <a href="#allowances" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+                    <i class="fe fe-plus-square fe-16"></i>
+                    <span class="ml-3 item-text">Allowances/Benefits</span>
+                </a>
+                <ul class="collapse list-unstyled pl-4 w-100" id="allowances">
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('earngroup.index') }}">
+                            <span class="ml-1 item-text">Earning Group</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('allowance.index') }}"><span
+                                class="ml-1 item-text">Benefit Names</span></a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('direct.index') }}"><span
+                                class="ml-1 item-text">Direct Benefits</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('group-benefits.index') }}"><span
+                                class="ml-1 item-text">Group
+                                Benefits</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('other-benefits.index') }}"><span
+                                class="ml-1 item-text">Other Benefits</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('other-benefit-details.index') }}"><span
+                                class="ml-1 item-text">Other Benefit Details</span></a>
+                    </li>
+
+                </ul>
+            </li>
+            <li class="nav-item dropdown">
+                <a href="#tax-deductions" data-toggle="collapse" aria-expanded="false"
+                    class="dropdown-toggle nav-link">
+                    <i class="fe fe-minus-square fe-16"></i>
+                    <span class="ml-3 item-text">Tax & Deductions</span>
+                </a>
+                <ul class="collapse list-unstyled pl-4 w-100" id="tax-deductions">
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('taxrate.index') }}">
+                            <span class="ml-1 item-text">Tax Rates</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('taxtable.index') }}">
+                            <span class="ml-1 item-text">Tax Tables/PAYE</span>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('direct-deduction.index') }}">
+                            <span class="ml-1 item-text">Direct Deduction</span>
+                        </a>
+                    </li>
+                    {{-- <li class="nav-item">
+                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Other
+                                Deductions</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Credit
+                                Agency</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Emp
+                                Deductions</span></a>
+                    </li> --}}
+
+
+                </ul>
+            </li>
 
             <li class="nav-item dropdown">
                 <a href="#contact" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
@@ -255,79 +330,8 @@
             </li>
 
             <li class="nav-item dropdown">
-                <a href="#forms" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
-                    <i class="fe fe-credit-card fe-16"></i>
-                    <span class="ml-3 item-text">Payroll</span>
-                </a>
-                <ul class="collapse list-unstyled pl-4 w-100" id="forms">
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('taxtable.index') }}">
-                            <span class="ml-1 item-text">Tax Tables/PAYE</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('taxrate.index') }}">
-                            <span class="ml-1 item-text">Tax Rates</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('allowance.index') }}"><span class="ml-1 item-text">Benefit/Allowance</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('direct.index') }}"><span class="ml-1 item-text">Direct
-                                Benefits/Allowance</span></a>
-                    </li>
-                    {{-- <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Other
-                                Benefits</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Employee
-                                Other Benefits</span></a>
-                    </li> --}}
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Group
-                                Benefits</span></a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('direct-deduction.index') }}">
-                            <span class="ml-1 item-text">Direct Deduction</span>
-                        </a>
-                    </li>
-
-                    {{-- <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Other
-                                Deductions</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Credit
-                                Agency</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Emp
-                                Deductions</span></a>
-                    </li> --}}
-
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('cal.netpay') }}"><span class="ml-1 item-text">Calculator</span></a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('payperiod.index') }}"><span
-                                class="ml-1 item-text">Payroll
-                                Period</span></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('payroll.index') }}"><span
-                                class="ml-1 item-text text-success">Process
-                                Payroll</span></a>
-                    </li>
-                </ul>
-            </li>
-
-            <li class="nav-item dropdown">
-                <a href="#evaluations" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+                <a href="#evaluations" data-toggle="collapse" aria-expanded="false"
+                    class="dropdown-toggle nav-link">
                     <i class="fe fe-check-square fe-16"></i>
                     <span class="ml-3 item-text">Performance Evaluation</span>
                 </a>
@@ -361,6 +365,34 @@
                 </ul>
             </li>
 
+            <li class="nav-item dropdown">
+                <a href="#forms" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+                    <i class="fe fe-credit-card fe-16"></i>
+                    <span class="ml-3 item-text">Payroll</span>
+                </a>
+                <ul class="collapse list-unstyled pl-4 w-100" id="forms">
+
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('cal.netpay') }}"><span
+                                class="ml-1 item-text">Calculator</span></a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('payperiod.index') }}"><span
+                                class="ml-1 item-text">Payroll
+                                Period</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('payroll.index') }}"><span
+                                class="ml-1 item-text text-success">Process
+                                Payroll</span></a>
+                    </li>
+                </ul>
+            </li>
+
+
+
         </ul>
         <p class="text-muted nav-heading mt-4 mb-1">
             <span>Reports</span>
@@ -387,19 +419,6 @@
             </li>
         </ul>
 
-        <p class="text-muted nav-heading mt-4 mb-1">
-            <span>COnfigurations</span>
-        </p>
-
-        <ul class="navbar-nav flex-fill w-100">
-            <li class="nav-item dropdown">
-                <a href="{{ route('company.index') }}" class="nav-link">
-                    <i class="fe fe-file fe-16"></i>
-                    <span class="ml-3 item-text">Company Setup</span>
-                </a>
-
-            </li>
-        </ul>
 
 
         <div class="btn-box w-100 mt-5 mb-1">

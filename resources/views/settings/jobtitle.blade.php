@@ -48,17 +48,17 @@
                                         @foreach ($jobtitles as $index => $jobtitle)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $jobtitle->title }}</td>
+                                                <td>{{ $jobtitle->job_title }}</td>
                                                 <td>{{ $jobtitle->description }}</td>
-                                                <td>{{ $jobtitle->category }}</td>
-                                                <td>{{ $jobtitle->department }}</td>
-                                                <td>{{ $jobtitle->pay_grade }}</td>
+                                                <td>{{ optional($jobtitle->occupation)->occupation_name ?? '-' }}</td>
+                                                <td>{{ optional($jobtitle->department)->department_name ?? '-' }}</td>
+                                                <td>{{ optional($jobtitle->paygrade)->grade ?? '-' }}</td>
                                                 <td class="text-right">
                                                     <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                         <a href="javascript:void(0);"
                                                             class="btn btn-sm btn-primary edit-jobtitle-btn"
                                                             data-jobtitle-id="{{ $jobtitle->id }}"
-                                                            data-jobtitle-name="{{ $jobtitle->title }}">
+                                                            data-jobtitle-name="{{ $jobtitle->job_title }}">
                                                             <span class="fe fe-edit fe-16"></span>
                                                         </a>
 
@@ -105,17 +105,16 @@
                                 <div class="form-row">
                                     <div class="col-md-6 mb-3">
                                         <label for="">Job title</label>
-                                        <input type="text" class="form-control" id="validationCustom3" name="title"
+                                        <input type="text" class="form-control" id="validationCustom3" name="job_title"
                                             required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="category">Job Category</label>
-                                        <select class="form-control" id="validationCustom3" name="category" required>
+                                        <label for="occupation_id">Job Category</label>
+                                        <select class="form-control" id="validationCustom3" name="occupation_id" required>
                                             <option value="" disabled selected>Select a category</option>
                                             @foreach ($categories as $cat)
-                                                <option value="{{ $cat->occupation_name }}">
-                                                    {{ $cat->occupation_name }}</option>
+                                                <option value="{{ $cat->id }}">{{ $cat->occupation_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -127,28 +126,25 @@
                                         <label for="">Description</label>
                                         <textarea type="text" class="form-control" id="validationCustom3" name="description"></textarea>
                                     </div>
-
                                 </div>
                                 <div class="form-row">
 
-
                                     <div class="col-md-6 mb-3">
-                                        <label for="">Pay Grade</label>
-                                        <select class="form-control" id="validationCustom3" name="pay_grade" required>
+                                        <label for="pay_grade_id">Pay Grade</label>
+                                        <select class="form-control" id="validationCustom3" name="pay_grade_id" required>
                                             <option value="" disabled selected>Select a category</option>
                                             @foreach ($paygrades as $paygrade)
-                                                <option value="{{ $paygrade->grade }}">{{ $paygrade->grade }}</option>
+                                                <option value="{{ $paygrade->id }}">{{ $paygrade->grade }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-6 mb-3">
-                                        <label for="">Department</label>
-                                        <select class="form-control" id="validationCustom3" name="department"
+                                        <label for="department_id">Department</label>
+                                        <select class="form-control" id="validationCustom3" name="department_id"
                                             required>
                                             <option value="" disabled selected>Select a category</option>
                                             @foreach ($departments as $dep)
-                                                <option value="{{ $dep->department_name }}">
-                                                    {{ $dep->department_name }}</option>
+                                                <option value="{{ $dep->id }}">{{ $dep->department_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -187,7 +183,7 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <input type="text" class="form-control" id="editjobtitleName"
-                                            name="title" required>
+                                            name="job_title" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
                                 </div>

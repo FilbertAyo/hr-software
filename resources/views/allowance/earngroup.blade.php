@@ -8,7 +8,7 @@
                                 <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                                     <li class="nav-item">
                                         <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">earning groups</a>
+                                            role="tab" aria-controls="home" aria-selected="true">Earning Groups</a>
                                     </li>
 
                                 </ul>
@@ -35,7 +35,7 @@
                                          <thead class="thead-light">
                                             <tr>
                                                 <th>No</th>
-                                                <th>earngroup</th>
+                                                <th>Earning Group</th>
                                                 <th class="text-right">Action</th>
                                             </tr>
                                         </thead>
@@ -87,7 +87,7 @@
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="varyModalLabel">New earning group</h5>
+                            <h5 class="modal-title" id="varyModalLabel">New Earning Group</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
     <span aria-hidden="true">&times;</span>
   </button>
@@ -122,7 +122,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editearngroupModalLabel">Edit earngroup</h5>
+                <h5 class="modal-title" id="editearngroupModalLabel">Edit Earning Group</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -167,7 +167,6 @@
 });
 
 </script>
-
 
 
 </x-app-layout>

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Advance;
 use App\Models\Employee;
-use App\Models\EmployeeSalaryDetail;
 use App\Models\PayrollPeriod;
 use App\Traits\CompanyContext;
 use Illuminate\Http\Request;
@@ -37,9 +36,7 @@ class AdvanceController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $employees = Employee::where('company_id', $companyId)
-            ->with('salaryDetails')
-            ->get();
+        $employees = Employee::where('company_id', $companyId)->get();
 
         return view("advance.index", compact("advances", "employees", "currentPayrollPeriod"));
     }
@@ -57,10 +54,10 @@ class AdvanceController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'advance_amount' => 'required|numeric|min:0.01',
-            'remarks' => 'nullable|string|max:255',
+            'reason' => 'nullable|string|max:255',
         ]);
 
-        $employee = Employee::with('salaryDetails')->findOrFail($request->employee_id);
+        $employee = Employee::findOrFail($request->employee_id);
 
         // Use the global payroll period from session (set by middleware and ViewServiceProvider)
         $currentPayrollPeriod = session('current_payroll_period');
@@ -98,29 +95,14 @@ class AdvanceController extends Controller
                 'employee_id' => $request->employee_id,
                 'payroll_period_id' => $currentPayrollPeriod->id,
                 'advance_amount' => $request->advance_amount,
-                'request_date' => now()->format('Y-m-d'),
-                'remarks' => $request->remarks,
+                'advance_date' => now()->format('Y-m-d'),
+                'reason' => $request->reason,
                 'status' => 'pending'
             ]);
 
-            // Update employee's advance_salary in salary details as a persistent suggestion for future payrolls
-            $salaryDetails = $employee->salaryDetails;
-            if ($salaryDetails) {
-                $salaryDetails->advance_salary = $request->advance_amount;
-                $salaryDetails->save();
-            } else {
-                // Create salary details if they don't exist
-                EmployeeSalaryDetail::create([
-                    'employee_id' => $employee->id,
-                    'basic_salary' => 0,
-                    'advance_option' => 'yes',
-                    'advance_percentage' => 0,
-                    'advance_salary' => $request->advance_amount,
-                    'housing_allowance' => 0,
-                    'transport_allowance' => 0,
-                    'medical_allowance' => 0,
-                ]);
-            }
+            // Persist suggested advance amount directly on employee record
+            $employee->advance_salary = $request->advance_amount;
+            $employee->save();
 
             DB::commit();
             return redirect()->back()->with('success', 'Advance created successfully. The advance amount will appear as a suggestion in future payroll periods.');
@@ -144,11 +126,11 @@ class AdvanceController extends Controller
         $request->validate([
             'employee_id' => 'required|exists:employees,id',
             'advance_amount' => 'required|numeric|min:0.01',
-            'remarks' => 'nullable|string|max:255',
+            'reason' => 'nullable|string|max:255',
         ]);
 
         $advance = Advance::findOrFail($id);
-        $employee = Employee::with('salaryDetails')->findOrFail($request->employee_id);
+        $employee = Employee::findOrFail($request->employee_id);
 
         // Check if employee has advance option enabled
         if (!$employee->hasAdvanceOption()) {
@@ -181,27 +163,12 @@ class AdvanceController extends Controller
             $advance->update([
                 'employee_id' => $request->employee_id,
                 'advance_amount' => $request->advance_amount,
-                'remarks' => $request->remarks,
+                'reason' => $request->reason,
             ]);
 
-            // Update employee's advance_salary in salary details as a persistent suggestion for future payrolls
-            $salaryDetails = $employee->salaryDetails;
-            if ($salaryDetails) {
-                $salaryDetails->advance_salary = $request->advance_amount;
-                $salaryDetails->save();
-            } else {
-                // Create salary details if they don't exist
-                EmployeeSalaryDetail::create([
-                    'employee_id' => $employee->id,
-                    'basic_salary' => 0,
-                    'advance_option' => 'yes',
-                    'advance_percentage' => 0,
-                    'advance_salary' => $request->advance_amount,
-                    'housing_allowance' => 0,
-                    'transport_allowance' => 0,
-                    'medical_allowance' => 0,
-                ]);
-            }
+            // Persist suggested advance amount directly on employee record
+            $employee->advance_salary = $request->advance_amount;
+            $employee->save();
 
             DB::commit();
             return redirect()->back()->with('success', 'Advance updated successfully. The advance amount will appear as a suggestion in future payroll periods.');
@@ -229,11 +196,8 @@ class AdvanceController extends Controller
             try {
                 // Clear employee's advance_salary suggestion
                 $employee = $advance->employee;
-                $salaryDetails = $employee->salaryDetails;
-                if ($salaryDetails) {
-                    $salaryDetails->advance_salary = 0;
-                    $salaryDetails->save();
-                }
+                $employee->advance_salary = 0.00; // decimal
+                $employee->save();
 
                 $advance->delete();
                 DB::commit();
@@ -357,7 +321,7 @@ class AdvanceController extends Controller
     public function getEmployeeAdvanceLimit(Request $request)
     {
         $employeeId = $request->employee_id;
-        $employee = Employee::with('salaryDetails')->find($employeeId);
+        $employee = Employee::find($employeeId);
 
         if (!$employee) {
             return response()->json(['error' => 'Employee not found'], 404);

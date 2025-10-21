@@ -8,7 +8,7 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">allowances</a>
+                                    aria-controls="home" aria-selected="true">other benefits</a>
                             </li>
 
                         </ul>
@@ -19,13 +19,13 @@
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
                         <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
-                            data-target="#varyModal" data-whatever="@mdo">New allowance<span
+                            data-target="#varyModal" data-whatever="@mdo">New other benefit<span
                                 class="fe fe-plus fe-16 ml-2"></span></button>
                     </div>
                 </div>
 
                 <div class="row my-2">
-                    <!-- Small table -->
+
 
                     @include('elements.spinner')
                     <div class="col-md-12">
@@ -36,27 +36,28 @@
                                     <thead class="thead-light">
                                         <tr>
                                             <th>No</th>
-                                            <th>allowance</th>
+                                            <th>other benefit</th>
                                             <th class="text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                            @foreach ($allowances as $index => $allowance)
+                                        @if ($other_benefits->count() > 0)
+                                            @foreach ($other_benefits as $index => $other_benefit)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $allowance->allowance_name }}</td>
+                                                    <td>{{ $other_benefit->other_benefit_name }}</td>
                                                     <td class="text-right">
                                                         <div
                                                             style="display: flex; gap: 4px; justify-content: flex-end;">
                                                             <a href="javascript:void(0);"
-                                                                class="btn btn-sm btn-primary edit-allowance-btn"
-                                                                data-allowance-id="{{ $allowance->id }}"
-                                                                data-allowance-name="{{ $allowance->allowance_name }}">
+                                                                class="btn btn-sm btn-primary edit-other-benefit-btn"
+                                                                data-other-benefit-id="{{ $other_benefit->id }}"
+                                                                data-other-benefit-name="{{ $other_benefit->other_benefit_name }}">
                                                                 <span class="fe fe-edit fe-16"></span>
                                                             </a>
 
                                                             <form
-                                                                action="{{ route('allowance.destroy', $allowance->id) }}"
+                                                                action="{{ route('other-benefit.destroy', $other_benefit->id) }}"
                                                                 method="POST"
                                                                 onsubmit="return confirm('Are you sure you want to delete this item?');">
                                                                 @csrf
@@ -69,7 +70,11 @@
                                                     </td>
                                                 </tr>
                                             @endforeach
-                                     
+                                        @else
+                                            <tr>
+                                                <td colspan="3" class="text-center">No other benefit found</td>
+                                            </tr>
+                                        @endif
                                     </tbody>
                                 </table>
 
@@ -87,20 +92,19 @@
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="varyModalLabel">New allowance</h5>
+                            <h5 class="modal-title" id="varyModalLabel">New other-benefit</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form method="POST" action="{{ route('allowance.store') }}" validate>
+                            <form method="POST" action="{{ route('other-benefit.store') }}" validate>
                                 @csrf
 
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
-                                        <label for="">Allowance Name</label>
-                                        <input type="text" class="form-control" id="validationCustom3" name="allowance_name"
-                                            required>
+                                        <input type="text" class="form-control" id="validationCustom3"
+                                            name="other_benefit_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
@@ -119,27 +123,26 @@
             </div>
 
 
-            <!-- Edit allowance Modal -->
-            <div class="modal fade" id="editallowanceModal" tabindex="-1" role="dialog"
-                aria-labelledby="editallowanceModalLabel" aria-hidden="true">
+            <!-- Edit other-benefit Modal -->
+            <div class="modal fade" id="editother-benefitModal" tabindex="-1" role="dialog"
+                aria-labelledby="editother-benefitModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="editallowanceModalLabel">Edit allowance</h5>
+                            <h5 class="modal-title" id="editother-benefitModalLabel">Edit other-benefit</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
                         <div class="modal-body">
-                            <form method="POST" action="" id="editallowanceForm">
+                            <form method="POST" action="" id="editother-benefitForm">
                                 @csrf
                                 @method('PUT')
 
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
-                                        <label for="">Allowance Name</label>
-                                        <input type="text" class="form-control" id="editallowanceName"
-                                            name="allowance_name" required>
+                                        <input type="text" class="form-control" id="editother-benefitName"
+                                            name="other_benefit_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
                                 </div>
@@ -156,20 +159,20 @@
             </div>
 
             <script>
-                document.querySelectorAll('.edit-allowance-btn').forEach(button => {
+                document.querySelectorAll('.edit-other-benefit-btn').forEach(button => {
                     button.addEventListener('click', function() {
-                        const allowanceId = this.getAttribute('data-allowance-id');
-                        const allowanceName = this.getAttribute('data-allowance-name');
+                        const otherBenefitId = this.getAttribute('data-other-benefit-id');
+                        const otherBenefitName = this.getAttribute('data-other-benefit-name');
 
-                        // Set the form's action attribute to the route for updating the allowance
-                        document.getElementById('editallowanceForm').setAttribute('action',
-                            `/allowance/${allowanceId}`);
+                        // Set the form's action attribute to the route for updating the other-benefit
+                        document.getElementById('editother-benefitForm').setAttribute('action',
+                            `/other-benefit/${otherBenefitId}`);
 
-                        // Populate the allowance name in the modal
-                        document.getElementById('editallowanceName').value = allowanceName;
+                        // Populate the other-benefit name in the modal
+                        document.getElementById('editother-benefitName').value = otherBenefitName;
 
                         // Show the modal
-                        $('#editallowanceModal').modal('show');
+                        $('#editother-benefitModal').modal('show');
                     });
                 });
             </script>

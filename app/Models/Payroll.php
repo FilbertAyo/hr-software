@@ -16,6 +16,9 @@ class Payroll extends Model
         'allowances',
         'overtime_amount',
         'bonus',
+        'advance_salary',
+        'pension_amount',
+        'taxable_income',
         'gross_salary',
         'tax_deduction',
         'insurance_deduction',
@@ -34,7 +37,10 @@ class Payroll extends Model
         'allowances' => 'decimal:2',
         'overtime_amount' => 'decimal:2',
         'bonus' => 'decimal:2',
+        'advance_salary' => 'decimal:2',
         'gross_salary' => 'decimal:2',
+        'pension_amount' => 'decimal:2',
+        'taxable_income' => 'decimal:2',
         'tax_deduction' => 'decimal:2',
         'insurance_deduction' => 'decimal:2',
         'loan_deduction' => 'decimal:2',
@@ -75,22 +81,6 @@ class Payroll extends Model
         return $query->where('status', 'pending');
     }
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($payroll) {
-            // Auto calculate gross and net salary
-            $payroll->gross_salary = $payroll->basic_salary + $payroll->allowances + $payroll->overtime_amount + $payroll->bonus;
-            $payroll->total_deductions = $payroll->tax_deduction + $payroll->insurance_deduction + $payroll->loan_deduction + $payroll->other_deductions;
-            $payroll->net_salary = $payroll->gross_salary - $payroll->total_deductions;
-        });
-
-        static::updating(function ($payroll) {
-            // Auto calculate gross and net salary
-            $payroll->gross_salary = $payroll->basic_salary + $payroll->allowances + $payroll->overtime_amount + $payroll->bonus;
-            $payroll->total_deductions = $payroll->tax_deduction + $payroll->insurance_deduction + $payroll->loan_deduction + $payroll->other_deductions;
-            $payroll->net_salary = $payroll->gross_salary - $payroll->total_deductions;
-        });
-    }
+    // Removed automatic calculations - now handled manually in controller
+    // This ensures that payroll values are only set when explicitly processed by admin
 }

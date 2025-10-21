@@ -15,10 +15,11 @@ class TaxTable extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'min',
-        'max',
-        'tax_percent',
-        'add_amount',
+        'tax_rate_id',
+        'min_income',
+        'max_income',
+        'rate_percentage',
+        'fixed_amount',
     ];
 
     /**
@@ -27,51 +28,46 @@ class TaxTable extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'min' => 'decimal:2',
-        'max' => 'decimal:2',
-        'tax_percent' => 'decimal:2',
-        'add_amount' => 'decimal:2',
+        'min_income' => 'decimal:2',
+        'max_income' => 'decimal:2',
+        'rate_percentage' => 'decimal:2',
+        'fixed_amount' => 'decimal:2',
     ];
 
     /**
-     * Get tax brackets ordered by minimum amount
+     * Get the tax rate that owns this tax table
      */
-    public static function getTaxBrackets()
+    public function taxRate()
     {
-        return self::orderBy('min')->get();
+        return $this->belongsTo(TaxRate::class);
     }
 
     /**
-     * Calculate PAYE tax for given taxable income
+     * Get tax brackets for a specific tax rate ordered by minimum income
+     */
+    public static function getTaxBracketsForRate($taxRateId)
+    {
+        return self::where('tax_rate_id', $taxRateId)
+            ->orderBy('min_income')
+            ->get();
+    }
+
+    /**
+     * Calculate PAYE tax for given taxable income using PRIMARY tax rate
+     * This is a convenience method for the default progressive tax calculation
+     *
+     * @param float $taxableIncome
+     * @return float
      */
     public static function calculatePAYE($taxableIncome)
     {
-        $taxBrackets = self::getTaxBrackets();
+        // Get PRIMARY tax rate
+        $primaryTaxRate = TaxRate::where('tax_name', 'PRIMARY')->first();
 
-        if ($taxBrackets->isEmpty()) {
-            return 0; // No tax brackets defined
+        if (!$primaryTaxRate) {
+            return 0;
         }
 
-        $tax = 0;
-
-        foreach ($taxBrackets as $bracket) {
-            // Check if income falls in this bracket
-            if ($taxableIncome > $bracket->min) {
-                // Calculate taxable amount in this bracket
-                $taxableInThisBracket = min($taxableIncome, $bracket->max) - $bracket->min;
-
-                if ($taxableInThisBracket > 0) {
-                    // Add tax for this bracket
-                    $tax += ($taxableInThisBracket * $bracket->tax_percent / 100) + $bracket->add_amount;
-                }
-            }
-
-            // If we've reached the bracket containing the full income, stop
-            if ($taxableIncome <= $bracket->max) {
-                break;
-            }
-        }
-
-        return max(0, $tax); // Ensure tax is never negative
+        return $primaryTaxRate->calculateTax($taxableIncome);
     }
 }

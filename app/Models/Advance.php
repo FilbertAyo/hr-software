@@ -13,8 +13,8 @@ class Advance extends Model
         'employee_id',
         'payroll_period_id',
         'advance_amount',
-        'request_date',
-        'remarks',
+        'advance_date',
+        'reason',
         'status',
     ];
 
@@ -22,7 +22,7 @@ class Advance extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
-        'request_date' => 'date',
+        'advance_date' => 'date',
         'advance_amount' => 'decimal:2',
     ];
 
@@ -42,7 +42,7 @@ class Advance extends Model
     public function scopeForMonth($query, $employeeId, $month)
     {
         return $query->where('employee_id', $employeeId)
-                     ->whereMonth('request_date', $month);
+                     ->whereMonth('advance_date', $month);
     }
 
     /**

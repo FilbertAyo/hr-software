@@ -1,4 +1,4 @@
-<div class="card shadow-none border">
+
     <div class="card-header">
         <strong>Employee Salary Details</strong>
     </div>
@@ -116,7 +116,7 @@
             </div>
         </div>
     </div>
-</div>
+     
 
 
 <script>

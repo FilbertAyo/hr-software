@@ -33,7 +33,7 @@
                                 @endif
 
                                 <h4 class="mb-1">{{ $employee->employee_name }}</h4>
-                                <p class="text-muted mb-2">{{ $employee->department?->jobtitle?->title ?? 'No Position' }}</p>
+                                <p class="text-muted mb-2">{{ $employee->department?->jobtitle?->job_title ?? 'No Position' }}</p>
                                 <span class="badge badge-{{ $employee->employee_status === 'active' ? 'success' : 'danger' }} mb-3">
                                     {{ ucfirst($employee->employee_status) }}
                                 </span>
@@ -197,7 +197,7 @@
                                                         </tr>
                                                         <tr>
                                                             <td class="text-muted">Designation:</td>
-                                                            <td>{{ $employee->department?->jobtitle?->title ?? 'N/A' }}</td>
+                                                            <td>{{ $employee->department?->jobtitle?->job_title ?? 'N/A' }}</td>
                                                             <td class="text-muted">Staff Level:</td>
                                                             <td>{{ $employee->department?->staffLevel?->level_name ?? 'N/A' }}</td>
                                                         </tr>
@@ -328,12 +328,11 @@
                                                                 </span>
                                                             </td>
                                                         </tr>
-                                                        @if($employee->pension)
                                                             <tr>
                                                                 <td class="text-muted">Pension Fund:</td>
                                                                 <td>{{ $employee->pension->name ?? 'N/A' }}</td>
                                                             </tr>
-                                                        @endif
+
                                                         @if($employee->employee_pension_no)
                                                             <tr>
                                                                 <td class="text-muted">Pension Number:</td>

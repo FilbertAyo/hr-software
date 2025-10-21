@@ -112,102 +112,15 @@ return new class extends Migration
             $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
             $table->decimal('advance_amount', 15, 2);
             $table->date('advance_date');
-            $table->date('repayment_date');
             $table->enum('status', ['pending', 'approved', 'rejected', 'repaid'])->default('pending');
             $table->text('reason')->nullable();
-            $table->unsignedBigInteger('approved_by')->nullable();
-            $table->timestamp('approved_at')->nullable();
+            $table->foreignId('payroll_period_id')
+            ->constrained('payroll_periods')
+            ->cascadeOnDelete();
             $table->timestamps();
 
-            $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
         });
 
-
-        // Payroll periods table
-        Schema::create('payroll_periods', function (Blueprint $table) {
-            $table->id();
-            $table->string('period_name'); // e.g., "January 2024"
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->enum('status', ['draft', 'processing', 'completed', 'cancelled', 'closed'])->default('draft');
-            $table->decimal('total_gross_amount', 15, 2)->default(0);
-            $table->decimal('total_deductions', 15, 2)->default(0);
-            $table->decimal('total_net_amount', 15, 2)->default(0);
-            $table->integer('total_employees')->default(0);
-            $table->timestamp('processed_at')->nullable();
-            $table->unsignedBigInteger('processed_by')->nullable();
-            $table->foreignId('company_id')->nullable()->constrained()->onDelete('cascade');
-            $table->timestamps();
-
-            $table->foreign('processed_by')->references('id')->on('users')->nullOnDelete();
-            $table->index(['start_date', 'end_date']);
-            $table->unique(['period_name']);
-        });
-
-        // Payrolls table
-        Schema::create('payrolls', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('employee_id');
-            $table->unsignedBigInteger('payroll_period_id');
-            $table->decimal('basic_salary', 15, 2);
-            $table->decimal('allowances', 15, 2)->default(0);
-            $table->decimal('overtime_amount', 15, 2)->default(0);
-            $table->decimal('bonus', 15, 2)->default(0);
-            $table->decimal('gross_salary', 15, 2);
-            $table->decimal('tax_deduction', 15, 2)->default(0);
-            $table->decimal('insurance_deduction', 15, 2)->default(0);
-            $table->decimal('loan_deduction', 15, 2)->default(0);
-            $table->decimal('other_deductions', 15, 2)->default(0);
-            $table->decimal('total_deductions', 15, 2)->default(0);
-            $table->decimal('net_salary', 15, 2);
-            $table->enum('status', ['pending', 'processed', 'paid', 'cancelled'])->default('pending');
-            $table->timestamp('processed_at')->nullable();
-            $table->timestamp('paid_at')->nullable();
-            $table->text('notes')->nullable();
-            $table->timestamps();
-
-            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade');
-            $table->foreign('payroll_period_id')->references('id')->on('payroll_periods')->onDelete('cascade');
-            $table->unique(['employee_id', 'payroll_period_id']);
-            $table->index(['status', 'payroll_period_id']);
-        });
-
-        // Payroll deductions table
-        Schema::create('payroll_deductions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('payroll_id')->constrained('payrolls')->onDelete('cascade');
-            $table->string('deduction_name');
-            $table->decimal('amount', 15, 2);
-            $table->timestamps();
-        });
-
-        // Payroll allowances table
-        Schema::create('payroll_allowances', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('payroll_id')->constrained('payrolls')->onDelete('cascade');
-            $table->string('allowance_name');
-            $table->decimal('amount', 15, 2);
-            $table->timestamps();
-        });
-
-        // Allowances table
-        Schema::create('allowances', function (Blueprint $table) {
-            $table->id();
-            $table->string('allowance_name');
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
-
-        // Allowance details table
-        Schema::create('allowance_details', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('allowance_id')->constrained('allowances')->onDelete('cascade');
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->decimal('amount', 15, 2);
-            $table->date('effective_date');
-            $table->date('end_date')->nullable();
-            $table->timestamps();
-        });
 
         // Leaves table
         Schema::create('leaves', function (Blueprint $table) {
@@ -244,12 +157,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('company_users');
         Schema::dropIfExists('leaves');
-        Schema::dropIfExists('allowance_details');
-        Schema::dropIfExists('allowances');
-        Schema::dropIfExists('payroll_allowances');
-        Schema::dropIfExists('payroll_deductions');
-        Schema::dropIfExists('payrolls');
-        Schema::dropIfExists('payroll_periods');
         Schema::dropIfExists('advances');
         Schema::dropIfExists('loan_installments');
         Schema::dropIfExists('loans');

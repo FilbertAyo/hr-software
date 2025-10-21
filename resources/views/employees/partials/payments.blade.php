@@ -1,9 +1,8 @@
-<div class="card shadow-none border">
+
     <div class="card-header">
         <strong>Payment Method</strong>
     </div>
     <div class="card-body">
-
 
         <div class="form-row mb-3">
 
@@ -61,11 +60,8 @@
             </div>
         </div>
 
-
     </div>
-</div>
 
-<!-- Toggle Bank Details JS -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         function toggleBankDetails() {

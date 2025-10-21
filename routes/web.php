@@ -12,6 +12,7 @@ use App\Http\Controllers\holidayController;
 use App\Http\Controllers\companyController;
 use App\Http\Controllers\advanceController;
 use App\Http\Controllers\allowanceController;
+use App\Http\Controllers\GroupBenefitController;
 use App\Http\Controllers\CalculatorController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\LeaveController;
@@ -117,6 +118,19 @@ Route::middleware('auth')->group(function () {
     Route::delete('/user/{id}', [UsersController::class, 'destroy'])->name('user.destroy');
 
     Route::resource('allowance', allowanceController::class);
+    Route::resource('group-benefits', GroupBenefitController::class);
+
+    // Other Benefits routes
+    Route::get('/other-benefits', [AllowanceController::class, 'other_benefits'])->name('other-benefits.index');
+    Route::post('/other-benefit', [AllowanceController::class, 'other_benefit_store'])->name('other-benefit.store');
+    Route::put('/other-benefit/{id}', [AllowanceController::class, 'other_benefit_update'])->name('other-benefit.update');
+    Route::delete('/other-benefit/{id}', [AllowanceController::class, 'other_benefit_destroy'])->name('other-benefit.destroy');
+
+    // Other Benefit Details (Assignments)
+    Route::get('/other-benefit-details', [AllowanceController::class, 'other_benefit_detail'])->name('other-benefit-details.index');
+    Route::post('/other-benefit-details', [AllowanceController::class, 'other_benefit_detail_store'])->name('other-benefit-details.store');
+    Route::put('/other-benefit-details/{id}', [AllowanceController::class, 'other_benefit_detail_update'])->name('other-benefit-details.update');
+    Route::delete('/other-benefit-details/{id}', [AllowanceController::class, 'other_benefit_detail_destroy'])->name('other-benefit-details.destroy');
 
     Route::prefix('allowance_details')->name('direct.')->group(function () {
         Route::get('/', [AllowanceController::class, 'details'])->name('index');

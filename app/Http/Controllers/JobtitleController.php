@@ -22,7 +22,15 @@ class JobtitleController extends Controller
 
     public function store(Request $request)
     {
-        $jobtitle = jobtitle::create($request->all());
+        $validated = $request->validate([
+            'job_title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'occupation_id' => 'required|exists:occupations,id',
+            'pay_grade_id' => 'required|exists:paygrades,id',
+            'department_id' => 'required|exists:departments,id',
+        ]);
+
+        $jobtitle = Jobtitle::create($validated);
 
         return redirect()->back()->with('success','jobtitle added successfully');
     }
@@ -32,13 +40,20 @@ class JobtitleController extends Controller
     {
 
         $request->validate([
-            'title' => 'required|string|max:255',
+            'job_title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'occupation_id' => 'required|exists:occupations,id',
+            'pay_grade_id' => 'required|exists:paygrades,id',
+            'department_id' => 'required|exists:departments,id',
         ]);
 
-        $jobtitle = jobtitle::findOrFail($id);
+        $jobtitle = Jobtitle::findOrFail($id);
 
-
-        $jobtitle->title = $request->input('title');
+        $jobtitle->job_title = $request->input('job_title');
+        $jobtitle->description = $request->input('description');
+        $jobtitle->occupation_id = $request->input('occupation_id');
+        $jobtitle->pay_grade_id = $request->input('pay_grade_id');
+        $jobtitle->department_id = $request->input('department_id');
 
 
         $jobtitle->save();

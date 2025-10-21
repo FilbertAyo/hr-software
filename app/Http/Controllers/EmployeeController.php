@@ -340,15 +340,6 @@ class EmployeeController extends Controller
                 'hod' => $validatedData['hod'],
             ]);
 
-            // Create bank details
-            if (in_array($validatedData['payment_method'], ['bank', 'both'])) {
-                EmployeeBankDetail::create([
-                    'employee_id' => $employee->id,
-                    'bank_id'     => $validatedData['bank_id'],
-                    'account_no'  => $validatedData['account_no'],
-                ]);
-            }
-
             DB::commit();
 
             return redirect()->route('employee.edit', $employee)
@@ -357,70 +348,6 @@ class EmployeeController extends Controller
             DB::rollback();
             return back()->withInput()
                 ->with('error', 'Error saving personal details: ' . $e->getMessage());
-        }
-    }
-
-    private function storeSalaryDetails(Request $request)
-    {
-        $employeeId = $request->input('employee_id');
-        $employee = Employee::findOrFail($employeeId);
-
-        $validatedData = $request->validate([
-            'basic_salary' => 'nullable|numeric|min:0',
-            'advance_option' => 'nullable',
-            'advance_percentage' => 'nullable|numeric|min:0|max:100',
-            'advance_salary' => 'nullable|numeric|min:0',
-            'pension_details' => 'nullable|boolean',
-            'pension_id' => 'nullable|integer|exists:direct_deductions,id',
-            'employee_pension_no' => 'nullable|string|max:255',
-            'employee_pension_amount' => 'nullable|numeric|min:0',
-            'employer_pension_amount' => 'nullable|numeric|min:0',
-            'paye_exempt' => 'nullable|boolean',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Update or create salary details
-            EmployeeSalaryDetail::updateOrCreate(
-                ['employee_id' => $employee->id],
-                [
-                    'basic_salary' => $validatedData['basic_salary'],
-                    'advance_option' => $validatedData['advance_option'] ?? false,
-                    'advance_percentage' => $validatedData['advance_percentage'],
-                    'advance_salary' => $validatedData['advance_salary'],
-                    'paye_exempt' => $validatedData['paye_exempt'] ?? false,
-                ]
-            );
-
-            // Update or create pension details
-            if (($validatedData['pension_details'] ?? false) && ($validatedData['pension_id'] ?? false)) {
-                EmployeePensionDetail::updateOrCreate(
-                    ['employee_id' => $employee->id],
-                    [
-                        'pension_details' => true,
-                        'pension_id' => $validatedData['pension_id'],
-                        'employee_pension_no' => $validatedData['employee_pension_no'],
-                        'employee_pension_amount' => $validatedData['employee_pension_amount'],
-                        'employer_pension_amount' => $validatedData['employer_pension_amount'],
-                    ]
-                );
-            } else {
-                // Remove pension details if not enabled or no pension selected
-                EmployeePensionDetail::where('employee_id', $employee->id)->delete();
-            }
-
-            // Update employee registration step
-            $employee->update(['registration_step' => 'salary_saved']);
-
-            DB::commit();
-
-            return redirect()->route('employee.edit', $employee)
-                ->with('success', 'Step 2 saved successfully! You can now complete the registration.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->withInput()
-                ->with('error', 'Error saving salary details: ' . $e->getMessage());
         }
     }
 
@@ -603,19 +530,7 @@ class EmployeeController extends Controller
                 ]
             );
 
-            // Update bank details
-            if (in_array($validatedData['payment_method'], ['bank', 'both'])) {
-                $employee->bankDetails()->updateOrCreate(
-                    ['employee_id' => $employee->id],
-                    [
-                        'bank_id'     => $validatedData['bank_id'],
-                        'account_no'  => $validatedData['account_no'],
-                    ]
-                );
-            } else {
-                // Remove bank details if payment method is not bank or both
-                $employee->bankDetails()->delete();
-            }
+
 
             DB::commit();
 
@@ -646,34 +561,15 @@ class EmployeeController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update or create salary details
-            $employee->salaryDetails()->updateOrCreate(
-                ['employee_id' => $employee->id],
-                [
-                    'basic_salary' => $validatedData['basic_salary'],
-                    'advance_option' => $validatedData['advance_option'] ?? false,
-                    'advance_percentage' => $validatedData['advance_percentage'],
-                    'advance_salary' => $validatedData['advance_salary'],
-                    'paye_exempt' => $validatedData['paye_exempt'] ?? false,
-                ]
-            );
+            // Persist salary fields directly on employees table
+            $employee->basic_salary = $validatedData['basic_salary'] ?? 0;
+            $employee->advance_option = $validatedData['advance_option'] ?? false;
+            $employee->advance_percentage = $validatedData['advance_percentage'] ?? 0;
+            $employee->advance_salary = $validatedData['advance_salary'] ?? 0;
+            $employee->paye_exempt = $validatedData['paye_exempt'] ?? false;
+            $employee->save();
 
-            // Update or create pension details
-            if (($validatedData['pension_details'] ?? false) && ($validatedData['pension_id'] ?? false)) {
-                $employee->pensionDetails()->updateOrCreate(
-                    ['employee_id' => $employee->id],
-                    [
-                        'pension_details' => true,
-                        'pension_id' => $validatedData['pension_id'],
-                        'employee_pension_no' => $validatedData['employee_pension_no'],
-                        'employee_pension_amount' => $validatedData['employee_pension_amount'],
-                        'employer_pension_amount' => $validatedData['employer_pension_amount'],
-                    ]
-                );
-            } else {
-                // Remove pension details if not enabled or no pension selected
-                $employee->pensionDetails()->delete();
-            }
+
 
             // Update employee registration step
             $employee->update(['registration_step' => 'salary_saved']);

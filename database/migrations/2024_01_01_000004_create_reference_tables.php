@@ -79,21 +79,16 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Earning groups table
-        Schema::create('earngroups', function (Blueprint $table) {
-            $table->id();
-            $table->string('earngroup_name');
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
-
-        // Job titles table
         Schema::create('jobtitles', function (Blueprint $table) {
             $table->id();
             $table->string('job_title');
             $table->text('description')->nullable();
+            $table->foreignId('occupation_id')->after('job_title')->constrained('occupations')->onDelete('cascade');
+            $table->foreignId('pay_grade_id')->after('occupation_id')->constrained('paygrades')->onDelete('cascade');
+            $table->foreignId('department_id')->after('pay_grade_id')->constrained('departments')->onDelete('cascade');
             $table->timestamps();
         });
+
 
         // Pay grades table
         Schema::create('paygrades', function (Blueprint $table) {
@@ -149,7 +144,7 @@ return new class extends Migration
         // Tax tables table
         Schema::create('tax_rates', function (Blueprint $table) {
             $table->id();
-            $table->string('table_name');
+            $table->string('tax_name');
             $table->decimal('rate', 5, 2);
             $table->text('description')->nullable();
             $table->timestamps();
@@ -165,7 +160,7 @@ return new class extends Migration
             $table->decimal('rate_percentage', 5, 2);
             $table->decimal('fixed_amount', 15, 2)->default(0);
             $table->timestamps();
-            $table->foreign('tax_rate_id')->references('id')->on('tax_tables')->onDelete('cascade');
+            $table->foreign('tax_rate_id')->references('id')->on('tax_rates')->onDelete('cascade');
         });
 
 
@@ -264,7 +259,6 @@ return new class extends Migration
         Schema::dropIfExists('mainstations');
         Schema::dropIfExists('paygrades');
         Schema::dropIfExists('jobtitles');
-        Schema::dropIfExists('earngroups');
         Schema::dropIfExists('reportings');
         Schema::dropIfExists('supervisors');
         Schema::dropIfExists('occupations');

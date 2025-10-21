@@ -37,7 +37,8 @@
                                         <tr>
                                             <th>No</th>
                                             <th>Allowance</th>
-                                            <th>Amount</th>
+                                            <th>Type</th>
+                                            <th>Value</th>
                                             <th>Taxable</th>
                                             <th>Status</th>
                                             <th class="text-right">Action</th>
@@ -48,8 +49,15 @@
                                             @foreach ($details as $index => $detail)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $detail->allowance->name ?? 'N/A' }}</td>
-                                                    <td>{{ $detail->amount ?? '-' }}</td>
+                                                    <td>{{ $detail->allowance->allowance_name ?? 'N/A' }}</td>
+                                                    <td>{{ ucfirst($detail->calculation_type) }}</td>
+                                                    <td>
+                                                        @if($detail->calculation_type == 'amount')
+                                                            {{ number_format($detail->amount, 2) }}
+                                                        @else
+                                                            {{ $detail->percentage }}%
+                                                        @endif
+                                                    </td>
                                                     <td>{{ $detail->taxable ? 'Yes' : 'No' }}</td>
                                                     <td>{{ ucfirst($detail->status) }}</td>
                                                     <td class="text-right">
@@ -58,7 +66,9 @@
                                                                class="btn btn-sm btn-primary edit-detail-btn"
                                                                data-detail-id="{{ $detail->id }}"
                                                                data-allowance-id="{{ $detail->allowance_id }}"
+                                                               data-calculation-type="{{ $detail->calculation_type }}"
                                                                data-amount="{{ $detail->amount }}"
+                                                               data-percentage="{{ $detail->percentage }}"
                                                                data-taxable="{{ $detail->taxable }}"
                                                                data-status="{{ $detail->status }}">
                                                                 <span class="fe fe-edit fe-16"></span>
@@ -113,14 +123,28 @@
                                     <select name="allowance_id" class="form-control" required>
                                         <option value="">-- Select Allowance --</option>
                                         @foreach($allowances as $allowance)
-                                            <option value="{{ $allowance->id }}">{{ $allowance->name }}</option>
+                                            <option value="{{ $allowance->id }}">{{ $allowance->allowance_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <div class="form-group">
+                                    <label>Calculation Type</label>
+                                    <select name="calculation_type" class="form-control" id="calculationType" required>
+                                        <option value="">-- Select Type --</option>
+                                        <option value="amount">Amount (Fixed Value)</option>
+                                        <option value="percentage">Percentage</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" id="amountField" style="display: none;">
                                     <label>Amount</label>
-                                    <input type="number" name="amount" class="form-control" step="0.01">
+                                    <input type="number" name="amount" class="form-control" step="0.01" placeholder="Enter amount">
+                                </div>
+
+                                <div class="form-group" id="percentageField" style="display: none;">
+                                    <label>Percentage</label>
+                                    <input type="number" name="percentage" class="form-control" step="0.01" min="0" max="100" placeholder="Enter percentage">
                                 </div>
 
                                 <div class="form-group">
@@ -169,14 +193,28 @@
                                <select class="form-control" id="editAllowanceId" name="allowance_id" required>
                                    <option value="">-- Select Allowance --</option>
                                    @foreach($allowances as $allowance)
-                                       <option value="{{ $allowance->id }}">{{ $allowance->name }}</option>
+                                       <option value="{{ $allowance->id }}">{{ $allowance->allowance_name }}</option>
                                    @endforeach
                                </select>
                            </div>
 
                            <div class="form-group">
+                               <label>Calculation Type</label>
+                               <select class="form-control" id="editCalculationType" name="calculation_type" required>
+                                   <option value="">-- Select Type --</option>
+                                   <option value="amount">Amount (Fixed Value)</option>
+                                   <option value="percentage">Percentage</option>
+                               </select>
+                           </div>
+
+                           <div class="form-group" id="editAmountField" style="display: none;">
                                <label>Amount</label>
-                               <input type="number" class="form-control" id="editAmount" name="amount" step="0.01">
+                               <input type="number" class="form-control" id="editAmount" name="amount" step="0.01" placeholder="Enter amount">
+                           </div>
+
+                           <div class="form-group" id="editPercentageField" style="display: none;">
+                               <label>Percentage</label>
+                               <input type="number" class="form-control" id="editPercentage" name="percentage" step="0.01" min="0" max="100" placeholder="Enter percentage">
                            </div>
 
                            <div class="form-group">
@@ -206,22 +244,85 @@
        </div>
 
        <script>
+        // Handle calculation type change for create form
+        document.getElementById('calculationType').addEventListener('change', function() {
+            const amountField = document.getElementById('amountField');
+            const percentageField = document.getElementById('percentageField');
+
+            if (this.value === 'amount') {
+                amountField.style.display = 'block';
+                percentageField.style.display = 'none';
+                document.querySelector('input[name="amount"]').required = true;
+                document.querySelector('input[name="percentage"]').required = false;
+            } else if (this.value === 'percentage') {
+                amountField.style.display = 'none';
+                percentageField.style.display = 'block';
+                document.querySelector('input[name="amount"]').required = false;
+                document.querySelector('input[name="percentage"]').required = true;
+            } else {
+                amountField.style.display = 'none';
+                percentageField.style.display = 'none';
+                document.querySelector('input[name="amount"]').required = false;
+                document.querySelector('input[name="percentage"]').required = false;
+            }
+        });
+
+        // Handle calculation type change for edit form
+        document.getElementById('editCalculationType').addEventListener('change', function() {
+            const amountField = document.getElementById('editAmountField');
+            const percentageField = document.getElementById('editPercentageField');
+
+            if (this.value === 'amount') {
+                amountField.style.display = 'block';
+                percentageField.style.display = 'none';
+                document.getElementById('editAmount').required = true;
+                document.getElementById('editPercentage').required = false;
+            } else if (this.value === 'percentage') {
+                amountField.style.display = 'none';
+                percentageField.style.display = 'block';
+                document.getElementById('editAmount').required = false;
+                document.getElementById('editPercentage').required = true;
+            } else {
+                amountField.style.display = 'none';
+                percentageField.style.display = 'none';
+                document.getElementById('editAmount').required = false;
+                document.getElementById('editPercentage').required = false;
+            }
+        });
+
+        // Handle edit button clicks
         document.querySelectorAll('.edit-detail-btn').forEach(button => {
             button.addEventListener('click', function() {
                 const detailId = this.getAttribute('data-detail-id');
                 const allowanceId = this.getAttribute('data-allowance-id');
+                const calculationType = this.getAttribute('data-calculation-type');
                 const amount = this.getAttribute('data-amount');
+                const percentage = this.getAttribute('data-percentage');
                 const taxable = this.getAttribute('data-taxable');
                 const status = this.getAttribute('data-status');
 
-                // Set form action - CORRECTED
+                // Set form action
                 document.getElementById('editdetailForm').setAttribute('action', `{{ url('allowance_details') }}/${detailId}`);
 
                 // Populate fields
                 document.getElementById('editAllowanceId').value = allowanceId;
+                document.getElementById('editCalculationType').value = calculationType;
                 document.getElementById('editAmount').value = amount ?? '';
+                document.getElementById('editPercentage').value = percentage ?? '';
                 document.getElementById('editTaxable').value = taxable;
                 document.getElementById('editStatus').value = status;
+
+                // Show/hide appropriate fields based on calculation type
+                const amountField = document.getElementById('editAmountField');
+                const percentageField = document.getElementById('editPercentageField');
+
+                if (calculationType === 'amount') {
+                    amountField.style.display = 'block';
+                    percentageField.style.display = 'none';
+                } else if (calculationType === 'percentage') {
+                    amountField.style.display = 'none';
+                    percentageField.style.display = 'block';
+                }
 
                 // Show modal
                 $('#editdetailModal').modal('show');

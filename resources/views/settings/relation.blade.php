@@ -44,13 +44,13 @@
                                                 @foreach ($relations as $index => $relation)
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $relation->relation_type }}</td>
+                                                        <td>{{ $relation->relation_name }}</td>
                                                         <td class="text-right">
                                                             <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                                 <a href="javascript:void(0);"
                                                                 class="btn btn-sm btn-primary edit-relation-btn"
                                                                 data-relation-id="{{ $relation->id }}"
-                                                                data-relation-name="{{ $relation->relation_type }}">
+                                                                data-relation-name="{{ $relation->relation_name }}">
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
@@ -99,7 +99,7 @@
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
                                         <input type="text" class="form-control" id="validationCustom3"
-                                            name="relation_type" required>
+                                            name="relation_name" required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
 
@@ -134,7 +134,7 @@
 
                     <div class="form-row">
                         <div class="col-md-12 mb-3">
-                            <input type="text" class="form-control" id="editrelationName" name="relation_type" required>
+                            <input type="text" class="form-control" id="editrelationName" name="relation_name" required>
                             <div class="valid-feedback"> Looks good! </div>
                         </div>
                     </div>

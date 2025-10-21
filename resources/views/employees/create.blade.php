@@ -75,7 +75,7 @@
 
                                 <!-- Registration Form -->
                                 <form method="POST" class="needs-validation" action="{{ route('employee.store') }}"
-                                      id="employeeForm" enctype="multipart/form-data" novalidate>
+                                    id="employeeForm" enctype="multipart/form-data" novalidate>
                                     @csrf
 
                                     <!-- Step 1: Personal & Department Details -->
@@ -84,10 +84,14 @@
                                             <h4 class="text-primary mb-2">
                                                 <i class="fe fe-user mr-2"></i>Personal & Department Details
                                             </h4>
-                                            <p class="text-muted">Enter the employee's personal and department information</p>
+                                            <p class="text-muted">Enter the employee's personal and department
+                                                information</p>
                                         </div>
 
-                                        @include('employees.partials.personal_and_department')
+                                        <div class="card shadow-none border">
+                                        @include('employees.partials.personal')
+                                        @include('employees.partials.departments')
+                                        </div>
 
                                         <div class="step-actions mt-4">
                                             <button type="button" class="btn btn-primary" onclick="nextStep()">
@@ -105,12 +109,15 @@
                                             <p class="text-muted">Configure payment method and salary information</p>
                                         </div>
 
-                                        @include('employees.partials.payments')
-                                        @include('employees.partials.salary')
-                                        @include('employees.partials.nhif_deductions')
+                                        <div class="card shadow-none border">
+                                            @include('employees.partials.payments')
+                                            @include('employees.partials.salary')
+                                            @include('employees.partials.nhif_deductions')
+                                        </div>
 
                                         <div class="step-actions mt-4">
-                                            <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
+                                            <button type="button" class="btn btn-outline-secondary mr-2"
+                                                onclick="prevStep()">
                                                 <i class="fe fe-arrow-left mr-1"></i> Previous
                                             </button>
                                             <button type="submit" class="btn btn-success">
@@ -189,7 +196,7 @@
             margin-top: -20px;
         }
 
-        .step.completed + .step-line {
+        .step.completed+.step-line {
             background-color: #28a745;
         }
 

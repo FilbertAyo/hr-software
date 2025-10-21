@@ -1,0 +1,89 @@
+/**
+ * Custom Sidebar Navigation Styles
+ * Active states for navigation items and dropdowns
+ */
+
+/* Active nav-link styling */
+.sidebar-left .nav-link.active {
+    color: #3b7ddd !important;
+    font-weight: 600;
+    background-color: rgba(59, 125, 221, 0.1);
+    border-radius: 4px;
+}
+
+/* Active dropdown toggle styling */
+.sidebar-left .dropdown-toggle.active {
+    color: #3b7ddd !important;
+    font-weight: 600;
+}
+
+/* Active dropdown toggle icon color */
+.sidebar-left .dropdown-toggle.active i {
+    color: #3b7ddd !important;
+}
+
+/* Active nav-item child links */
+.sidebar-left .collapse .nav-link.active {
+    color: #3b7ddd !important;
+    font-weight: 600;
+    position: relative;
+}
+
+/* Add indicator for active child links */
+.sidebar-left .collapse .nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 20px;
+    background-color: #3b7ddd;
+    border-radius: 0 2px 2px 0;
+}
+
+/* Hover effects for nav links */
+.sidebar-left .nav-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+/* Smooth transitions for collapse panels */
+.sidebar-left .collapse {
+    transition: height 0.3s ease;
+}
+
+/* Style for expanded dropdown toggles */
+.sidebar-left .dropdown-toggle[aria-expanded="true"] {
+    font-weight: 600;
+}
+
+/* Add subtle animation to dropdown arrow */
+.sidebar-left .dropdown-toggle::after {
+    transition: transform 0.2s ease;
+}
+
+.sidebar-left .dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+/* Improve contrast for nested navigation */
+.sidebar-left .collapse {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Dark mode support */
+body.dark .sidebar-left .nav-link.active {
+    color: #3b7ddd !important;
+    background-color: rgba(59, 125, 221, 0.2);
+}
+
+body.dark .sidebar-left .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark .sidebar-left .collapse {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
