@@ -21,6 +21,8 @@ return new class extends Migration
         $table->unsignedBigInteger('payroll_period_id');
         $table->decimal('basic_salary', 15, 2);
         $table->decimal('allowances', 15, 2)->default(0);
+        $table->decimal('taxable_allowances', 15, 2)->default(0)->after('allowances');
+        $table->decimal('non_taxable_allowances', 15, 2)->default(0)->after('taxable_allowances');
         $table->decimal('overtime_amount', 15, 2)->default(0);
         $table->decimal('bonus', 15, 2)->default(0);
         $table->decimal('advance_salary', 15, 2)->default(0);

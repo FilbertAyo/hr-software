@@ -54,7 +54,12 @@
                                                     <td>{{ $detail->taxable ? 'Yes' : 'No' }}</td>
                                                     <td>{{ ucfirst($detail->status) }}</td>
                                                     <td>
-                                                        {{ $detail->apply_to_all ? 'All Employees' : 'Selected Employees' }}
+                                                        @php
+                                                            $totalEmployees = \App\Models\Employee::count();
+                                                            $assignedEmployees = $detail->employees->count();
+                                                            $isAppliedToAll = ($assignedEmployees === $totalEmployees && $totalEmployees > 0);
+                                                        @endphp
+                                                        {{ $isAppliedToAll ? 'All Employees' : $assignedEmployees . ' Employee(s)' }}
                                                     </td>
                                                     <td class="text-right">
                                                         <div style="display: flex; gap: 4px; justify-content: flex-end;">
@@ -66,8 +71,8 @@
                                                                data-benefit-date="{{ optional($detail->benefit_date)->format('Y-m-d') }}"
                                                                data-taxable="{{ $detail->taxable }}"
                                                                data-status="{{ $detail->status }}"
-                                                               data-apply-to-all="{{ $detail->apply_to_all }}"
-                                                               data-employee-ids='@json($detail->employee_ids)'>
+                                                               data-apply-to-all="{{ $isAppliedToAll ? 1 : 0 }}"
+                                                               data-employee-ids='@json($detail->employees->pluck("id")->toArray())'>
                                                                 <span class="fe fe-edit fe-16"></span>
                                                             </a>
 

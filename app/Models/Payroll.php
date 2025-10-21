@@ -14,6 +14,8 @@ class Payroll extends Model
         'payroll_period_id',
         'basic_salary',
         'allowances',
+        'taxable_allowances',
+        'non_taxable_allowances',
         'overtime_amount',
         'bonus',
         'advance_salary',
@@ -35,6 +37,8 @@ class Payroll extends Model
     protected $casts = [
         'basic_salary' => 'decimal:2',
         'allowances' => 'decimal:2',
+        'taxable_allowances' => 'decimal:2',
+        'non_taxable_allowances' => 'decimal:2',
         'overtime_amount' => 'decimal:2',
         'bonus' => 'decimal:2',
         'advance_salary' => 'decimal:2',

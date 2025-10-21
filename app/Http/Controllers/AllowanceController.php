@@ -148,7 +148,7 @@ class AllowanceController extends Controller
     }
 
     public function other_benefit_detail(){
-        $details = OtherBenefitDetail::with('otherBenefit')->get();
+        $details = OtherBenefitDetail::with(['otherBenefit', 'employees'])->get();
         $other_benefits = OtherBenefit::all();
         $employees = \App\Models\Employee::select('id','employee_name')->orderBy('employee_name')->get();
         return view('allowance.others.details', compact('details','other_benefits','employees'));
@@ -167,11 +167,29 @@ class AllowanceController extends Controller
             'employee_ids.*' => 'integer|exists:employees,id',
         ]);
 
-        $data = $request->only(['other_benefit_id','amount','benefit_date','taxable','status','apply_to_all','employee_ids']);
-        if ($data['apply_to_all']) {
-            $data['employee_ids'] = null;
+        // Create the other benefit detail
+        $detail = OtherBenefitDetail::create(
+            $request->only(['other_benefit_id','amount','benefit_date','taxable','status'])
+        );
+
+        // Attach employees
+        if ($request->apply_to_all) {
+            // Get all employees and attach them
+            $allEmployeeIds = \App\Models\Employee::pluck('id')->toArray();
+            $syncData = [];
+            foreach ($allEmployeeIds as $empId) {
+                $syncData[$empId] = ['status' => $request->status];
+            }
+            $detail->employees()->sync($syncData);
+        } elseif ($request->has('employee_ids') && is_array($request->employee_ids)) {
+            // Attach selected employees
+            $syncData = [];
+            foreach ($request->employee_ids as $empId) {
+                $syncData[$empId] = ['status' => $request->status];
+            }
+            $detail->employees()->sync($syncData);
         }
-        OtherBenefitDetail::create($data);
+
         return redirect()->back()->with('success','Other benefit assigned successfully');
     }
 
@@ -189,11 +207,33 @@ class AllowanceController extends Controller
         ]);
 
         $detail = OtherBenefitDetail::findOrFail($id);
-        $data = $request->only(['other_benefit_id','amount','benefit_date','taxable','status','apply_to_all','employee_ids']);
-        if ($data['apply_to_all']) {
-            $data['employee_ids'] = null;
+
+        // Update the other benefit detail
+        $detail->update(
+            $request->only(['other_benefit_id','amount','benefit_date','taxable','status'])
+        );
+
+        // Sync employees
+        if ($request->apply_to_all) {
+            // Get all employees and sync them
+            $allEmployeeIds = \App\Models\Employee::pluck('id')->toArray();
+            $syncData = [];
+            foreach ($allEmployeeIds as $empId) {
+                $syncData[$empId] = ['status' => $request->status];
+            }
+            $detail->employees()->sync($syncData);
+        } elseif ($request->has('employee_ids') && is_array($request->employee_ids)) {
+            // Sync selected employees
+            $syncData = [];
+            foreach ($request->employee_ids as $empId) {
+                $syncData[$empId] = ['status' => $request->status];
+            }
+            $detail->employees()->sync($syncData);
+        } else {
+            // No employees selected, detach all
+            $detail->employees()->detach();
         }
-        $detail->update($data);
+
         return redirect()->back()->with('success','Other benefit assignment updated');
     }
 

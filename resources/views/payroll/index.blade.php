@@ -212,11 +212,11 @@
                                                         </th>
                                                         <th>Employee Name</th>
                                                         <th>Basic Salary</th>
-                                                        <th>Total Allowances</th>
+                                                        <th>Taxable Allowances</th>
+                                                        <th>Non-Taxable Allowances</th>
                                                         <th>Gross Salary</th>
                                                         <th>Pension</th>
                                                         <th>Taxable Income</th>
-                                                        <th>Deductions</th>
                                                         <th>PAYE</th>
                                                         <th>Advance</th>
                                                         <th>Net Salary</th>
@@ -231,7 +231,8 @@
                                                             // If payroll exists (processed), use payroll data
                                                             if ($payroll) {
                                                                 $basicSalary = $payroll->basic_salary;
-                                                                $totalAllowances = $payroll->allowances;
+                                                                $taxableAllowances = $payroll->taxable_allowances;
+                                                                $nonTaxableAllowances = $payroll->non_taxable_allowances;
                                                                 $grossSalary = $payroll->gross_salary;
                                                                 $pensionAmount = $payroll->pension_amount;
                                                                 $taxableIncome = $payroll->taxable_income;
@@ -242,10 +243,26 @@
                                                             } else {
                                                                 // If not processed, show employee data for preview
                                                                 $basicSalary = $employee->basic_salary ?? 0;
-                                                                $totalAllowances = ($employee->housing_allowance ?? 0) +
-                                                                                   ($employee->transport_allowance ?? 0) +
-                                                                                   ($employee->medical_allowance ?? 0);
-                                                                $grossSalary = $basicSalary + $totalAllowances;
+
+                                                                // Get taxable and non-taxable allowances from earngroups
+                                                                $taxableAllowances = $employee->getTaxableAllowancesFromEarngroups();
+                                                                $nonTaxableAllowances = $employee->getNonTaxableAllowancesFromEarngroups();
+
+                                                                // Get other benefits for this payroll period
+                                                                $taxableOtherBenefits = $employee->getTaxableOtherBenefits(
+                                                                    $payrollPeriod->start_date,
+                                                                    $payrollPeriod->end_date
+                                                                );
+                                                                $nonTaxableOtherBenefits = $employee->getNonTaxableOtherBenefits(
+                                                                    $payrollPeriod->start_date,
+                                                                    $payrollPeriod->end_date
+                                                                );
+
+                                                                // Combine allowances and other benefits
+                                                                $taxableAllowances += $taxableOtherBenefits;
+                                                                $nonTaxableAllowances += $nonTaxableOtherBenefits;
+
+                                                                $grossSalary = $basicSalary + $taxableAllowances;
 
                                                                 // Get pension amount directly from employee table
                                                                 $pensionAmount = 0;
@@ -272,8 +289,8 @@
                                                                 // Calculate total deductions (preview: pension + advance only)
                                                                 $totalDeductions = $pensionAmount + $advanceAmount;
 
-                                                                // Calculate net salary (gross - total deductions)
-                                                                $netSalary = $grossSalary - $totalDeductions;
+                                                                // Calculate net salary (gross - total deductions + non-taxable allowances)
+                                                                $netSalary = $grossSalary - $totalDeductions + $nonTaxableAllowances;
                                                             }
                                                         @endphp
                                                         <tr>
@@ -298,19 +315,14 @@
                                                                 </div>
                                                             </td>
                                                             <td>{{ number_format($basicSalary, 2) }}</td>
-                                                            <td>{{ number_format($totalAllowances, 2) }}</td>
-                                                            <td>{{ number_format($grossSalary, 2) }}
-                                                            </td>
+                                                            <td>{{ number_format($taxableAllowances, 2) }}</td>
+                                                            <td>{{ number_format($nonTaxableAllowances, 2) }}</td>
+                                                            <td>{{ number_format($grossSalary, 2) }}</td>
                                                             <td>{{ number_format($pensionAmount, 2) }}</td>
                                                             <td>{{ number_format($taxableIncome, 2) }}</td>
-                                                            <td>{{ number_format($totalDeductions, 2) }}</td>
-                                                            <td>
-                                                                {{ number_format($payeTax, 2) }}
-                                                            </td>
-                                                            <td>{{ number_format($advanceAmount, 2) }}
-                                                            </td>
-                                                            <td>{{ number_format($netSalary, 2) }}
-                                                            </td>
+                                                            <td>{{ number_format($payeTax, 2) }}</td>
+                                                            <td>{{ number_format($advanceAmount, 2) }}</td>
+                                                            <td>{{ number_format($netSalary, 2) }}</td>
                                                             <td>
                                                                 @if ($payroll)
                                                                     @if ($payroll->status == 'processed')

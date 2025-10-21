@@ -207,19 +207,44 @@ class Employee extends Model
     }
 
 
-    public function bankDetails()
-    {
-        return $this->hasMany(EmployeeBankDetail::class, 'employee_id');
-    }
 
-    public function pensionDetails()
-    {
-        return $this->hasOne(EmployeePensionDetail::class, 'employee_id');
-    }
 
     public function advances()
     {
         return $this->hasMany(Advance::class);
+    }
+
+    public function employeeEarngroups()
+    {
+        return $this->hasMany(EmployeeEarngroup::class);
+    }
+
+    public function earngroups()
+    {
+        return $this->belongsToMany(Earngroup::class, 'employee_earngroups')
+            ->withPivot('status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get all other benefit details assigned to this employee
+     */
+    public function otherBenefitDetails()
+    {
+        return $this->belongsToMany(
+            OtherBenefitDetail::class,
+            'employee_other_benefit_details',
+            'employee_id',
+            'other_benefit_detail_id'
+        )->withPivot('status')->withTimestamps();
+    }
+
+    /**
+     * Get active other benefit details only
+     */
+    public function activeOtherBenefitDetails()
+    {
+        return $this->otherBenefitDetails()->wherePivot('status', 'active');
     }
 
     // Get current month payroll
@@ -249,9 +274,147 @@ class Employee extends Model
             ->exists();
     }
 
-    // Get employee's total salary including allowances
+    // Get employee's taxable allowances from earngroups
+    public function getTaxableAllowancesFromEarngroups()
+    {
+        $taxableAllowances = 0;
+
+        // Get all active earngroups assigned to this employee
+        $activeEarngroups = $this->earngroups()
+            ->wherePivot('status', 'active')
+            ->get();
+
+        foreach ($activeEarngroups as $earngroup) {
+            // Get all active group benefits (allowances) for this earngroup
+            $groupBenefits = $earngroup->groupBenefits()
+                ->where('status', 'active')
+                ->with('allowance.allowanceDetails')
+                ->get();
+
+            foreach ($groupBenefits as $groupBenefit) {
+                if ($groupBenefit->allowance && $groupBenefit->allowance->allowanceDetails->count() > 0) {
+                    foreach ($groupBenefit->allowance->allowanceDetails as $detail) {
+                        if ($detail->status == 'active' && $detail->taxable) {
+                            if ($detail->calculation_type == 'amount') {
+                                $taxableAllowances += $detail->amount ?? 0;
+                            } elseif ($detail->calculation_type == 'percentage') {
+                                // Calculate percentage of basic salary
+                                $taxableAllowances += ($this->basic_salary * ($detail->percentage ?? 0)) / 100;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $taxableAllowances;
+    }
+
+    // Get employee's non-taxable allowances from earngroups
+    public function getNonTaxableAllowancesFromEarngroups()
+    {
+        $nonTaxableAllowances = 0;
+
+        // Get all active earngroups assigned to this employee
+        $activeEarngroups = $this->earngroups()
+            ->wherePivot('status', 'active')
+            ->get();
+
+        foreach ($activeEarngroups as $earngroup) {
+            // Get all active group benefits (allowances) for this earngroup
+            $groupBenefits = $earngroup->groupBenefits()
+                ->where('status', 'active')
+                ->with('allowance.allowanceDetails')
+                ->get();
+
+            foreach ($groupBenefits as $groupBenefit) {
+                if ($groupBenefit->allowance && $groupBenefit->allowance->allowanceDetails->count() > 0) {
+                    foreach ($groupBenefit->allowance->allowanceDetails as $detail) {
+                        if ($detail->status == 'active' && !$detail->taxable) {
+                            if ($detail->calculation_type == 'amount') {
+                                $nonTaxableAllowances += $detail->amount ?? 0;
+                            } elseif ($detail->calculation_type == 'percentage') {
+                                // Calculate percentage of basic salary
+                                $nonTaxableAllowances += ($this->basic_salary * ($detail->percentage ?? 0)) / 100;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $nonTaxableAllowances;
+    }
+
+    // Get employee's total allowances from earngroups (for backward compatibility)
+    public function getTotalAllowancesFromEarngroups()
+    {
+        return $this->getTaxableAllowancesFromEarngroups() + $this->getNonTaxableAllowancesFromEarngroups();
+    }
+
+    /**
+     * Get employee's taxable other benefits
+     * @param string|null $startDate Optional start date filter
+     * @param string|null $endDate Optional end date filter
+     * @return float
+     */
+    public function getTaxableOtherBenefits($startDate = null, $endDate = null)
+    {
+        $query = $this->activeOtherBenefitDetails()->where('taxable', true);
+
+        if ($startDate) {
+            $query->whereDate('benefit_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('benefit_date', '<=', $endDate);
+        }
+
+        return $query->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get employee's non-taxable other benefits
+     * @param string|null $startDate Optional start date filter
+     * @param string|null $endDate Optional end date filter
+     * @return float
+     */
+    public function getNonTaxableOtherBenefits($startDate = null, $endDate = null)
+    {
+        $query = $this->activeOtherBenefitDetails()->where('taxable', false);
+
+        if ($startDate) {
+            $query->whereDate('benefit_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('benefit_date', '<=', $endDate);
+        }
+
+        return $query->sum('amount') ?? 0;
+    }
+
+    /**
+     * Get employee's total other benefits
+     * @param string|null $startDate Optional start date filter
+     * @param string|null $endDate Optional end date filter
+     * @return float
+     */
+    public function getTotalOtherBenefits($startDate = null, $endDate = null)
+    {
+        return $this->getTaxableOtherBenefits($startDate, $endDate) +
+               $this->getNonTaxableOtherBenefits($startDate, $endDate);
+    }
+
+    // Get employee's total salary including TAXABLE allowances only (for gross salary calculation)
     public function getTotalSalary()
     {
+        // Use taxable earngroups allowances if available, otherwise fall back to individual allowances
+        $taxableAllowancesFromEarngroups = $this->getTaxableAllowancesFromEarngroups();
+
+        if ($taxableAllowancesFromEarngroups > 0) {
+            return $this->basic_salary + $taxableAllowancesFromEarngroups;
+        }
+
+        // Fallback to individual allowances for backwards compatibility
         return $this->basic_salary +
                ($this->housing_allowance ?? 0) +
                ($this->transport_allowance ?? 0) +

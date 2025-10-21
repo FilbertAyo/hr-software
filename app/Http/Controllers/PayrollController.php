@@ -51,9 +51,12 @@ class PayrollController extends Controller
 
         // Get employees with their salary details and existing payroll if any, filtered by company
         $employees = Employee::where('company_id', $companyId)
-            ->with(['payrolls' => function($query) use ($payrollPeriod) {
-                $query->where('payroll_period_id', $payrollPeriod->id);
-            }])->get();
+            ->with([
+                'payrolls' => function($query) use ($payrollPeriod) {
+                    $query->where('payroll_period_id', $payrollPeriod->id);
+                },
+                'earngroups.groupBenefits.allowance.allowanceDetails'
+            ])->get();
 
         // Get payroll statistics for this period
         $payrollStats = [
@@ -90,7 +93,11 @@ class PayrollController extends Controller
             $processedCount = 0;
 
             foreach ($request->employee_ids as $employeeId) {
-                $employee = Employee::with(['advances', 'taxRate'])->findOrFail($employeeId);
+                $employee = Employee::with([
+                    'advances',
+                    'taxRate',
+                    'earngroups.groupBenefits.allowance.allowanceDetails'
+                ])->findOrFail($employeeId);
 
                 // Check if payroll already exists for this period and delete it for reprocessing
                 $existingPayroll = Payroll::where('employee_id', $employeeId)
@@ -104,14 +111,27 @@ class PayrollController extends Controller
                 // Get basic salary from employee table
                 $basicSalary = $employee->basic_salary ?? 0;
 
-                // Get allowances from employee table
-                $housingAllowance = $employee->housing_allowance ?? 0;
-                $transportAllowance = $employee->transport_allowance ?? 0;
-                $medicalAllowance = $employee->medical_allowance ?? 0;
-                $totalAllowances = $housingAllowance + $transportAllowance + $medicalAllowance;
+                // Get taxable and non-taxable allowances from earngroups
+                $taxableAllowances = $employee->getTaxableAllowancesFromEarngroups();
+                $nonTaxableAllowances = $employee->getNonTaxableAllowancesFromEarngroups();
 
-                // Calculate gross salary (basic + allowances)
-                $grossSalary = $basicSalary + $totalAllowances;
+                // Get other benefits for this payroll period
+                $taxableOtherBenefits = $employee->getTaxableOtherBenefits(
+                    $payrollPeriod->start_date,
+                    $payrollPeriod->end_date
+                );
+                $nonTaxableOtherBenefits = $employee->getNonTaxableOtherBenefits(
+                    $payrollPeriod->start_date,
+                    $payrollPeriod->end_date
+                );
+
+                // Combine allowances and other benefits
+                $taxableAllowances += $taxableOtherBenefits;
+                $nonTaxableAllowances += $nonTaxableOtherBenefits;
+                $totalAllowances = $taxableAllowances + $nonTaxableAllowances;
+
+                // Calculate gross salary (basic + TAXABLE allowances only)
+                $grossSalary = $basicSalary + $taxableAllowances;
 
                 // Get pension amount directly from employee table if pension is enabled
                 $pensionAmount = 0;
@@ -139,15 +159,20 @@ class PayrollController extends Controller
                 // Calculate total deductions (including pension, PAYE tax, and advance)
                 $totalDeductions = $pensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $otherDeductions + $advanceAmount;
 
-                // Calculate net salary (gross - total deductions)
-                $netSalary = $grossSalary - $totalDeductions;
+                // Calculate net salary (gross - total deductions + non-taxable allowances)
+                // Non-taxable allowances are added AFTER tax calculation
+                $netSalary = $grossSalary - $totalDeductions + $nonTaxableAllowances;
 
                 // Create payroll record
+                // Note: taxable_allowances includes both earngroup allowances and taxable other benefits
+                // Note: non_taxable_allowances includes both earngroup allowances and non-taxable other benefits
                 $payroll = Payroll::create([
                     'employee_id' => $employeeId,
                     'payroll_period_id' => $payrollPeriod->id,
                     'basic_salary' => $basicSalary,
                     'allowances' => $totalAllowances,
+                    'taxable_allowances' => $taxableAllowances, // Includes taxable other benefits
+                    'non_taxable_allowances' => $nonTaxableAllowances, // Includes non-taxable other benefits
                     'overtime_amount' => 0,
                     'bonus' => 0,
                     'advance_salary' => $advanceAmount,

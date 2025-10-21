@@ -12,7 +12,31 @@
                     <label for="basic_salary">Basic Salary</label>
                     <input type="number" class="form-control" id="basic_salary" name="basic_salary"
                         value="{{ old('basic_salary', $employee->basic_salary ?? '') }}" min="0" step="0.01">
-                    <div class="valid-feedback">Looks good!</div>
+                </div>
+                <!-- Earning Groups -->
+                <div class="col-md-9 mb-3">
+                    <label for="earngroups">Earning Groups</label>
+                    <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">
+                        @if(isset($earngroups) && $earngroups->count() > 0)
+                            @foreach($earngroups as $earngroup)
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="earngroup_ids[]"
+                                        value="{{ $earngroup->id }}"
+                                        id="earngroup_{{ $earngroup->id }}"
+                                        {{ (isset($employee) && $employee->earngroups->contains($earngroup->id)) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="earngroup_{{ $earngroup->id }}">
+                                        {{ $earngroup->earngroup_name }}
+                                        @if($earngroup->description)
+                                            <small class="text-muted">({{ $earngroup->description }})</small>
+                                        @endif
+                                    </label>
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="text-muted mb-0">No earning groups available</p>
+                        @endif
+                    </div>
+                    <small class="form-text text-muted">Select one or more earning groups for this employee. Each earning group contains multiple allowances.</small>
                 </div>
 
                 <!-- Advance Salary Checkbox -->
@@ -41,11 +65,9 @@
                         value="" readonly>
                 </div>
 
-            </div>
+                   <!-- PAYE Exemption -->
 
-            <!-- PAYE Exemption -->
-            <div class="form-row">
-                <div class="col-md-12 mb-3">
+                <div class="col-md-3 mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="paye_exempt" name="paye_exempt" value="1"
                             {{ old('paye_exempt', $employee->paye_exempt ?? false) ? 'checked' : '' }}>
@@ -54,10 +76,11 @@
                         </label>
                     </div>
                 </div>
+
             </div>
+
+
         </div>
-
-
     </div>
 
     <div class="card-header">
@@ -116,7 +139,7 @@
             </div>
         </div>
     </div>
-     
+
 
 
 <script>

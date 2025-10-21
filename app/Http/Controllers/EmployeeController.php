@@ -60,8 +60,9 @@ class EmployeeController extends Controller
         $jobtitles = Jobtitle::all();
         $level_names = StaffLevel::all();
         $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
+        $earngroups = \App\Models\Earngroup::all();
 
-        return view('employees.create', compact('substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names'));
+        return view('employees.create', compact('substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
     }
 
     public function store(Request $request)
@@ -141,6 +142,10 @@ class EmployeeController extends Controller
                 // Payment Details
                 'payments' => 'nullable|boolean',
                 'dynamic_payments_paid_in_rates' => 'nullable|boolean',
+
+                // Earning Groups
+                'earngroup_ids' => 'nullable|array',
+                'earngroup_ids.*' => 'integer|exists:earngroups,id',
             ], [
                 'bank_id.required_if' => 'Please select a bank when payment method is Bank or Both.',
                 'account_no.required_if' => 'Please enter an account number when payment method is Bank or Both.',
@@ -238,6 +243,17 @@ class EmployeeController extends Controller
                 'staff_level_id' => $validatedData['staff_level_id'],
                 'hod' => $validatedData['hod'] ?? false,
             ]);
+
+            // Assign earning groups to employee
+            if (!empty($validatedData['earngroup_ids'])) {
+                foreach ($validatedData['earngroup_ids'] as $earngroupId) {
+                    \App\Models\EmployeeEarngroup::create([
+                        'employee_id' => $employee->id,
+                        'earngroup_id' => $earngroupId,
+                        'status' => 'active',
+                    ]);
+                }
+            }
 
             DB::commit();
 
@@ -392,7 +408,8 @@ class EmployeeController extends Controller
             'religion',
             'taxRate',
             'bank',
-            'pension'
+            'pension',
+            'earngroups'
         ]);
 
         return view('employees.show', compact('employee'));
@@ -417,7 +434,8 @@ class EmployeeController extends Controller
             'religion',
             'taxRate',
             'bank',
-            'pension'
+            'pension',
+            'earngroups'
         ]);
 
         // Get data for dropdowns - same as create method
@@ -431,8 +449,9 @@ class EmployeeController extends Controller
         $jobtitles = Jobtitle::all();
         $level_names = StaffLevel::all();
         $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
+        $earngroups = \App\Models\Earngroup::all();
 
-        return view('employees.edit', compact('employee', 'substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names'));
+        return view('employees.edit', compact('employee', 'substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
     }
 
     public function update(Request $request, Employee $employee)
@@ -556,6 +575,8 @@ class EmployeeController extends Controller
             'employee_pension_amount' => 'nullable|numeric|min:0',
             'employer_pension_amount' => 'nullable|numeric|min:0',
             'paye_exempt' => 'nullable|boolean',
+            'earngroup_ids' => 'nullable|array',
+            'earngroup_ids.*' => 'integer|exists:earngroups,id',
         ]);
 
         try {
@@ -569,7 +590,23 @@ class EmployeeController extends Controller
             $employee->paye_exempt = $validatedData['paye_exempt'] ?? false;
             $employee->save();
 
+            // Sync earning groups
+            if (isset($validatedData['earngroup_ids'])) {
+                // Delete existing earngroup assignments
+                \App\Models\EmployeeEarngroup::where('employee_id', $employee->id)->delete();
 
+                // Create new assignments
+                foreach ($validatedData['earngroup_ids'] as $earngroupId) {
+                    \App\Models\EmployeeEarngroup::create([
+                        'employee_id' => $employee->id,
+                        'earngroup_id' => $earngroupId,
+                        'status' => 'active',
+                    ]);
+                }
+            } else {
+                // If no earngroups selected, delete all assignments
+                \App\Models\EmployeeEarngroup::where('employee_id', $employee->id)->delete();
+            }
 
             // Update employee registration step
             $employee->update(['registration_step' => 'salary_saved']);

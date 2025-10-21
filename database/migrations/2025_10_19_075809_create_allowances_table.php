@@ -61,10 +61,6 @@ return new class extends Migration
             $table->date('benefit_date');
             $table->boolean('taxable')->default(false);
             $table->enum('status', ['active', 'inactive'])->default('active');
-            // apply to all employees or selected
-            $table->boolean('apply_to_all')->default(true);
-            // nullable JSON array of employee IDs when apply_to_all is false
-            $table->json('employee_ids')->nullable();
             $table->timestamps();
         });
     }
