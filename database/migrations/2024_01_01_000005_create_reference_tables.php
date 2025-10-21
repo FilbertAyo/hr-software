@@ -79,19 +79,8 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('jobtitles', function (Blueprint $table) {
-            $table->id();
-            $table->string('job_title');
-            $table->text('description')->nullable();
-            $table->foreignId('occupation_id')->after('job_title')->constrained('occupations')->onDelete('cascade');
-            $table->foreignId('pay_grade_id')->after('occupation_id')->constrained('paygrades')->onDelete('cascade');
-            $table->foreignId('department_id')->after('pay_grade_id')->constrained('departments')->onDelete('cascade');
-            $table->timestamps();
-        });
-
-
-        // Pay grades table
-        Schema::create('paygrades', function (Blueprint $table) {
+           // Pay grades table
+           Schema::create('paygrades', function (Blueprint $table) {
             $table->id();
             $table->string('paygrade_name');
             $table->string('grade');
@@ -104,6 +93,17 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
         });
+
+        Schema::create('jobtitles', function (Blueprint $table) {
+            $table->id();
+            $table->string('job_title');
+            $table->foreignId('occupation_id')->constrained('occupations')->onDelete('cascade');
+            $table->foreignId('pay_grade_id')->constrained('paygrades')->onDelete('cascade');
+            $table->foreignId('department_id')->constrained('departments')->onDelete('cascade');
+            $table->text('description')->nullable();
+            $table->timestamps();
+        });
+
 
         // Main stations table
         Schema::create('mainstations', function (Blueprint $table) {
@@ -164,14 +164,6 @@ return new class extends Migration
         });
 
 
-        // Loan types table
-        Schema::create('loan_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('loan_type_name');
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
-
         // Leave types table
         Schema::create('leave_types', function (Blueprint $table) {
             $table->id();
@@ -228,14 +220,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // SDLs table
-        Schema::create('sdls', function (Blueprint $table) {
-            $table->id();
-            $table->string('sdl_name');
-            $table->decimal('rate', 5, 2);
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
     }
 
     /**
@@ -243,22 +227,20 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('sdls');
         Schema::dropIfExists('terminations');
         Schema::dropIfExists('holidays');
         Schema::dropIfExists('religions');
         Schema::dropIfExists('payments');
         Schema::dropIfExists('formulas');
         Schema::dropIfExists('leave_types');
-        Schema::dropIfExists('loan_types');
         Schema::dropIfExists('tax_rates');
         Schema::dropIfExists('tax_tables');
         Schema::dropIfExists('staff_levels');
         Schema::dropIfExists('nationalities');
         Schema::dropIfExists('substations');
         Schema::dropIfExists('mainstations');
-        Schema::dropIfExists('paygrades');
         Schema::dropIfExists('jobtitles');
+        Schema::dropIfExists('paygrades');
         Schema::dropIfExists('reportings');
         Schema::dropIfExists('supervisors');
         Schema::dropIfExists('occupations');

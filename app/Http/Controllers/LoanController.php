@@ -7,20 +7,26 @@ use App\Models\Loan;
 use App\Models\LoanInstallment;
 use App\Models\LoanType;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class LoanController extends Controller
 {
     /**
-  /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $loans = loan::all();
-        $employees = Employee::all();
+        $companyId = session('selected_company');
+
+        $loans = Loan::where('company_id', $companyId)
+            ->with(['employee', 'loanType'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $employees = Employee::where('company_id', $companyId)->get();
         $loanTypes = LoanType::all();
 
-        return view("loans.loan.index", compact('loans','employees','loanTypes'));
+        return view("loans.loan.index", compact('loans', 'employees', 'loanTypes'));
     }
 
     /**
@@ -36,9 +42,28 @@ class LoanController extends Controller
      */
     public function store(Request $request)
     {
-        $loan = loan::create($request->all());
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'loan_type_id' => 'required|exists:loan_types,id',
+            'loan_amount' => 'required|numeric|min:0',
+            'notes' => 'nullable|string',
+        ]);
 
-        return redirect()->back()->with('success','loan added successfully');
+        $companyId = session('selected_company');
+
+        // Create the loan with pending status
+        $loan = Loan::create([
+            'company_id' => $companyId,
+            'employee_id' => $request->employee_id,
+            'loan_type_id' => $request->loan_type_id,
+            'loan_amount' => $request->loan_amount,
+            'remaining_amount' => $request->loan_amount, // Initially same as loan amount
+            'notes' => $request->notes,
+            'status' => 'pending', // Pending until installments are set up
+        ]);
+
+        return redirect()->route('loan.show', $loan->id)
+            ->with('success', 'Loan created successfully. Please setup installments.');
     }
 
     /**
@@ -83,43 +108,94 @@ class LoanController extends Controller
      */
     public function show(String $id)
     {
-        $loan = loan::findOrFail($id);
+        $loan = Loan::with(['employee', 'loanType', 'installments'])->findOrFail($id);
+
+        // Check authorization - ensure loan belongs to current company
+        $companyId = session('selected_company');
+        if ($loan->company_id != $companyId) {
+            abort(403, 'Unauthorized access to this loan.');
+        }
+
         return view('loans.loan.show', compact('loan'));
     }
 
     public function storeInstallments(Request $request, Loan $loan)
     {
         $request->validate([
-            'installments_number' => 'required|integer|min:1',
-            'due_date' => 'required|date',
-            'remarks' => 'nullable|string',
+            'installment_count' => 'required|integer|min:1|max:60',
+            'start_month' => 'required|date',
         ]);
 
-        $num = $request->installments_number;
-        $amountPerInstallment = round($loan->loan_amount / $num, 2);
+        // Check if loan already has installments
+        if ($loan->installments()->count() > 0) {
+            return redirect()->back()->with('error', 'Installments already exist for this loan.');
+        }
+
+        // Check authorization
+        $companyId = session('selected_company');
+        if ($loan->company_id != $companyId) {
+            abort(403, 'Unauthorized access to this loan.');
+        }
+
+        $installmentCount = $request->installment_count;
+        $amountPerInstallment = round($loan->remaining_amount / $installmentCount, 2);
+        $startDate = Carbon::parse($request->start_month);
 
         // Create installments
-        for ($i = 1; $i <= $num; $i++) {
+        for ($i = 0; $i < $installmentCount; $i++) {
+            $dueDate = $startDate->copy()->addMonths($i);
+
             LoanInstallment::create([
                 'loan_id' => $loan->id,
-                'installment_number' => $i,
+                'installment_number' => $i + 1,
                 'amount' => $amountPerInstallment,
-                'due_date' => \Carbon\Carbon::parse($request->due_date)->addMonths($i - 1),
+                'due_date' => $dueDate->format('Y-m-d'),
                 'status' => 'pending',
-                'remarks' => $request->remarks,
             ]);
         }
 
-        // Remaining amount updated automatically
-        $loan->remaining_amount = $loan->loan_amount;
-        $loan->save();
+        // Update loan details
+        $loan->update([
+            'installment_count' => $installmentCount,
+            'monthly_payment' => $amountPerInstallment,
+            'start_date' => $startDate->format('Y-m-d'),
+            'end_date' => $startDate->copy()->addMonths($installmentCount - 1)->format('Y-m-d'),
+            'status' => 'active', // Change status to active
+        ]);
 
-        return redirect()->route('loan.show', $loan->id)->with('success', 'Installments created successfully.');
+        return redirect()->route('loan.show', $loan->id)
+            ->with('success', 'Installments created successfully. Loan is now active.');
     }
     public function edit(Loan $loan)
     {
         //
     }
 
+    /**
+     * Get employee's remaining loan amount (AJAX)
+     */
+    public function getEmployeeRemainingLoan($employeeId)
+    {
+        $companyId = session('selected_company');
 
+        // Find any active loans for this employee
+        $activeLoan = Loan::where('employee_id', $employeeId)
+            ->where('company_id', $companyId)
+            ->whereIn('status', ['active', 'pending'])
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if ($activeLoan) {
+            return response()->json([
+                'has_loan' => true,
+                'remaining_amount' => $activeLoan->remaining_amount,
+                'loan_id' => $activeLoan->id,
+            ]);
+        }
+
+        return response()->json([
+            'has_loan' => false,
+            'remaining_amount' => 0,
+        ]);
+    }
 }

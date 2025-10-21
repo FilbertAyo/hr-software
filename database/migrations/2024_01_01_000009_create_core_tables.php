@@ -78,34 +78,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Loans table
-        Schema::create('loans', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('employee_id')->constrained('employees')->onDelete('cascade');
-            $table->foreignId('loan_type_id')->constrained('loan_types')->onDelete('cascade');
-            $table->decimal('loan_amount', 15, 2);
-            $table->decimal('interest_rate', 5, 2)->default(0);
-            $table->integer('installment_count');
-            $table->decimal('monthly_payment', 15, 2);
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->enum('status', ['active', 'completed', 'cancelled'])->default('active');
-            $table->text('notes')->nullable();
-            $table->timestamps();
-        });
-
-        // Loan installments table
-        Schema::create('loan_installments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('loan_id')->constrained('loans')->onDelete('cascade');
-            $table->integer('installment_number');
-            $table->decimal('amount', 15, 2);
-            $table->date('due_date');
-            $table->date('paid_date')->nullable();
-            $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending');
-            $table->timestamps();
-        });
-
         // Advances table
         Schema::create('advances', function (Blueprint $table) {
             $table->id();
@@ -120,7 +92,6 @@ return new class extends Migration
             $table->timestamps();
 
         });
-
 
         // Leaves table
         Schema::create('leaves', function (Blueprint $table) {
@@ -158,8 +129,6 @@ return new class extends Migration
         Schema::dropIfExists('company_users');
         Schema::dropIfExists('leaves');
         Schema::dropIfExists('advances');
-        Schema::dropIfExists('loan_installments');
-        Schema::dropIfExists('loans');
         Schema::dropIfExists('direct_deductions');
         Schema::dropIfExists('companies');
     }

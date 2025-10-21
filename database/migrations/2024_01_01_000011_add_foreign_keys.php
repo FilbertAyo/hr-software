@@ -11,6 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Add foreign key constraints to payroll_periods table
+        Schema::table('payroll_periods', function (Blueprint $table) {
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
+            $table->foreign('processed_by')->references('id')->on('users')->onDelete('set null');
+        });
+
         // Add foreign key constraints to employees table
         Schema::table('employees', function (Blueprint $table) {
             $table->foreign('company_id')->references('id')->on('companies')->onDelete('cascade');
@@ -38,6 +44,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('payroll_periods', function (Blueprint $table) {
+            $table->dropForeign(['company_id']);
+            $table->dropForeign(['processed_by']);
+        });
+
         Schema::table('employees', function (Blueprint $table) {
             $table->dropForeign(['company_id']);
             $table->dropForeign(['nationality_id']);

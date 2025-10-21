@@ -69,8 +69,12 @@ Route::middleware('auth')->group(function () {
     Route::resource('loantype', loantypeController::class);
     Route::resource('leavetype', leavetypeController::class);
     Route::resource('termination', terminationController::class);
-    Route::resource('loan', loanController::class);
+
+    // Loan specific routes (must come before resource route)
+    Route::get('loan/employee/{employee}/remaining', [LoanController::class, 'getEmployeeRemainingLoan'])->name('loan.employee.remaining');
     Route::post('loan/{loan}/installments', [LoanController::class, 'storeInstallments'])->name('loan.installments.store');
+    Route::resource('loan', loanController::class);
+
     Route::resource('advance', advanceController::class);
     Route::get('/api/advance/employee-limit', [advanceController::class, 'getEmployeeAdvanceLimit'])->name('api.advance.employee-limit');
     Route::patch('/advance/{advance}/approve', [advanceController::class, 'approve'])->name('advance.approve');

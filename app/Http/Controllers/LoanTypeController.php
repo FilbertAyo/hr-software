@@ -42,14 +42,14 @@ class LoanTypeController extends Controller
     {
         // Validate the request data
         $request->validate([
-            'loantype' => 'required|string|max:255',
+            'loan_type_name' => 'required|string|max:255',
         ]);
 
         // Find the loantype by ID
         $loantype = loantype::findOrFail($id);
 
         // Update the loantype's name
-        $loantype->loantype = $request->input('loantype');
+        $loantype->loan_type_name = $request->input('loan_type_name');
 
         // Save the updated loantype
         $loantype->save();

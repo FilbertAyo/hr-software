@@ -40,17 +40,16 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if ($loantypes->count() > 0)
                                         @foreach ($loantypes as $index => $loantype)
                                             <tr>
                                                 <td>{{ $index + 1 }}</td>
-                                                <td>{{ $loantype->loantype }}</td>
+                                                <td>{{ $loantype->loan_type_name }}</td>
                                                 <td class="text-right">
                                                     <div style="display: flex; gap: 4px; justify-content: flex-end;">
                                                         <a href="javascript:void(0);"
                                                         class="btn btn-sm btn-primary edit-loantype-btn"
                                                         data-loantype-id="{{ $loantype->id }}"
-                                                        data-loantype-name="{{ $loantype->loantype }}">
+                                                        data-loantype-name="{{ $loantype->loan_type_name }}">
                                                          <span class="fe fe-edit fe-16"></span>
                                                      </a>
 
@@ -66,11 +65,7 @@
                                                 </td>
                                             </tr>
                                         @endforeach
-                                    @else
-                                        <tr>
-                                            <td colspan="3" class="text-center">No loantype found</td>
-                                        </tr>
-                                    @endif
+                               
                                 </tbody>
                             </table>
 
@@ -99,7 +94,7 @@
                         <div class="form-row">
                             <div class="col-md-12 mb-3">
                                 <input type="text" class="form-control" id="validationCustom3"
-                                    name="loantype" required>
+                                    name="loan_type_name" required>
                                 <div class="valid-feedback"> Looks good! </div>
                             </div>
 
@@ -134,7 +129,7 @@
 
             <div class="form-row">
                 <div class="col-md-12 mb-3">
-                    <input type="text" class="form-control" id="editloantypeName" name="loantype" required>
+                    <input type="text" class="form-control" id="editloantypeName" name="loan_type_name" required>
                     <div class="valid-feedback"> Looks good! </div>
                 </div>
             </div>
