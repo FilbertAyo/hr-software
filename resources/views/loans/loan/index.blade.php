@@ -14,7 +14,7 @@
                         </ul>
                     </div>
                     <div class="col-auto">
-                       
+
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
@@ -160,21 +160,20 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="payroll_period_id">Payroll Period (Optional)</label>
-                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control">
-                                        <option value="">Not specified</option>
+                                    <label for="payroll_period_id">Payroll Period</label>
+                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control" disabled>
                                         @if($currentPayrollPeriod)
-                                            <option value="{{ $currentPayrollPeriod->id }}">
+                                            <option value="{{ $currentPayrollPeriod->id }}" selected>
                                                 {{ \Carbon\Carbon::parse($currentPayrollPeriod->start_date)->format('F Y') }} (Current)
                                             </option>
+                                        @else
+                                            <option value="">No current payroll period</option>
                                         @endif
-                                        @foreach($upcomingPayrollPeriods as $period)
-                                            <option value="{{ $period->id }}">
-                                                {{ \Carbon\Carbon::parse($period->start_date)->format('F Y') }}
-                                            </option>
-                                        @endforeach
                                     </select>
-                                    <small class="text-muted">Link loan to specific payroll period for deduction start</small>
+                                    @if($currentPayrollPeriod)
+                                        <input type="hidden" name="payroll_period_id" value="{{ $currentPayrollPeriod->id }}">
+                                    @endif
+                                    <small class="text-muted">Loan will be linked to the current payroll period</small>
                                 </div>
 
                                 <div class="form-group">

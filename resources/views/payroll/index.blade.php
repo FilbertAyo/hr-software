@@ -219,6 +219,8 @@
                                                         <th>Taxable Income</th>
                                                         <th>PAYE</th>
                                                         <th>Advance</th>
+                                                        <th>Loan Deduction</th>
+                                                        <th>Total Deductions</th>
                                                         <th>Net Salary</th>
                                                         <th>Status</th>
                                                     </tr>
@@ -234,10 +236,11 @@
                                                                 $taxableAllowances = $payroll->taxable_allowances;
                                                                 $nonTaxableAllowances = $payroll->non_taxable_allowances;
                                                                 $grossSalary = $payroll->gross_salary;
-                                                                $pensionAmount = $payroll->pension_amount;
+                                                                $pensionAmount = $payroll->employee_pension_amount;
                                                                 $taxableIncome = $payroll->taxable_income;
                                                                 $totalDeductions = $payroll->total_deductions;
                                                                 $advanceAmount = $payroll->advance_salary; // Now using dedicated advance_salary column
+                                                                $loanDeduction = $payroll->loan_deduction;
                                                                 $payeTax = $payroll->tax_deduction; // PAYE tax
                                                                 $netSalary = $payroll->net_salary;
                                                             } else {
@@ -264,13 +267,14 @@
 
                                                                 $grossSalary = $basicSalary + $taxableAllowances;
 
-                                                                // Get pension amount directly from employee table
+                                                                // Calculate pension amount from pension_id
                                                                 $pensionAmount = 0;
-                                                                if ($employee->pension_details && $employee->employee_pension_amount) {
-                                                                    $pensionAmount = $employee->employee_pension_amount;
+                                                                if ($employee->pension_details && $employee->pension_id && $employee->pension) {
+                                                                    $baseAmount = $employee->pension->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                                                                    $pensionAmount = ($baseAmount * floatval($employee->pension->employee_percent)) / 100;
                                                                 }
 
-                                                                // Calculate taxable income (gross salary minus pension)
+                                                                // Calculate taxable income (gross salary minus employee pension)
                                                                 $taxableIncome = $grossSalary - $pensionAmount;
 
                                                                 $payeTax = 0; // No PAYE until processed
@@ -286,8 +290,23 @@
                                                                     $advanceAmount = $advance ?? 0;
                                                                 }
 
-                                                                // Calculate total deductions (preview: pension + advance only)
-                                                                $totalDeductions = $pensionAmount + $advanceAmount;
+                                                                // Get loan deduction amount for preview
+                                                                $loanDeduction = 0;
+                                                                if ($payrollPeriod) {
+                                                                    // Get all active loans
+                                                                    $activeLoans = $employee->loans()->whereIn('status', ['active', 'approved'])->get();
+                                                                    foreach ($activeLoans as $loan) {
+                                                                        // Get pending installments due in this period
+                                                                        $installments = $loan->installments()
+                                                                            ->where('status', 'pending')
+                                                                            ->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date])
+                                                                            ->sum('amount');
+                                                                        $loanDeduction += $installments;
+                                                                    }
+                                                                }
+
+                                                                // Calculate total deductions (preview: pension + advance + loan only)
+                                                                $totalDeductions = $pensionAmount + $advanceAmount + $loanDeduction;
 
                                                                 // Calculate net salary (gross - total deductions + non-taxable allowances)
                                                                 $netSalary = $grossSalary - $totalDeductions + $nonTaxableAllowances;
@@ -322,6 +341,8 @@
                                                             <td>{{ number_format($taxableIncome, 2) }}</td>
                                                             <td>{{ number_format($payeTax, 2) }}</td>
                                                             <td>{{ number_format($advanceAmount, 2) }}</td>
+                                                            <td>{{ number_format($loanDeduction, 2) }}</td>
+                                                            <td>{{ number_format($totalDeductions, 2) }}</td>
                                                             <td>{{ number_format($netSalary, 2) }}</td>
                                                             <td>
                                                                 @if ($payroll)

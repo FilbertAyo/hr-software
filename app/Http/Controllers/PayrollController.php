@@ -7,6 +7,8 @@ use App\Models\Payroll;
 use App\Models\PayrollPeriod;
 use App\Models\Advance;
 use App\Models\TaxRate;
+use App\Models\Loan;
+use App\Models\LoanInstallment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -55,7 +57,10 @@ class PayrollController extends Controller
                 'payrolls' => function($query) use ($payrollPeriod) {
                     $query->where('payroll_period_id', $payrollPeriod->id);
                 },
-                'earngroups.groupBenefits.allowance.allowanceDetails'
+                'earngroups.groupBenefits.allowance.allowanceDetails',
+                'loans.installments' => function($query) use ($payrollPeriod) {
+                    $query->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date]);
+                }
             ])->get();
 
         // Get payroll statistics for this period
@@ -96,7 +101,8 @@ class PayrollController extends Controller
                 $employee = Employee::with([
                     'advances',
                     'taxRate',
-                    'earngroups.groupBenefits.allowance.allowanceDetails'
+                    'earngroups.groupBenefits.allowance.allowanceDetails',
+                    'loans.installments'
                 ])->findOrFail($employeeId);
 
                 // Check if payroll already exists for this period and delete it for reprocessing
@@ -105,6 +111,8 @@ class PayrollController extends Controller
                     ->first();
 
                 if ($existingPayroll) {
+                    // Reset loan installments before deleting payroll so they can be recalculated
+                    $this->resetLoanInstallments($employee, $payrollPeriod);
                     $existingPayroll->delete(); // Delete existing payroll for reprocessing
                 }
 
@@ -133,21 +141,26 @@ class PayrollController extends Controller
                 // Calculate gross salary (basic + TAXABLE allowances only)
                 $grossSalary = $basicSalary + $taxableAllowances;
 
-                // Get pension amount directly from employee table if pension is enabled
-                $pensionAmount = 0;
-                if ($employee->pension_details && $employee->employee_pension_amount) {
-                    $pensionAmount = $employee->employee_pension_amount;
+                // Calculate pension amounts from pension_id if pension is enabled
+                $employeePensionAmount = 0;
+                $employerPensionAmount = 0;
+                if ($employee->pension_details && $employee->pension_id) {
+                    $pension = \App\Models\DirectDeduction::find($employee->pension_id);
+                    if ($pension) {
+                        $baseAmount = $pension->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                        $employeePensionAmount = ($baseAmount * (float)$pension->employee_percent) / 100;
+                        $employerPensionAmount = ($baseAmount * (float)$pension->employer_percent) / 100;
+                    }
                 }
 
-                // Calculate taxable income (gross salary minus pension for PAYE calculation)
-                $taxableIncome = $grossSalary - $pensionAmount;
+                // Calculate taxable income (gross salary minus employee pension for PAYE calculation)
+                $taxableIncome = $grossSalary - $employeePensionAmount;
 
                 // Calculate PAYE tax based on employee's tax rate
                 $taxDeduction = $this->calculatePAYE($employee, $taxableIncome);
 
                 // Other deductions
                 $insuranceDeduction = 0;
-                $loanDeduction = 0;
                 $otherDeductions = 0;
 
                 // Get advance amount for this employee in this period
@@ -156,8 +169,11 @@ class PayrollController extends Controller
                     ->where('status', 'approved')
                     ->sum('advance_amount') ?? 0;
 
-                // Calculate total deductions (including pension, PAYE tax, and advance)
-                $totalDeductions = $pensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $otherDeductions + $advanceAmount;
+                // Calculate loan deduction from pending installments due in this period
+                $loanDeduction = $this->calculateLoanDeduction($employee, $payrollPeriod);
+
+                // Calculate total deductions (including employee pension, PAYE tax, and advance)
+                $totalDeductions = $employeePensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $otherDeductions + $advanceAmount;
 
                 // Calculate net salary (gross - total deductions + non-taxable allowances)
                 // Non-taxable allowances are added AFTER tax calculation
@@ -177,7 +193,8 @@ class PayrollController extends Controller
                     'bonus' => 0,
                     'advance_salary' => $advanceAmount,
                     'gross_salary' => $grossSalary,
-                    'pension_amount' => $pensionAmount,
+                    'employee_pension_amount' => $employeePensionAmount,
+                    'employer_pension_amount' => $employerPensionAmount,
                     'taxable_income' => $taxableIncome,
                     'tax_deduction' => $taxDeduction,
                     'insurance_deduction' => $insuranceDeduction,
@@ -188,6 +205,9 @@ class PayrollController extends Controller
                     'status' => 'processed',
                     'processed_at' => now()
                 ]);
+
+                // Mark loan installments as paid
+                $this->markLoanInstallmentsAsPaid($employee, $payrollPeriod);
 
                 $processedCount++;
             }
@@ -299,6 +319,10 @@ class PayrollController extends Controller
             foreach ($request->payroll_ids as $payrollId) {
                 $payroll = Payroll::findOrFail($payrollId);
                 $payrollPeriod = $payroll->payrollPeriod;
+                $employee = $payroll->employee;
+
+                // Reset loan installments back to pending
+                $this->resetLoanInstallments($employee, $payrollPeriod);
 
                 $payroll->delete();
                 $deletedCount++;
@@ -324,5 +348,109 @@ class PayrollController extends Controller
     {
         $periods = PayrollPeriod::orderBy('start_date', 'desc')->get();
         return response()->json($periods);
+    }
+
+    /**
+     * Calculate loan deduction for an employee in a payroll period
+     *
+     * @param Employee $employee
+     * @param PayrollPeriod $payrollPeriod
+     * @return float
+     */
+    private function calculateLoanDeduction(Employee $employee, PayrollPeriod $payrollPeriod)
+    {
+        // Get all active loans for this employee
+        $loans = Loan::where('employee_id', $employee->id)
+            ->whereIn('status', ['active', 'approved'])
+            ->get();
+
+        $totalLoanDeduction = 0;
+
+        foreach ($loans as $loan) {
+            // Get pending installments that are due within this payroll period
+            $installments = LoanInstallment::where('loan_id', $loan->id)
+                ->where('status', 'pending')
+                ->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date])
+                ->get();
+
+            $totalLoanDeduction += $installments->sum('amount');
+        }
+
+        return $totalLoanDeduction;
+    }
+
+    /**
+     * Mark loan installments as paid after payroll is processed
+     *
+     * @param Employee $employee
+     * @param PayrollPeriod $payrollPeriod
+     * @return void
+     */
+    private function markLoanInstallmentsAsPaid(Employee $employee, PayrollPeriod $payrollPeriod)
+    {
+        // Get all active loans for this employee
+        $loans = Loan::where('employee_id', $employee->id)
+            ->whereIn('status', ['active', 'approved'])
+            ->get();
+
+        foreach ($loans as $loan) {
+            // Get pending installments that are due within this payroll period
+            $installments = LoanInstallment::where('loan_id', $loan->id)
+                ->where('status', 'pending')
+                ->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date])
+                ->get();
+
+            foreach ($installments as $installment) {
+                $installment->update([
+                    'status' => 'paid',
+                    'paid_date' => now()
+                ]);
+
+                // Update loan remaining amount
+                $loan->decrement('remaining_amount', $installment->amount);
+            }
+
+            // Check if all installments are paid and mark loan as completed
+            $pendingInstallments = $loan->installments()->where('status', 'pending')->count();
+            if ($pendingInstallments == 0 && $loan->status != 'completed') {
+                $loan->update(['status' => 'completed']);
+            }
+        }
+    }
+
+    /**
+     * Reset loan installments back to pending when payroll is cancelled
+     *
+     * @param Employee $employee
+     * @param PayrollPeriod $payrollPeriod
+     * @return void
+     */
+    private function resetLoanInstallments(Employee $employee, PayrollPeriod $payrollPeriod)
+    {
+        // Get all loans for this employee
+        $loans = Loan::where('employee_id', $employee->id)->get();
+
+        foreach ($loans as $loan) {
+            // Get installments that were paid within this payroll period
+            $installments = LoanInstallment::where('loan_id', $loan->id)
+                ->where('status', 'paid')
+                ->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date])
+                ->get();
+
+            foreach ($installments as $installment) {
+                $installment->update([
+                    'status' => 'pending',
+                    'paid_date' => null
+                ]);
+
+                // Add back to loan remaining amount
+                $loan->increment('remaining_amount', $installment->amount);
+            }
+
+            // If loan was marked as completed, change it back to active
+            if ($loan->status == 'completed') {
+                $loan->update(['status' => 'active']);
+            }
+        }
     }
 }

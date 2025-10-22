@@ -30,12 +30,10 @@ class LoanController extends Controller
         $employees = Employee::where('company_id', $companyId)->get();
         $loanTypes = LoanType::all();
 
-        // Get current and upcoming payroll periods
-        $currentPayrollPeriod = PayrollPeriod::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->orderBy('start_date', 'desc')
-            ->first();
+        // Get current payroll period from session (set by middleware)
+        $currentPayrollPeriod = session('current_payroll_period');
 
+        // Get upcoming payroll periods
         $upcomingPayrollPeriods = PayrollPeriod::where('company_id', $companyId)
             ->where('start_date', '>=', now())
             ->orderBy('start_date', 'asc')
@@ -134,11 +132,8 @@ class LoanController extends Controller
             abort(403, 'Unauthorized access to this loan.');
         }
 
-        // Get current payroll period for installment setup
-        $currentPayrollPeriod = PayrollPeriod::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->orderBy('start_date', 'desc')
-            ->first();
+        // Get current payroll period from session (set by middleware)
+        $currentPayrollPeriod = session('current_payroll_period');
 
         return view('loans.loan.show', compact('loan', 'currentPayrollPeriod'));
     }
@@ -218,11 +213,8 @@ class LoanController extends Controller
                 ->with('error', 'This loan already has installments set up.');
         }
 
-        // Get payroll periods for date selection
-        $currentPayrollPeriod = PayrollPeriod::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->orderBy('start_date', 'desc')
-            ->first();
+        // Get current payroll period from session (set by middleware)
+        $currentPayrollPeriod = session('current_payroll_period');
 
         return view('loans.loan.custom-installments', compact('loan', 'currentPayrollPeriod'));
     }
@@ -539,12 +531,10 @@ class LoanController extends Controller
                 ->with('error', 'Only active loans can be restructured.');
         }
 
-        // Get payroll periods for start date selection
-        $currentPayrollPeriod = PayrollPeriod::where('company_id', $companyId)
-            ->where('status', 'active')
-            ->orderBy('start_date', 'desc')
-            ->first();
+        // Get current payroll period from session (set by middleware)
+        $currentPayrollPeriod = session('current_payroll_period');
 
+        // Get upcoming payroll periods for start date selection
         $upcomingPayrollPeriods = PayrollPeriod::where('company_id', $companyId)
             ->where('start_date', '>=', now())
             ->orderBy('start_date', 'asc')
@@ -727,11 +717,33 @@ class LoanController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $activeLoans = Loan::where('company_id', $companyId)
+        // Get current payroll period
+        $currentPayrollPeriod = session('current_payroll_period');
+
+        // Get active loans
+        $activeLoansQuery = Loan::where('company_id', $companyId)
             ->where('status', 'active')
-            ->with(['employee', 'loanType', 'installments'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->with(['employee', 'loanType', 'installments', 'payrollPeriod']);
+
+        // If there's a current payroll period, also include completed loans that had installments due in this period
+        if ($currentPayrollPeriod) {
+            $completedInPeriodLoans = Loan::where('company_id', $companyId)
+                ->where('status', 'completed')
+                ->whereHas('installments', function ($query) use ($currentPayrollPeriod) {
+                    $query->where('status', 'paid')
+                        ->whereBetween('due_date', [
+                            $currentPayrollPeriod->start_date,
+                            $currentPayrollPeriod->end_date
+                        ]);
+                })
+                ->with(['employee', 'loanType', 'installments', 'payrollPeriod']);
+
+            // Combine active loans with completed loans from current period
+            $activeLoans = $activeLoansQuery->get()->merge($completedInPeriodLoans->get())
+                ->sortByDesc('created_at');
+        } else {
+            $activeLoans = $activeLoansQuery->orderBy('created_at', 'desc')->get();
+        }
 
         $rejectedLoans = Loan::where('company_id', $companyId)
             ->whereNotNull('rejected_at')
@@ -739,6 +751,6 @@ class LoanController extends Controller
             ->orderBy('rejected_at', 'desc')
             ->get();
 
-        return view('loans.loan.manage', compact('pendingLoans', 'activeLoans', 'rejectedLoans'));
+        return view('loans.loan.manage', compact('pendingLoans', 'activeLoans', 'rejectedLoans', 'currentPayrollPeriod'));
     }
 }

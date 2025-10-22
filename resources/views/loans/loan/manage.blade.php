@@ -180,14 +180,18 @@
                                                         $totalCount = $loan->installment_count;
                                                         $progressPercent = $totalCount > 0 ? ($paidCount / $totalCount) * 100 : 0;
 
-                                                        // Get current month's installment
-                                                        $currentMonth = now()->format('Y-m');
-                                                        $currentInstallment = $loan->installments->first(function($inst) use ($currentMonth) {
-                                                            return \Carbon\Carbon::parse($inst->due_date)->format('Y-m') == $currentMonth;
-                                                        });
+                                                        // Get current payroll period's month/year
+                                                        $currentInstallment = null;
+                                                        if ($currentPayrollPeriod) {
+                                                            $payrollMonth = \Carbon\Carbon::parse($currentPayrollPeriod->start_date)->format('Y-m');
+                                                            // Find installment that's due in the current payroll period (paid or pending)
+                                                            $currentInstallment = $loan->installments->first(function($inst) use ($payrollMonth) {
+                                                                return \Carbon\Carbon::parse($inst->due_date)->format('Y-m') == $payrollMonth;
+                                                            });
+                                                        }
 
-                                                        // Get next pending installment if current month not found
-                                                        if (!$currentInstallment) {
+                                                        // If no installment found for current payroll period, get next pending installment (for active loans)
+                                                        if (!$currentInstallment && $loan->status == 'active') {
                                                             $currentInstallment = $loan->installments
                                                                 ->where('status', 'pending')
                                                                 ->sortBy('due_date')
@@ -196,7 +200,12 @@
                                                     @endphp
                                                     <tr>
                                                         <td>{{ $index + 1 }}</td>
-                                                        <td>{{ $loan->employee->employee_name }}</td>
+                                                        <td>
+                                                            {{ $loan->employee->employee_name }}
+                                                            @if($loan->status == 'completed')
+                                                                <br><span class="badge badge-success badge-sm">Completed This Period</span>
+                                                            @endif
+                                                        </td>
                                                         <td>{{ $loan->loanType->loan_type_name }}</td>
                                                         <td>{{ number_format($loan->loan_amount, 2) }}</td>
                                                         <td class="text-danger font-weight-bold">{{ number_format($loan->remaining_amount, 2) }}</td>
@@ -208,6 +217,9 @@
                                                                     {{ \Carbon\Carbon::parse($currentInstallment->due_date)->format('M Y') }}
                                                                     @if($currentInstallment->status == 'paid')
                                                                         <span class="badge badge-success badge-sm">Paid</span>
+                                                                        @if($loan->status == 'completed')
+                                                                            <span class="badge badge-info badge-sm">Final</span>
+                                                                        @endif
                                                                     @else
                                                                         <span class="badge badge-warning badge-sm">Pending</span>
                                                                     @endif
@@ -219,20 +231,31 @@
                                                         <td>
                                                             @php
                                                                 // Find the payroll period that matches the current installment's due date
-                                                                $payrollPeriod = null;
-                                                                if ($currentInstallment) {
+                                                                $displayPayrollPeriod = null;
+                                                                if ($currentInstallment && $currentPayrollPeriod) {
                                                                     $installmentMonth = \Carbon\Carbon::parse($currentInstallment->due_date)->format('Y-m');
-                                                                    $payrollPeriod = \App\Models\PayrollPeriod::where('company_id', session('selected_company_id'))
-                                                                        ->whereRaw("TO_CHAR(start_date, 'YYYY-MM') = ?", [$installmentMonth])
-                                                                        ->first();
+                                                                    $currentPeriodMonth = \Carbon\Carbon::parse($currentPayrollPeriod->start_date)->format('Y-m');
+
+                                                                    // If installment is for current payroll period, use it
+                                                                    if ($installmentMonth == $currentPeriodMonth) {
+                                                                        $displayPayrollPeriod = $currentPayrollPeriod;
+                                                                    } else {
+                                                                        // Otherwise, find the matching payroll period
+                                                                        $displayPayrollPeriod = \App\Models\PayrollPeriod::where('company_id', session('selected_company_id'))
+                                                                            ->whereRaw("TO_CHAR(start_date, 'YYYY-MM') = ?", [$installmentMonth])
+                                                                            ->first();
+                                                                    }
                                                                 }
                                                             @endphp
-                                                            @if($payrollPeriod)
-                                                                <strong>{{ \Carbon\Carbon::parse($payrollPeriod->start_date)->format('M Y') }}</strong>
+                                                            @if($displayPayrollPeriod)
+                                                                <strong>{{ \Carbon\Carbon::parse($displayPayrollPeriod->start_date)->format('M Y') }}</strong>
+                                                                @if($currentPayrollPeriod && $displayPayrollPeriod->id == $currentPayrollPeriod->id)
+                                                                    <span class="badge badge-success badge-sm ml-1">Current</span>
+                                                                @endif
                                                                 <br>
                                                                 <small class="text-muted">
-                                                                    {{ \Carbon\Carbon::parse($payrollPeriod->start_date)->format('M d') }} -
-                                                                    {{ \Carbon\Carbon::parse($payrollPeriod->end_date)->format('M d, Y') }}
+                                                                    {{ \Carbon\Carbon::parse($displayPayrollPeriod->start_date)->format('M d') }} -
+                                                                    {{ \Carbon\Carbon::parse($displayPayrollPeriod->end_date)->format('M d, Y') }}
                                                                 </small>
                                                             @elseif($loan->payrollPeriod)
                                                                 <span class="text-info">
@@ -262,9 +285,11 @@
                                                             <a href="{{ route('loan.show', $loan->id) }}" class="btn btn-sm btn-info" title="View Details">
                                                                 <i class="fe fe-eye"></i>
                                                             </a>
-                                                            <a href="{{ route('loan.restructure', $loan->id) }}" class="btn btn-sm btn-warning" title="Restructure">
-                                                                <i class="fe fe-edit"></i>
-                                                            </a>
+                                                            @if($loan->status != 'completed')
+                                                                <a href="{{ route('loan.restructure', $loan->id) }}" class="btn btn-sm btn-warning" title="Restructure">
+                                                                    <i class="fe fe-edit"></i>
+                                                                </a>
+                                                            @endif
                                                             @if($loan->is_restructured)
                                                                 <a href="{{ route('loan.history', $loan->id) }}" class="btn btn-sm btn-secondary" title="View History">
                                                                     <i class="fe fe-clock"></i>

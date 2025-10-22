@@ -142,21 +142,32 @@ class CompanyController extends Controller
         session(['selected_company' => $company]);
 
         // Get current payroll period for the new company
-        $currentPayrollPeriod = $company->payrollPeriods()
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
+        // Priority 1: Get period with 'draft' status (actively being worked on)
+        $draftPeriod = $company->payrollPeriods()
+            ->where('status', 'draft')
+            ->orderBy('start_date', 'desc')
             ->first();
 
-        if ($currentPayrollPeriod) {
-            session(['current_payroll_period' => $currentPayrollPeriod]);
+        if ($draftPeriod) {
+            session(['current_payroll_period' => $draftPeriod]);
         } else {
-            // If no current period, get the latest one
-            $latestPayrollPeriod = $company->payrollPeriods()
-                ->orderBy('start_date', 'desc')
+            // Priority 2: Get period where current date falls within date range
+            $activePeriod = $company->payrollPeriods()
+                ->where('start_date', '<=', now())
+                ->where('end_date', '>=', now())
                 ->first();
 
-            if ($latestPayrollPeriod) {
-                session(['current_payroll_period' => $latestPayrollPeriod]);
+            if ($activePeriod) {
+                session(['current_payroll_period' => $activePeriod]);
+            } else {
+                // Priority 3: Get the latest period
+                $latestPayrollPeriod = $company->payrollPeriods()
+                    ->orderBy('start_date', 'desc')
+                    ->first();
+
+                if ($latestPayrollPeriod) {
+                    session(['current_payroll_period' => $latestPayrollPeriod]);
+                }
             }
         }
 

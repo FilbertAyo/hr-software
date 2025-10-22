@@ -41,9 +41,6 @@ class Employee extends Model
         'advance_percentage',
         'advance_salary',
         'paye_exempt',
-        'housing_allowance',
-        'transport_allowance',
-        'medical_allowance',
 
         // Bank Details
         'is_primary_bank',
@@ -53,8 +50,6 @@ class Employee extends Model
         // Pension Details
         'pension_id',
         'pension_details',
-        'employee_pension_amount',
-        'employer_pension_amount',
         'employee_pension_no',
 
         // NHIF Details
@@ -86,11 +81,6 @@ class Employee extends Model
         'basic_salary' => 'decimal:2',
         'advance_percentage' => 'decimal:2',
         'advance_salary' => 'decimal:2',
-        'housing_allowance' => 'decimal:2',
-        'transport_allowance' => 'decimal:2',
-        'medical_allowance' => 'decimal:2',
-        'employee_pension_amount' => 'decimal:2',
-        'employer_pension_amount' => 'decimal:2',
         'nhif_amount' => 'decimal:2',
         'overtime_rate_weekday' => 'decimal:2',
         'overtime_rate_saturday' => 'decimal:2',
@@ -242,6 +232,32 @@ class Employee extends Model
             'employee_id',
             'other_benefit_detail_id'
         )->withPivot('status')->withTimestamps();
+    }
+
+    /**
+     * Get all employee deductions
+     */
+    public function employeeDeductions()
+    {
+        return $this->hasMany(EmployeeDeduction::class);
+    }
+
+    /**
+     * Get all direct deductions through employee_deductions
+     */
+    public function directDeductions()
+    {
+        return $this->belongsToMany(DirectDeduction::class, 'employee_deductions')
+            ->withPivot('member_number', 'status')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get active employee deductions only
+     */
+    public function activeDirectDeductions()
+    {
+        return $this->directDeductions()->wherePivot('status', 'active');
     }
 
     /**
@@ -419,11 +435,8 @@ class Employee extends Model
             return $this->basic_salary + $taxableAllowancesFromEarngroups;
         }
 
-        // Fallback to individual allowances for backwards compatibility
-        return $this->basic_salary +
-               ($this->housing_allowance ?? 0) +
-               ($this->transport_allowance ?? 0) +
-               ($this->medical_allowance ?? 0);
+        // Return basic salary only if no earngroups
+        return $this->basic_salary;
     }
 
     // Get employee's advance limit based on advance percentage

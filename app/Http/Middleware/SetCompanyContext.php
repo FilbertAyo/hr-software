@@ -28,17 +28,18 @@ class SetCompanyContext
                     session(['selected_company' => $company]);
 
                     // Get current payroll period for the company
-                    $currentPayrollPeriod = $company->payrollPeriods()
-                        ->where('start_date', '<=', now())
-                        ->where('end_date', '>=', now())
+                    // Priority 1: Get the latest open period (not closed)
+                    $openPeriod = $company->payrollPeriods()
+                        ->where('status', '!=', 'closed')
+                        ->orderBy('id', 'desc')
                         ->first();
 
-                    if ($currentPayrollPeriod) {
-                        session(['current_payroll_period' => $currentPayrollPeriod]);
+                    if ($openPeriod) {
+                        session(['current_payroll_period' => $openPeriod]);
                     } else {
-                        // If no current period, get the latest one
+                        // Priority 2: If all periods are closed, get the most recent period
                         $latestPayrollPeriod = $company->payrollPeriods()
-                            ->orderBy('start_date', 'desc')
+                            ->orderBy('id', 'desc')
                             ->first();
 
                         if ($latestPayrollPeriod) {

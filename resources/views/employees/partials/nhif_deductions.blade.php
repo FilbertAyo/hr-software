@@ -126,46 +126,7 @@
                     value="{{ old('heslb_name_used', $employee->deductionDetails->heslb_name_used ?? '') }}">
             </div>
 
-            <div class="col-md-4 mb-3">
-                <label for="deduction_type">Deduction</label>
-                <select class="form-control" id="deduction_type" name="deduction_type">
-                    <option value="">--Select Deduction--</option>
-                    <option value="loan"
-                        {{ old('deduction_type', $employee->deductionDetails->deduction_type ?? '') == 'loan' ? 'selected' : '' }}>
-                        Loan</option>
-                    <option value="advance"
-                        {{ old('deduction_type', $employee->deductionDetails->deduction_type ?? '') == 'advance' ? 'selected' : '' }}>
-                        Advance</option>
-                    <option value="other"
-                        {{ old('deduction_type', $employee->deductionDetails->deduction_type ?? '') == 'other' ? 'selected' : '' }}>
-                        Other</option>
-                </select>
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <label for="deduction_amount">Amount</label>
-                <input type="number" class="form-control" id="deduction_amount" name="deduction_amount"
-                    value="{{ old('deduction_amount', $employee->deductionDetails->amount ?? '') }}" min="0"
-                    step="0.01">
-            </div>
-
-            <div class="col-md-4 mb-3">
-                <label for="deduction_percentage">Deduction %</label>
-                <input type="number" class="form-control" id="deduction_percentage" name="deduction_percentage"
-                    value="{{ old('deduction_percentage', $employee->deductionDetails->percentage ?? '') }}"
-                    min="0" max="100" step="0.01">
-            </div>
-
-            <div class="col-md-12 mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="paid_by_employer" name="paid_by_employer"
-                        value="1"
-                        {{ old('paid_by_employer', $employee->deductionDetails->paid_by_employer ?? '') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="paid_by_employer">
-                        Paid By Employer
-                    </label>
-                </div>
-            </div>
+           
         </div>
     </div>
 

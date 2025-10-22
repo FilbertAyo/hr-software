@@ -66,13 +66,16 @@ class PayPeriodController extends Controller
             ->where('status', '!=', 'closed')
             ->update(['status' => 'closed']);
 
-        PayrollPeriod::create([
+        $newPeriod = PayrollPeriod::create([
             'period_name' => $periodName,
             'start_date' => $startDate,
             'end_date'   => $endDate,
             'status'     => 'draft',
             'company_id' => $companyId,
         ]);
+
+        // Update session to set the newly created period as current
+        session(['current_payroll_period' => $newPeriod]);
 
         return redirect()->back()->with('success', 'Pay period created successfully. Previous periods have been closed.');
     }

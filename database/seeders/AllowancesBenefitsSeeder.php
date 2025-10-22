@@ -44,7 +44,7 @@ class AllowancesBenefitsSeeder extends Seeder
             ['allowance_id' => 1, 'calculation_type' => 'percentage', 'amount' => null, 'percentage' => 40.00, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
 
             // Transport Allowance - Fixed amounts
-            ['allowance_id' => 2, 'calculation_type' => 'amount', 'amount' => 150000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['allowance_id' => 2, 'calculation_type' => 'amount', 'amount' => 15000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
 
             // Meal Allowance - Fixed daily rate
             ['allowance_id' => 3, 'calculation_type' => 'amount', 'amount' => 10000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
@@ -59,7 +59,7 @@ class AllowancesBenefitsSeeder extends Seeder
             ['allowance_id' => 6, 'calculation_type' => 'percentage', 'amount' => null, 'percentage' => 20.00, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
 
             // Education Allowance - Fixed amount
-            ['allowance_id' => 7, 'calculation_type' => 'amount', 'amount' => 100000.00, 'percentage' => null, 'taxable' => false, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['allowance_id' => 7, 'calculation_type' => 'amount', 'amount' => 10000.00, 'percentage' => null, 'taxable' => false, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
 
             // Utility Allowance - Fixed amount
             ['allowance_id' => 8, 'calculation_type' => 'amount', 'amount' => 75000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
@@ -68,7 +68,7 @@ class AllowancesBenefitsSeeder extends Seeder
             ['allowance_id' => 9, 'calculation_type' => 'percentage', 'amount' => null, 'percentage' => 25.00, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
 
             // Hardship Allowance - Fixed amount
-            ['allowance_id' => 10, 'calculation_type' => 'amount', 'amount' => 200000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
+            ['allowance_id' => 10, 'calculation_type' => 'amount', 'amount' => 20000.00, 'percentage' => null, 'taxable' => true, 'status' => 'active', 'created_at' => now(), 'updated_at' => now()],
         ];
         DB::table('allowance_details')->insert($allowanceDetails);
 

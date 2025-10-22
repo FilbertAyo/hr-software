@@ -37,7 +37,7 @@ class DirectDeductionController extends Controller
             'employee_percent' => 'nullable|numeric',
             'percentage_of' => 'required|string',
             'status' => 'required|string',
-            'must_include' => 'nullable|boolean',
+            'require_member_no' => 'nullable|boolean',
         ]);
 
         DirectDeduction::create($request->only([
@@ -47,7 +47,7 @@ class DirectDeductionController extends Controller
             'employee_percent',
             'percentage_of',
             'status',
-            'must_include'
+            'require_member_no'
         ]));
 
         return redirect()->back()->with('success','deduction added successfully');
@@ -62,7 +62,7 @@ class DirectDeductionController extends Controller
             'employer_percent' => 'nullable|numeric',
             'employee_percent' => 'nullable|numeric',
             'percentage_of' => 'required|string',
-            'must_include' => 'nullable|boolean',
+            'require_member_no' => 'nullable|boolean',
             'status' => 'required|string',
         ]);
 
@@ -77,7 +77,7 @@ class DirectDeductionController extends Controller
             'employee_percent',
             'percentage_of',
             'status',
-            'must_include'
+            'require_member_no'
         ]));
 
         $deduction->save();

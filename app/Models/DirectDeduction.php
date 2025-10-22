@@ -14,6 +14,24 @@ class DirectDeduction extends Model
         'salary_type',
         'deduction_type',
         'percentage_of',
-        'must_include'
+        'require_member_no'
     ];
+
+    /**
+     * Get all employees that have this deduction.
+     */
+    public function employeeDeductions()
+    {
+        return $this->hasMany(EmployeeDeduction::class);
+    }
+
+    /**
+     * Get all employees through employee_deductions.
+     */
+    public function employees()
+    {
+        return $this->belongsToMany(Employee::class, 'employee_deductions')
+            ->withPivot('member_number', 'status')
+            ->withTimestamps();
+    }
 }

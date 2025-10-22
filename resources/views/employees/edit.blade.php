@@ -2,133 +2,125 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12">
-
-                <div class="row align-items-center mb-3 border-bottom no-gutters">
+                <!-- Header Section -->
+                <div class="row align-items-center mb-4 border-bottom">
                     <div class="col">
-                        <ul class="nav nav-tabs" id="myTab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link {{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active' : '' }}"
-                                   id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">Personal Details</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active' : '' }}"
-                                   id="profile-tab" data-toggle="tab" href="#profile" role="tab"
-                                    aria-controls="profile" aria-selected="false">Earning and Deduction</a>
-                            </li>
-                        </ul>
+                        <h2 class="mb-1">Edit Employee</h2>
+                        <p class="text-muted mb-0">Update employee information</p>
+                    </div>
+                    <div class="col-auto">
+                        <a href="{{ route('employee.index') }}" class="btn btn-outline-secondary">
+                            <i class="fe fe-arrow-left"></i> Back to List
+                        </a>
                     </div>
                 </div>
 
-                <div class="row my-2">
-                    @include('elements.spinner')
+                <!-- Progress Indicator -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="progress-indicator">
+                            <div class="step {{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'completed' : 'active' }}" data-step="1">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Personal & Department</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active completed' : '' }}" data-step="2">
+                                <div class="step-circle">2</div>
+                                <div class="step-label">Payment & Salary</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
                     <div class="col-md-12">
                         <div class="card shadow-none border">
                             <div class="card-body">
-
+                                <!-- Alert Messages -->
                                 @if (session('success'))
-                                    <div class="alert alert-success">
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-check-circle mr-2"></i>
                                         {{ session('success') }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
                                 @if (session('error'))
-                                    <div class="alert alert-danger">
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-alert-circle mr-2"></i>
                                         {{ session('error') }}
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
                                 @if ($errors->any())
-                                    <div class="alert alert-danger">
-                                        <ul class="mb-0">
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fe fe-alert-circle mr-2"></i>
+                                        <strong>Please fix the following errors:</strong>
+                                        <ul class="mb-0 mt-2">
                                             @foreach ($errors->all() as $error)
                                                 <li>{{ $error }}</li>
                                             @endforeach
                                         </ul>
+                                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
                                     </div>
                                 @endif
 
-                                <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active' : '' }}"
-                                           id="home-tab" data-toggle="tab" href="#home"
-                                            role="tab" aria-controls="home" aria-selected="true">
-                                            <i class="fas fa-user"></i> Personal Details
-                                            <span class="badge badge-success ml-1" id="step1-badge"
-                                                  style="{{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'display: inline;' : 'display: none;' }}">✓</span>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active' : '' }}"
-                                           id="profile-tab" data-toggle="tab" href="#profile"
-                                            role="tab" aria-controls="profile" aria-selected="false">
-                                            <i class="fas fa-money-bill-wave"></i> Earning and Deduction
-                                            <span class="badge badge-success ml-1" id="step2-badge"
-                                                  style="{{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'display: inline;' : 'display: none;' }}">✓</span>
-                                        </a>
-                                    </li>
-                                </ul>
-
-                                <!-- Step 1: Personal Details Form -->
-                                <form method="POST" class="needs-validation {{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? '' : 'd-none' }}"
-                                      action="{{ route('employee.update', $employee) }}" novalidate id="personalForm">
+                                <!-- Edit Form -->
+                                <form method="POST" class="needs-validation" action="{{ route('employee.update', $employee) }}"
+                                    id="employeeForm" enctype="multipart/form-data" novalidate>
                                     @csrf
                                     @method('PUT')
-                                    <input type="hidden" name="step" value="personal">
 
-                                    <div class="tab-content mb-3" id="myTabContent">
-                                        <!-- Personal Details Tab -->
-                                        <div class="tab-pane fade {{ $employee->registration_step == 'personal_saved' || $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'show active' : '' }}"
-                                             id="home" role="tabpanel" aria-labelledby="home-tab">
-                                            <div class="accordion w-100" id="accordion1">
-
-                                                @include('employees.partials.personal')
-
-                                                @include('employees.partials.departments')
-
-                                                @include('employees.partials.payments')
-
-                                            </div>
+                                    <!-- Step 1: Personal & Department Details -->
+                                    <div class="form-step {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? '' : 'active' }}" id="step1">
+                                        <div class="step-header mb-4">
+                                            <h4 class="text-primary mb-2">
+                                                <i class="fe fe-user mr-2"></i>Personal & Department Details
+                                            </h4>
+                                            <p class="text-muted">Update the employee's personal and department information</p>
                                         </div>
-                                    </div>
 
-                                    <div class="form-row">
-                                        <div class="col-12">
-                                            <button class="btn btn-primary mr-2" type="submit" id="savePersonalBtn">
-                                                <i class="fas fa-save"></i> Save Step 1
+                                        <div class="card shadow-none border">
+                                            @include('employees.partials.personal')
+                                            @include('employees.partials.departments')
+                                        </div>
+
+                                        <div class="step-actions mt-4">
+                                            <button type="button" class="btn btn-primary" onclick="nextStep()">
+                                                Next <i class="fe fe-arrow-right ml-1"></i>
                                             </button>
-                                            <a href="{{ route('employee.index') }}" class="btn btn-secondary">Cancel</a>
-                                        </div>
-                                    </div>
-                                </form>
-
-                                <!-- Step 2: Salary Details Form -->
-                                <form method="POST" class="needs-validation {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? '' : 'd-none' }}"
-                                      action="{{ route('employee.update', $employee) }}" novalidate id="salaryForm">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="hidden" name="step" value="salary">
-
-                                    <div class="tab-content mb-3" id="myTabContent2">
-                                        <div class="tab-pane fade {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'show active' : '' }}"
-                                             id="profile" role="tabpanel" aria-labelledby="profile-tab">
-                                            <div class="accordion w-100" id="accordion2">
-                                                @include('employees.partials.salary')
-                                            </div>
                                         </div>
                                     </div>
 
-                                    <div class="form-row">
-                                        <div class="col-12">
-                                            <button class="btn btn-primary mr-2" type="submit" id="saveSalaryBtn">
-                                                <i class="fas fa-save"></i> Save Step 2
+                                    <!-- Step 2: Payment & Salary -->
+                                    <div class="form-step {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? 'active' : '' }}" id="step2">
+                                        <div class="step-header mb-4">
+                                            <h4 class="text-primary mb-2">
+                                                <i class="fe fe-dollar-sign mr-2"></i>Payment & Salary Details
+                                            </h4>
+                                            <p class="text-muted">Configure payment method and salary information</p>
+                                        </div>
+
+                                        <div class="card shadow-none border">
+                                            @include('employees.partials.payments')
+                                            @include('employees.partials.salary')
+                                            @include('employees.partials.nhif_deductions')
+                                        </div>
+
+                                        <div class="step-actions mt-4">
+                                            <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
+                                                <i class="fe fe-arrow-left mr-1"></i> Previous
                                             </button>
-                                            @if($employee->registration_step == 'salary_saved')
-                                                <button class="btn btn-success mr-2" type="button" id="completeRegistrationBtn">
-                                                    <i class="fas fa-check"></i> Complete Registration
-                                                </button>
-                                            @endif
-                                            <a href="{{ route('employee.index') }}" class="btn btn-secondary">Cancel</a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fe fe-save mr-1"></i> Update Employee
+                                            </button>
                                         </div>
                                     </div>
                                 </form>
@@ -140,176 +132,243 @@
         </div>
     </div>
 
+    <style>
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .step.completed .step-circle {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: #007bff;
+        }
+
+        .step.completed .step-label {
+            color: #28a745;
+        }
+
+        .step-line {
+            width: 100px;
+            height: 2px;
+            background-color: #e9ecef;
+            margin: 0 1rem;
+            margin-top: -20px;
+        }
+
+        .step.completed+.step-line {
+            background-color: #28a745;
+        }
+
+        .form-step {
+            display: none;
+        }
+
+        .form-step.active {
+            display: block;
+        }
+
+        .step-header {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1rem;
+        }
+
+        .step-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 1rem;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .form-control.is-invalid {
+            border-color: #dc3545;
+        }
+
+        .form-control.is-valid {
+            border-color: #28a745;
+        }
+
+        .invalid-feedback {
+            display: block;
+        }
+
+        .valid-feedback {
+            display: block;
+        }
+
+        .card {
+            border-radius: 0.5rem;
+        }
+
+        .alert {
+            border-radius: 0.5rem;
+        }
+    </style>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const personalForm = document.getElementById('personalForm');
-            const salaryForm = document.getElementById('salaryForm');
-            const personalTab = document.getElementById('home-tab');
-            const salaryTab = document.getElementById('profile-tab');
-            const personalTabPane = document.getElementById('home');
-            const salaryTabPane = document.getElementById('profile');
-            const completeRegistrationBtn = document.getElementById('completeRegistrationBtn');
+        let currentStep = {{ $employee->registration_step == 'salary_saved' || $employee->registration_step == 'completed' ? '2' : '1' }};
+        const totalSteps = 2;
 
-            // Handle personal form submission
-            personalForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+        function nextStep() {
+            if (validateCurrentStep()) {
+                if (currentStep < totalSteps) {
+                    // Hide current step
+                    document.getElementById(`step${currentStep}`).classList.remove('active');
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('completed');
 
-                // Show loading state
-                const saveBtn = document.getElementById('savePersonalBtn');
-                const originalText = saveBtn.innerHTML;
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                saveBtn.disabled = true;
+                    // Show next step
+                    currentStep++;
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
 
-                // Submit form
-                fetch(personalForm.action, {
-                    method: 'POST',
-                    body: new FormData(personalForm),
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    // Check if response contains success message
-                    if (html.includes('Step 1 updated successfully')) {
-                        // Show success message
-                        showAlert('success', 'Step 1 updated successfully! You can now proceed to Step 2.');
+                    updateProgressIndicator();
+                }
+            }
+        }
 
-                        // Show checkmark for step 1
-                        document.getElementById('step1-badge').style.display = 'inline';
+        function prevStep() {
+            if (currentStep > 1) {
+                // Hide current step
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.remove('active');
 
-                        // Switch to salary form
-                        personalForm.classList.add('d-none');
-                        salaryForm.classList.remove('d-none');
+                // Show previous step
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                document.querySelector(`.step[data-step="${currentStep}"]`).classList.add('active');
 
-                        // Update tab states
-                        personalTab.classList.remove('active');
-                        salaryTab.classList.add('active');
-                        personalTabPane.classList.remove('show', 'active');
-                        salaryTabPane.classList.add('show', 'active');
-                    } else {
-                        // Show error message
-                        showAlert('danger', 'Error updating personal details. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('danger', 'Error updating personal details. Please try again.');
-                })
-                .finally(() => {
-                    // Reset button state
-                    saveBtn.innerHTML = originalText;
-                    saveBtn.disabled = false;
-                });
+                updateProgressIndicator();
+            }
+        }
+
+        function validateCurrentStep() {
+            const currentStepElement = document.getElementById(`step${currentStep}`);
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                    field.classList.add('is-valid');
+                }
             });
 
-            // Handle salary form submission
-            salaryForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+            // Special validation for step 1
+            if (currentStep === 1) {
+                const email = document.getElementById('email');
+                const mobile = document.getElementById('mobile_no');
 
-                // Show loading state
-                const saveBtn = document.getElementById('saveSalaryBtn');
-                const originalText = saveBtn.innerHTML;
-                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                saveBtn.disabled = true;
+                if (email && email.value && !isValidEmail(email.value)) {
+                    email.classList.add('is-invalid');
+                    isValid = false;
+                }
 
-                // Submit form
-                fetch(salaryForm.action, {
-                    method: 'POST',
-                    body: new FormData(salaryForm),
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    if (html.includes('Step 2 updated successfully')) {
-                        showAlert('success', 'Step 2 updated successfully! You can now complete the registration.');
-                        document.getElementById('step2-badge').style.display = 'inline';
-                        if (completeRegistrationBtn) {
-                            completeRegistrationBtn.style.display = 'inline-block';
-                        }
-                    } else {
-                        showAlert('danger', 'Error updating salary details. Please try again.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showAlert('danger', 'Error updating salary details. Please try again.');
-                })
-                .finally(() => {
-                    // Reset button state
-                    saveBtn.innerHTML = originalText;
-                    saveBtn.disabled = false;
-                });
-            });
-
-            // Handle complete registration
-            if (completeRegistrationBtn) {
-                completeRegistrationBtn.addEventListener('click', function() {
-                    // Show loading state
-                    const originalText = completeRegistrationBtn.innerHTML;
-                    completeRegistrationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Completing...';
-                    completeRegistrationBtn.disabled = true;
-
-                    // Submit completion
-                    fetch('{{ route("employee.store") }}', {
-                        method: 'POST',
-                        body: new FormData(Object.assign(document.createElement('form'), {
-                            innerHTML: `
-                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="step" value="complete">
-                                <input type="hidden" name="employee_id" value="{{ $employee->id }}">
-                            `
-                        })),
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        }
-                    })
-                    .then(response => response.text())
-                    .then(html => {
-                        if (html.includes('Employee registration completed successfully')) {
-                            showAlert('success', 'Employee registration completed successfully!');
-                            setTimeout(() => {
-                                window.location.href = '{{ route("employee.index") }}';
-                            }, 2000);
-                        } else {
-                            showAlert('danger', 'Error completing registration. Please try again.');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showAlert('danger', 'Error completing registration. Please try again.');
-                    })
-                    .finally(() => {
-                        // Reset button state
-                        completeRegistrationBtn.innerHTML = originalText;
-                        completeRegistrationBtn.disabled = false;
-                    });
-                });
+                if (mobile && mobile.value && !isValidMobile(mobile.value)) {
+                    mobile.classList.add('is-invalid');
+                    isValid = false;
+                }
             }
 
-            // Function to show alerts
-            function showAlert(type, message) {
-                const alertDiv = document.createElement('div');
-                alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-                alertDiv.innerHTML = `
-                    ${message}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                `;
+            return isValid;
+        }
 
-                // Insert at the top of the card body
-                const cardBody = document.querySelector('.card-body');
-                cardBody.insertBefore(alertDiv, cardBody.firstChild);
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
 
-                // Auto remove after 5 seconds
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 5000);
+        function isValidMobile(mobile) {
+            const mobileRegex = /^[0-9+\-\s()]+$/;
+            return mobileRegex.test(mobile) && mobile.length >= 10;
+        }
+
+        function updateProgressIndicator() {
+            for (let i = 1; i <= totalSteps; i++) {
+                const stepElement = document.querySelector(`.step[data-step="${i}"]`);
+                if (i < currentStep) {
+                    stepElement.classList.add('completed');
+                    stepElement.classList.remove('active');
+                } else if (i === currentStep) {
+                    stepElement.classList.add('active');
+                    stepElement.classList.remove('completed');
+                } else {
+                    stepElement.classList.remove('active', 'completed');
+                }
+            }
+        }
+
+        // Form submission
+        document.getElementById('employeeForm').addEventListener('submit', function(e) {
+            if (!validateCurrentStep()) {
+                e.preventDefault();
+                return false;
             }
         });
-    </script>
 
+        // Real-time validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('employeeForm');
+            const inputs = form.querySelectorAll('input, select, textarea');
+
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.hasAttribute('required') && !this.value.trim()) {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    } else if (this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+
+                input.addEventListener('input', function() {
+                    if (this.classList.contains('is-invalid') && this.value.trim()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    }
+                });
+            });
+        });
+    </script>
 </x-app-layout>

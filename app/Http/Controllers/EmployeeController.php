@@ -61,8 +61,13 @@ class EmployeeController extends Controller
         $level_names = StaffLevel::all();
         $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
         $earngroups = \App\Models\Earngroup::all();
+        // Get normal deductions that have employee_percent (selectable by employees)
+        $deductions = DirectDeduction::where('deduction_type', 'normal')
+            ->where('status', 'active')
+            ->whereNotNull('employee_percent')
+            ->get();
 
-        return view('employees.create', compact('substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
+        return view('employees.create', compact('substations', 'pensions', 'deductions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
     }
 
     public function store(Request $request)
@@ -115,14 +120,7 @@ class EmployeeController extends Controller
                 'pension_details' => 'nullable|boolean',
                 'pension_id' => 'nullable|integer|exists:direct_deductions,id',
                 'employee_pension_no' => 'nullable|string|max:255',
-                'employee_pension_amount' => 'nullable|numeric|min:0',
-                'employer_pension_amount' => 'nullable|numeric|min:0',
                 'paye_exempt' => 'nullable|boolean',
-
-                // Allowances
-                'housing_allowance' => 'nullable|numeric|min:0',
-                'transport_allowance' => 'nullable|numeric|min:0',
-                'medical_allowance' => 'nullable|numeric|min:0',
 
                 // NHIF Details
                 'nhif' => 'nullable|boolean',
@@ -196,9 +194,6 @@ class EmployeeController extends Controller
                 'advance_percentage' => $validatedData['advance_percentage'] ?? 0,
                 'advance_salary' => $validatedData['advance_salary'] ?? 0,
                 'paye_exempt' => $validatedData['paye_exempt'] ?? false,
-                'housing_allowance' => $validatedData['housing_allowance'] ?? 0,
-                'transport_allowance' => $validatedData['transport_allowance'] ?? 0,
-                'medical_allowance' => $validatedData['medical_allowance'] ?? 0,
 
                 // Bank Details
                 'is_primary_bank' => true,
@@ -209,8 +204,6 @@ class EmployeeController extends Controller
                 'pension_details' => $validatedData['pension_details'] ?? false,
                 'pension_id' => $validatedData['pension_id'],
                 'employee_pension_no' => $validatedData['employee_pension_no'],
-                'employee_pension_amount' => $validatedData['employee_pension_amount'] ?? 0,
-                'employer_pension_amount' => $validatedData['employer_pension_amount'] ?? 0,
 
                 // NHIF Details
                 'nhif' => $validatedData['nhif'] ?? false,
@@ -435,7 +428,8 @@ class EmployeeController extends Controller
             'taxRate',
             'bank',
             'pension',
-            'earngroups'
+            'earngroups',
+            'employeeDeductions.directDeduction'
         ]);
 
         // Get data for dropdowns - same as create method
@@ -450,8 +444,13 @@ class EmployeeController extends Controller
         $level_names = StaffLevel::all();
         $pensions = DirectDeduction::where('deduction_type', 'pension')->get();
         $earngroups = \App\Models\Earngroup::all();
+        // Get normal deductions that have employee_percent (selectable by employees)
+        $deductions = DirectDeduction::where('deduction_type', 'normal')
+            ->where('status', 'active')
+            ->whereNotNull('employee_percent')
+            ->get();
 
-        return view('employees.edit', compact('employee', 'substations', 'pensions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
+        return view('employees.edit', compact('employee', 'substations', 'pensions', 'deductions', 'banks', 'departments', 'nationalities', 'religions', 'tax_rates', 'mainstations', 'jobtitles', 'level_names', 'earngroups'));
     }
 
     public function update(Request $request, Employee $employee)
@@ -572,11 +571,13 @@ class EmployeeController extends Controller
             'pension_details' => 'nullable|boolean',
             'pension_id' => 'nullable|integer|exists:direct_deductions,id',
             'employee_pension_no' => 'nullable|string|max:255',
-            'employee_pension_amount' => 'nullable|numeric|min:0',
-            'employer_pension_amount' => 'nullable|numeric|min:0',
             'paye_exempt' => 'nullable|boolean',
             'earngroup_ids' => 'nullable|array',
             'earngroup_ids.*' => 'integer|exists:earngroups,id',
+            'deduction_ids' => 'nullable|array',
+            'deduction_ids.*' => 'integer|exists:direct_deductions,id',
+            'deduction_member_numbers' => 'nullable|array',
+            'deduction_member_numbers.*' => 'nullable|string|max:255',
         ]);
 
         try {
@@ -606,6 +607,33 @@ class EmployeeController extends Controller
             } else {
                 // If no earngroups selected, delete all assignments
                 \App\Models\EmployeeEarngroup::where('employee_id', $employee->id)->delete();
+            }
+
+            // Sync employee deductions (normal deductions only)
+            if (isset($validatedData['deduction_ids']) && is_array($validatedData['deduction_ids'])) {
+                // Delete existing normal deductions (keep pension separate)
+                \App\Models\EmployeeDeduction::where('employee_id', $employee->id)
+                    ->whereHas('directDeduction', function($query) {
+                        $query->where('deduction_type', 'normal');
+                    })->delete();
+
+                // Create new deduction assignments
+                foreach ($validatedData['deduction_ids'] as $index => $deductionId) {
+                    if ($deductionId) {
+                        \App\Models\EmployeeDeduction::create([
+                            'employee_id' => $employee->id,
+                            'direct_deduction_id' => $deductionId,
+                            'member_number' => $validatedData['deduction_member_numbers'][$index] ?? null,
+                            'status' => 'active',
+                        ]);
+                    }
+                }
+            } else {
+                // If no deductions selected, remove all normal deductions
+                \App\Models\EmployeeDeduction::where('employee_id', $employee->id)
+                    ->whereHas('directDeduction', function($query) {
+                        $query->where('deduction_type', 'normal');
+                    })->delete();
             }
 
             // Update employee registration step

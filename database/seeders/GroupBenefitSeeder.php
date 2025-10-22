@@ -46,7 +46,7 @@ class GroupBenefitSeeder extends Seeder
 
             // Create allowance details
             if ($created->allowanceDetails()->count() == 0) {
-                $amounts = [1000.00, 20000.00, 10.00, 5000.00];
+                $amounts = [1000.00, 20000.00, 5.00, 5000.00];
                 $types = ['amount', 'amount', 'percentage', 'amount'];
                 $taxable = [true, false, true, true];
 

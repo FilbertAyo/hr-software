@@ -24,8 +24,9 @@ trait CompanyContext
 
     /**
      * Get the current payroll period for the selected company
-     * First tries to find an active period (current date within range)
-     * If none found, returns the latest available period
+     * Priority 1: Get period with 'draft' status (actively being worked on)
+     * Priority 2: Get period where current date falls within date range
+     * Priority 3: Get the latest available period
      */
     public function getCurrentPayrollPeriod(): ?PayrollPeriod
     {
@@ -35,18 +36,28 @@ trait CompanyContext
             return null;
         }
 
-        // First try to find an active period (current date within range)
+        // Priority 1: Get period with 'draft' status
+        $draftPeriod = $company->payrollPeriods()
+            ->where('status', 'draft')
+            ->orderBy('start_date', 'desc')
+            ->first();
+
+        if ($draftPeriod) {
+            return $draftPeriod;
+        }
+
+        // Priority 2: Get period where current date falls within date range
         $activePeriod = $company->payrollPeriods()
             ->where('start_date', '<=', now())
             ->where('end_date', '>=', now())
             ->first();
 
-        // If no active period found, get the latest available period
-        if (!$activePeriod) {
-            $activePeriod = $this->getLatestPayrollPeriod();
+        if ($activePeriod) {
+            return $activePeriod;
         }
 
-        return $activePeriod;
+        // Priority 3: Get the latest available period
+        return $this->getLatestPayrollPeriod();
     }
 
     /**

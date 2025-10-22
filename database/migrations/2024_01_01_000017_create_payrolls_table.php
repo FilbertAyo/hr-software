@@ -27,7 +27,8 @@ return new class extends Migration
         $table->decimal('bonus', 15, 2)->default(0);
         $table->decimal('advance_salary', 15, 2)->default(0);
         $table->decimal('gross_salary', 15, 2);
-        $table->decimal('pension_amount', 15, 2)->default(0);
+        $table->decimal('employee_pension_amount', 15, 2)->default(0);
+        $table->decimal('employer_pension_amount', 15, 2)->default(0);
         $table->decimal('taxable_income', 15, 2)->default(0);
         $table->decimal('tax_deduction', 15, 2)->default(0);
         $table->decimal('insurance_deduction', 15, 2)->default(0);

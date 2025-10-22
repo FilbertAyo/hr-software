@@ -84,13 +84,13 @@
     </div>
 
     <div class="card-header">
-        <strong>Pension Details</strong>
+        <strong>Pension and Deduction Details</strong>
     </div>
 
     <div class="card-body">
         <!-- Pension Details Checkbox -->
         <div class="form-row mb-3">
-            <div class="col-md-12">
+            <div class="col-md-4">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="pension_details" name="pension_details" value="1"
                         {{ old('pension_details', $employee->pension_details ?? false) ? 'checked' : '' }}>
@@ -103,41 +103,125 @@
 
         <!-- Pension Fields (hidden by default) -->
         <div id="pensionFields" class="form-row" style="display: none;">
-            <div class="col-md-3 mb-3">
+            <div class="col-md-8 mb-3">
                 <label for="pension">Pension</label>
                 <select class="form-control" id="pension" name="pension_id">
                     <option value="">--Select Pension--</option>
                     @foreach ($pensions as $pension)
-                        <option value="{{ $pension->id }}" data-employee="{{ $pension->employee_percent }}"
-                            data-employer="{{ $pension->employer_percent }}"
+                        <option value="{{ $pension->id }}"
                             {{ old('pension_id', $employee->pension_id ?? '') == $pension->id ? 'selected' : '' }}>
-                            {{ $pension->name }}
+                            {{ $pension->name }} (Employee: {{ $pension->employee_percent }}%, Employer: {{ $pension->employer_percent }}%)
                         </option>
                     @endforeach
                 </select>
-            </div>
-
-            <!-- Employee Pension Amount -->
-            <div class="col-md-3 mb-3">
-                <label for="employee_pension_amount">Employee Amount</label>
-                <input type="number" class="form-control" id="employee_pension_amount" name="employee_pension_amount"
-                    value="{{ old('employee_pension_amount', $employee->employee_pension_amount ?? '') }}" min="0" step="0.01">
-            </div>
-
-            <!-- Employer Pension Amount -->
-            <div class="col-md-3 mb-3">
-                <label for="employer_pension_amount">Employer Amount</label>
-                <input type="number" class="form-control" id="employer_pension_amount" name="employer_pension_amount"
-                    value="{{ old('employer_pension_amount', $employee->employer_pension_amount ?? '') }}" min="0" step="0.01">
+                <small class="form-text text-muted">Pension amounts will be calculated automatically during payroll processing</small>
             </div>
 
             <!-- Pension No -->
-            <div class="col-md-3 mb-3">
+            <div class="col-md-4 mb-3">
                 <label for="employee_pension_no">Pension No</label>
                 <input type="text" class="form-control" id="employee_pension_no" name="employee_pension_no"
                     value="{{ old('employee_pension_no', $employee->employee_pension_no ?? '') }}">
             </div>
         </div>
+
+        <!-- Other Deductions Section -->
+        <div class="form-row mb-3">
+            <div class="col-12">
+                <label class="font-weight-bold">Other Deductions (NHIF, WCF, SDL, etc.)</label>
+                <small class="form-text text-muted mb-2">Select additional deductions for this employee</small>
+            </div>
+        </div>
+
+        <!-- Assigned Deductions Table -->
+        @if(isset($employee) && $employee->employeeDeductions->where('directDeduction.deduction_type', 'normal')->count() > 0)
+        <div class="form-row mb-3">
+            <div class="col-12">
+                <div class="table-responsive">
+                    <table class="table table-sm table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Deduction Name</th>
+                                <th>Employee %</th>
+                                <th>Employer %</th>
+                                <th>Member Number</th>
+                                <th>Status</th>
+                                <th width="80">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assignedDeductionsTable">
+                            @foreach($employee->employeeDeductions->where('directDeduction.deduction_type', 'normal') as $empDeduction)
+                            <tr data-deduction-id="{{ $empDeduction->id }}">
+                                <td>{{ $empDeduction->directDeduction->name }}</td>
+                                <td>{{ $empDeduction->directDeduction->employee_percent }}%</td>
+                                <td>{{ $empDeduction->directDeduction->employer_percent }}%</td>
+                                <td>{{ $empDeduction->member_number ?? 'N/A' }}</td>
+                                <td>
+                                    <span class="badge badge-{{ $empDeduction->status == 'active' ? 'success' : 'secondary' }}">
+                                        {{ ucfirst($empDeduction->status) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger remove-deduction-btn"
+                                            data-deduction-row-id="{{ $empDeduction->id }}">
+                                        <i class="fe fe-trash-2 fe-12"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Add New Deductions -->
+        <div class="form-row mb-3">
+            <div class="col-12">
+                <button type="button" class="btn btn-sm btn-outline-primary" id="addDeductionBtn">
+                    <i class="fe fe-plus fe-12 mr-1"></i> Add Deduction
+                </button>
+            </div>
+        </div>
+
+        <!-- Dynamic Deduction Rows Container -->
+        <div id="deductionsContainer"></div>
+
+        <!-- Hidden deduction row template -->
+        <template id="deductionRowTemplate">
+            <div class="form-row mb-2 deduction-row border-bottom pb-2">
+                <div class="col-md-5">
+                    <label>Deduction</label>
+                    <select class="form-control form-control-sm deduction-select" name="deduction_ids[]" required>
+                        <option value="">--Select Deduction--</option>
+                        @if(isset($deductions))
+                            @foreach($deductions as $deduction)
+                                <option value="{{ $deduction->id }}"
+                                        data-require-member-no="{{ $deduction->require_member_no ? '1' : '0' }}">
+                                    {{ $deduction->name }} (Emp: {{ $deduction->employee_percent }}%, Empr: {{ $deduction->employer_percent }}%)
+                                </option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <label>Member Number</label>
+                    <input type="text" class="form-control form-control-sm member-number-input"
+                           name="deduction_member_numbers[]" placeholder="Enter member number if required">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-sm btn-danger remove-row-btn">
+                        <i class="fe fe-x fe-12"></i> Remove
+                    </button>
+                </div>
+            </div>
+        </template>
+
+
+
+    </div>
+
     </div>
 
 
@@ -182,45 +266,63 @@
                 pensionFields.style.display = 'none';
                 // Clear pension fields when hidden
                 pensionSelect.value = '';
-                document.getElementById('employee_pension_amount').value = '';
-                document.getElementById('employer_pension_amount').value = '';
                 document.getElementById('employee_pension_no').value = '';
             }
-        }
-
-        // Function to calculate pension amounts
-        function calculatePensionAmounts() {
-            const selected = pensionSelect.options[pensionSelect.selectedIndex];
-            const employeePercent = parseFloat(selected.getAttribute('data-employee')) || 0;
-            const employerPercent = parseFloat(selected.getAttribute('data-employer')) || 0;
-
-            // Get basic salary for calculation
-            const basicSalary = parseFloat(document.getElementById('basic_salary').value) || 0;
-
-            // Calculate amounts
-            const employeeAmount = (basicSalary * employeePercent) / 100;
-            const employerAmount = (basicSalary * employerPercent) / 100;
-
-            document.getElementById('employee_pension_amount').value = employeeAmount.toFixed(2);
-            document.getElementById('employer_pension_amount').value = employerAmount.toFixed(2);
         }
 
         // Toggle pension fields on checkbox change
         pensionDetailsCheckbox.addEventListener('change', togglePensionFields);
 
-        // Update on pension selection change
-        pensionSelect.addEventListener('change', calculatePensionAmounts);
-
-        // Also calculate when basic salary changes
-        const basicSalaryInput = document.getElementById('basic_salary');
-        if (basicSalaryInput) {
-            basicSalaryInput.addEventListener('input', calculatePensionAmounts);
-        }
-
         // Initialize on page load
         togglePensionFields();
-        if (pensionSelect.value) {
-            calculatePensionAmounts();
-        }
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addDeductionBtn = document.getElementById('addDeductionBtn');
+        const deductionsContainer = document.getElementById('deductionsContainer');
+        const deductionRowTemplate = document.getElementById('deductionRowTemplate');
+
+        // Add new deduction row
+        addDeductionBtn.addEventListener('click', function() {
+            const newRow = deductionRowTemplate.content.cloneNode(true);
+            const rowElement = newRow.querySelector('.deduction-row');
+
+            // Add event listener to remove button
+            const removeBtn = newRow.querySelector('.remove-row-btn');
+            removeBtn.addEventListener('click', function() {
+                rowElement.remove();
+            });
+
+            // Add event listener to deduction select to handle member number requirement
+            const deductionSelect = newRow.querySelector('.deduction-select');
+            const memberNumberInput = newRow.querySelector('.member-number-input');
+
+            deductionSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const requireMemberNo = selectedOption.getAttribute('data-require-member-no');
+
+                if (requireMemberNo === '1') {
+                    memberNumberInput.setAttribute('required', 'required');
+                    memberNumberInput.placeholder = 'Member number required';
+                } else {
+                    memberNumberInput.removeAttribute('required');
+                    memberNumberInput.placeholder = 'Enter member number if required';
+                }
+            });
+
+            deductionsContainer.appendChild(newRow);
+        });
+
+        // Handle removing assigned deductions from table (mark for deletion)
+        document.querySelectorAll('.remove-deduction-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('tr');
+                if (confirm('Are you sure you want to remove this deduction?')) {
+                    row.remove();
+                }
+            });
+        });
     });
 </script>

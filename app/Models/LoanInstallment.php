@@ -18,6 +18,12 @@ class LoanInstallment extends Model
         'status',
     ];
 
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'due_date' => 'date',
+        'paid_date' => 'date',
+    ];
+
     /**
      * An installment belongs to a loan.
      */

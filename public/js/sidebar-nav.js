@@ -140,20 +140,26 @@
                 if ($vertical.hasClass('hover')) {
                     $vertical.removeClass('hover');
                 }
-            }
 
-            // Save state to localStorage
-            if ($vertical.hasClass('collapsed')) {
-                localStorage.setItem('sidebar_state', 'collapsed');
-            } else {
-                localStorage.setItem('sidebar_state', 'expanded');
+                // Save state to localStorage only for desktop
+                if ($vertical.hasClass('collapsed')) {
+                    localStorage.setItem('sidebar_state', 'collapsed');
+                } else {
+                    localStorage.setItem('sidebar_state', 'expanded');
+                }
             }
         });
 
-        // Restore sidebar state on load
+        // Restore sidebar state on load - ONLY for desktop
         var savedState = localStorage.getItem('sidebar_state');
         if (savedState === 'collapsed' && !$('.vertical').hasClass('narrow')) {
             $('.vertical').addClass('collapsed');
+        }
+
+        // Ensure sidebar is always closed on mobile on page load
+        if ($('.vertical').hasClass('narrow')) {
+            $('.vertical').removeClass('open');
+            $('#leftSidebar').removeClass('show');
         }
     }
 
@@ -172,6 +178,18 @@
                     $vertical.removeClass('open');
                     $sidebar.removeClass('show');
                 }
+            }
+        });
+
+        // Close sidebar when clicking any navigation link on mobile
+        $('#leftSidebar .nav-link').on('click', function() {
+            var $vertical = $('.vertical');
+            var $sidebar = $('#leftSidebar');
+
+            // Only close on mobile
+            if ($vertical.hasClass('narrow') && $vertical.hasClass('open')) {
+                $vertical.removeClass('open');
+                $sidebar.removeClass('show');
             }
         });
     }

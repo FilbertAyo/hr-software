@@ -41,6 +41,7 @@
                                             <th>Employee %</th>
                                             <th>Type</th>
                                             <th>Percentage Of</th>
+                                            <th>Require Member No</th>
                                             <th>Status</th>
                                             <th class="text-right">Action</th>
                                         </tr>
@@ -54,7 +55,13 @@
                                                     <td>{{ $deduction->employee_percent }}</td>
                                                     <td>{{ ucfirst($deduction->deduction_type) }}</td>
                                                     <td>{{ ucfirst($deduction->percentage_of) }} Salary</td>
-
+                                                    <td>
+                                                        @if($deduction->require_member_no)
+                                                            <span class="badge badge-success">Yes</span>
+                                                        @else
+                                                            <span class="badge badge-secondary">No</span>
+                                                        @endif
+                                                    </td>
                                                     <td>{{ ucfirst($deduction->status) }}</td>
                                                     <td class="text-right">
                                                         <div
@@ -67,6 +74,7 @@
                                                                 data-employee-percent="{{ $deduction->employee_percent }}"
                                                                 data-deduction-type="{{ $deduction->deduction_type }}"
                                                                 data-percentage-of="{{ $deduction->percentage_of }}"
+                                                                data-require-member-no="{{ $deduction->require_member_no ? '1' : '0' }}"
                                                                 data-status="{{ $deduction->status }}">
                                                                 <span class="fe fe-edit fe-16"></span>
                                                             </a>
@@ -153,9 +161,9 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                     <div class="form-check">
-                                        <input type="checkbox" name="must_include" id="must_include" class="form-check-input" value="1"
-                                            {{ old('must_include') ? 'checked' : '' }}>
-                                        <label class="form-check-label text-danger" for="must_include">Must Include</label>
+                                        <input type="checkbox" name="require_member_no" id="require_member_no" class="form-check-input" value="1"
+                                            {{ old('require_member_no') ? 'checked' : '' }}>
+                                        <label class="form-check-label text-info" for="require_member_no">Require Member Number</label>
                                     </div>
                                     </div>
 
@@ -231,9 +239,8 @@
 
                                     <div class="col-md-6 mb-3">
                                         <div class="form-check">
-                                            <input type="checkbox" name="must_include" id="must_include" class="form-check-input" value="1"
-                                                {{ old('must_include') ? 'checked' : '' }}>
-                                            <label class="form-check-label text-danger" for="must_include">Must Include</label>
+                                            <input type="checkbox" name="require_member_no" id="editRequireMemberNo" class="form-check-input" value="1">
+                                            <label class="form-check-label text-info" for="editRequireMemberNo">Require Member Number</label>
                                         </div>
                                         </div>
 
@@ -261,6 +268,7 @@
                         const status = this.getAttribute('data-status');
                         const deductionType = this.getAttribute('data-deduction-type');
                         const percentageOf = this.getAttribute('data-percentage-of');
+                        const requireMemberNo = this.getAttribute('data-require-member-no');
 
                         document.getElementById('editdeductionForm').setAttribute('action',
                             `/direct-deduction/${deductionId}`);
@@ -270,6 +278,7 @@
                         document.getElementById('editStatus').value = status;
                         document.getElementById('editDeductionType').value = deductionType;
                         document.getElementById('editPercentageOf').value = percentageOf;
+                        document.getElementById('editRequireMemberNo').checked = requireMemberNo == '1';
 
                         $('#editdeductionModal').modal('show');
                     });

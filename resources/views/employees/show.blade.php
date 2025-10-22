@@ -79,11 +79,11 @@
                                                 TZS {{ number_format($employee->basic_salary, 2) }}
                                             </h5>
                                         </div>
-                                        @if($employee->housing_allowance || $employee->transport_allowance || $employee->medical_allowance)
+                                        @if($employee->getTotalAllowancesFromEarngroups() > 0)
                                             <div class="col-12">
-                                                <small class="text-muted">Total Allowances</small>
+                                                <small class="text-muted">Total Allowances (from Earning Groups)</small>
                                                 <h6 class="mb-0">
-                                                    TZS {{ number_format(($employee->housing_allowance ?? 0) + ($employee->transport_allowance ?? 0) + ($employee->medical_allowance ?? 0), 2) }}
+                                                    TZS {{ number_format($employee->getTotalAllowancesFromEarngroups(), 2) }}
                                                 </h6>
                                             </div>
                                         @endif
@@ -280,22 +280,20 @@
                                                                 TZS {{ number_format($employee->basic_salary, 2) }}
                                                             </td>
                                                         </tr>
-                                                        @if($employee->housing_allowance)
+                                                        @if($employee->getTotalAllowancesFromEarngroups() > 0)
                                                             <tr>
-                                                                <td class="text-muted">Housing Allowance:</td>
-                                                                <td>TZS {{ number_format($employee->housing_allowance, 2) }}</td>
+                                                                <td class="text-muted">Total Allowances:</td>
+                                                                <td>TZS {{ number_format($employee->getTotalAllowancesFromEarngroups(), 2) }}</td>
                                                             </tr>
                                                         @endif
-                                                        @if($employee->transport_allowance)
+                                                        @if($employee->earngroups->count() > 0)
                                                             <tr>
-                                                                <td class="text-muted">Transport Allowance:</td>
-                                                                <td>TZS {{ number_format($employee->transport_allowance, 2) }}</td>
-                                                            </tr>
-                                                        @endif
-                                                        @if($employee->medical_allowance)
-                                                            <tr>
-                                                                <td class="text-muted">Medical Allowance:</td>
-                                                                <td>TZS {{ number_format($employee->medical_allowance, 2) }}</td>
+                                                                <td class="text-muted">Earning Groups:</td>
+                                                                <td>
+                                                                    @foreach($employee->earngroups as $earngroup)
+                                                                        <span class="badge badge-info">{{ $earngroup->earngroup_name }}</span>
+                                                                    @endforeach
+                                                                </td>
                                                             </tr>
                                                         @endif
                                                         <tr>
@@ -339,16 +337,14 @@
                                                                 <td>{{ $employee->employee_pension_no }}</td>
                                                             </tr>
                                                         @endif
-                                                        @if($employee->employee_pension_amount)
+                                                        @if($employee->pension)
                                                             <tr>
-                                                                <td class="text-muted">Employee Amount:</td>
-                                                                <td>TZS {{ number_format($employee->employee_pension_amount, 2) }}</td>
+                                                                <td class="text-muted">Employee Contribution:</td>
+                                                                <td>{{ $employee->pension->employee_percent }}% of {{ ucfirst($employee->pension->percentage_of) }}</td>
                                                             </tr>
-                                                        @endif
-                                                        @if($employee->employer_pension_amount)
                                                             <tr>
-                                                                <td class="text-muted">Employer Amount:</td>
-                                                                <td>TZS {{ number_format($employee->employer_pension_amount, 2) }}</td>
+                                                                <td class="text-muted">Employer Contribution:</td>
+                                                                <td>{{ $employee->pension->employer_percent }}% of {{ ucfirst($employee->pension->percentage_of) }}</td>
                                                             </tr>
                                                         @endif
                                                     </table>

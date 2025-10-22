@@ -74,7 +74,7 @@ return new class extends Migration
             $table->enum('deduction_type', ['normal','pension'])->nullable();
             $table->enum('percentage_of', ['basic','gross'])->nullable();
             $table->enum('status', ['active','inactive'])->default('active');
-            $table->boolean('must_include')->default(false);
+            $table->boolean('require_member_no')->default(false);
             $table->timestamps();
         });
 

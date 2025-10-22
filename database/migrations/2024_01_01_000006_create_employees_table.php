@@ -44,7 +44,7 @@ return new class extends Migration
             $table->decimal('advance_percentage', 5, 2)->default(0);
             $table->decimal('advance_salary', 15, 2)->nullable();
             $table->boolean('paye_exempt')->default(false);
-          
+
             // Bank Details (consolidated from employee_bank_details)
             $table->boolean('is_primary_bank')->default(true);
             $table->unsignedBigInteger('bank_id')->nullable();
@@ -53,8 +53,6 @@ return new class extends Migration
             // Pension Details (consolidated from employee_pension_details)
             $table->unsignedBigInteger('pension_id')->nullable();
             $table->boolean('pension_details')->default(false);
-            $table->decimal('employee_pension_amount', 15, 2)->default(0);
-            $table->decimal('employer_pension_amount', 15, 2)->default(0);
             $table->string('employee_pension_no')->nullable();
 
             // NHIF Details (consolidated from employee_nhif_details)
