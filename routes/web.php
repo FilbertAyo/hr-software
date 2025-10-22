@@ -73,6 +73,16 @@ Route::middleware('auth')->group(function () {
     // Loan specific routes (must come before resource route)
     Route::get('loan/employee/{employee}/remaining', [LoanController::class, 'getEmployeeRemainingLoan'])->name('loan.employee.remaining');
     Route::post('loan/{loan}/installments', [LoanController::class, 'storeInstallments'])->name('loan.installments.store');
+    Route::get('loan/{loan}/installments/custom', [LoanController::class, 'showCustomInstallments'])->name('loan.installments.custom');
+    Route::post('loan/{loan}/installments/custom', [LoanController::class, 'storeCustomInstallments'])->name('loan.installments.custom.store');
+    Route::get('loan/{loan}/installments/edit', [LoanController::class, 'editInstallments'])->name('loan.installments.edit');
+    Route::post('loan/{loan}/installments/update', [LoanController::class, 'updateInstallments'])->name('loan.installments.update');
+    Route::get('loan/manage/all', [LoanController::class, 'manage'])->name('loan.manage');
+    Route::get('loan/{loan}/restructure', [LoanController::class, 'showRestructure'])->name('loan.restructure');
+    Route::post('loan/{loan}/restructure', [LoanController::class, 'processRestructure'])->name('loan.restructure.process');
+    Route::get('loan/{loan}/history', [LoanController::class, 'showHistory'])->name('loan.history');
+    Route::post('loan/{loan}/approve', [LoanController::class, 'approve'])->name('loan.approve');
+    Route::post('loan/{loan}/reject', [LoanController::class, 'reject'])->name('loan.reject');
     Route::resource('loan', loanController::class);
 
     Route::resource('advance', advanceController::class);

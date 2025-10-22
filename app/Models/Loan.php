@@ -11,17 +11,26 @@ class Loan extends Model
 
     protected $fillable = [
         'company_id',
+        'payroll_period_id',
         'employee_id',
         'loan_type_id',
         'loan_amount',
         'remaining_amount',
         'interest_rate',
         'installment_count',
+        'original_installment_count',
         'monthly_payment',
         'start_date',
         'end_date',
         'notes',
         'status',
+        'is_restructured',
+        'restructure_count',
+        'approved_at',
+        'approved_by',
+        'rejected_at',
+        'rejected_by',
+        'rejection_reason',
     ];
 
     protected $casts = [
@@ -31,6 +40,9 @@ class Loan extends Model
         'monthly_payment' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
+        'is_restructured' => 'boolean',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     /**
@@ -63,5 +75,37 @@ class Loan extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * A loan belongs to a payroll period.
+     */
+    public function payrollPeriod()
+    {
+        return $this->belongsTo(PayrollPeriod::class);
+    }
+
+    /**
+     * A loan has many restructures.
+     */
+    public function restructures()
+    {
+        return $this->hasMany(LoanRestructure::class);
+    }
+
+    /**
+     * A loan was approved by a user.
+     */
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * A loan was rejected by a user.
+     */
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 }

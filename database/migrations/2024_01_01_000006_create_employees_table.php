@@ -44,10 +44,7 @@ return new class extends Migration
             $table->decimal('advance_percentage', 5, 2)->default(0);
             $table->decimal('advance_salary', 15, 2)->nullable();
             $table->boolean('paye_exempt')->default(false);
-            $table->decimal('housing_allowance', 15, 2)->default(0);
-            $table->decimal('transport_allowance', 15, 2)->default(0);
-            $table->decimal('medical_allowance', 15, 2)->default(0);
-
+          
             // Bank Details (consolidated from employee_bank_details)
             $table->boolean('is_primary_bank')->default(true);
             $table->unsignedBigInteger('bank_id')->nullable();

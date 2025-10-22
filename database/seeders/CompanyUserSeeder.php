@@ -16,34 +16,29 @@ class CompanyUserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create test companies
-        $company1 = Company::create([
-            'company_name' => 'Test Company 1',
-            'company_short_name' => 'TC1',
-            'contact_person' => 'John Doe',
-            'email' => 'contact@tc1.com',
-            'start_month' => 'January',
-            'start_year' => 2024,
-        ]);
+        // Get existing companies from CompanySeeder
+        $company1 = Company::find(1);
+        $company2 = Company::find(2);
 
-        $company2 = Company::create([
-            'company_name' => 'Test Company 2',
-            'company_short_name' => 'TC2',
-            'contact_person' => 'Jane Smith',
-            'email' => 'contact@tc2.com',
-            'start_month' => 'January',
-            'start_year' => 2024,
-        ]);
+        if (!$company1 || !$company2) {
+            $this->command->warn('Companies not found. Make sure CompanySeeder runs before this seeder.');
+            return;
+        }
 
         // Create test user
         $user = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Test User',
+                'name' => 'Admin User',
                 'password' => bcrypt('123'),
                 'status' => 'active',
             ]
         );
+
+        // Assign super admin role if it exists
+        if ($user->hasRole('Super Admin') === false) {
+            $user->assignRole('Super Admin');
+        }
 
         // Attach user to both companies
         $user->companies()->syncWithoutDetaching([$company1->id, $company2->id]);
@@ -54,7 +49,7 @@ class CompanyUserSeeder extends Seeder
 
         // Company 1 payroll periods
         PayrollPeriod::firstOrCreate(
-            ['period_name' => Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') . ' - TC1'],
+            ['period_name' => Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') . ' - MARSCOMM'],
             [
                 'start_date' => Carbon::createFromDate($currentYear, $currentMonth, 1)->startOfMonth(),
                 'end_date' => Carbon::createFromDate($currentYear, $currentMonth, 1)->endOfMonth(),
@@ -65,7 +60,7 @@ class CompanyUserSeeder extends Seeder
 
         // Company 2 payroll periods
         PayrollPeriod::firstOrCreate(
-            ['period_name' => Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') . ' - TC2'],
+            ['period_name' => Carbon::createFromDate($currentYear, $currentMonth, 1)->format('F Y') . ' - HCG'],
             [
                 'start_date' => Carbon::createFromDate($currentYear, $currentMonth, 1)->startOfMonth(),
                 'end_date' => Carbon::createFromDate($currentYear, $currentMonth, 1)->endOfMonth(),

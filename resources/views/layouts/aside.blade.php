@@ -290,6 +290,11 @@
                             <span class="ml-1 item-text">Loan Requests</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('loan.manage') }}">
+                            <span class="ml-1 item-text">Manage Loans</span>
+                        </a>
+                    </li>
 
                 </ul>
             </li>

@@ -8,13 +8,13 @@
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">loans</a>
+                                    aria-controls="home" aria-selected="true">Loans</a>
                             </li>
 
                         </ul>
                     </div>
                     <div class="col-auto">
-
+                       
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
@@ -59,6 +59,7 @@
                                             <th>Loan Type</th>
                                             <th>Loan Amount</th>
                                             <th>Remaining</th>
+                                            <th>Payroll Period</th>
                                             <th>Status</th>
                                             <th>Action</th>
                                         </tr>
@@ -72,12 +73,24 @@
                                                 <td>{{ number_format($loan->loan_amount, 2) }}</td>
                                                 <td>{{ number_format($loan->remaining_amount, 2) }}</td>
                                                 <td>
+                                                    @if($loan->payrollPeriod)
+                                                        {{ \Carbon\Carbon::parse($loan->payrollPeriod->start_date)->format('M Y') }}
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
+                                                <td>
                                                     @if($loan->status == 'pending')
                                                         <span class="badge badge-warning">Pending</span>
                                                     @elseif($loan->status == 'active')
                                                         <span class="badge badge-success">Active</span>
+                                                        @if($loan->is_restructured)
+                                                            <span class="badge badge-info">Restructured ({{ $loan->restructure_count }}x)</span>
+                                                        @endif
                                                     @elseif($loan->status == 'completed')
                                                         <span class="badge badge-info">Completed</span>
+                                                    @elseif($loan->status == 'rejected')
+                                                        <span class="badge badge-danger">Rejected</span>
                                                     @else
                                                         <span class="badge badge-secondary">{{ ucfirst($loan->status) }}</span>
                                                     @endif
@@ -86,6 +99,16 @@
                                                     <a href="{{ route('loan.show', $loan->id) }}" class="btn btn-sm btn-info" title="View Details">
                                                         <i class="fe fe-eye"></i>
                                                     </a>
+                                                    @if($loan->status == 'active')
+                                                        <a href="{{ route('loan.restructure', $loan->id) }}" class="btn btn-sm btn-warning" title="Restructure Loan">
+                                                            <i class="fe fe-edit"></i>
+                                                        </a>
+                                                        @if($loan->is_restructured)
+                                                            <a href="{{ route('loan.history', $loan->id) }}" class="btn btn-sm btn-secondary" title="View History">
+                                                                <i class="fe fe-clock"></i>
+                                                            </a>
+                                                        @endif
+                                                    @endif
                                                     @if($loan->status == 'pending')
                                                         <form action="{{ route('loan.destroy', $loan->id) }}" method="POST" style="display:inline" title="Delete Loan">
                                                             @csrf @method('DELETE')
@@ -134,6 +157,24 @@
                                             </option>
                                         @endforeach
                                     </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="payroll_period_id">Payroll Period (Optional)</label>
+                                    <select name="payroll_period_id" id="payroll_period_id" class="form-control">
+                                        <option value="">Not specified</option>
+                                        @if($currentPayrollPeriod)
+                                            <option value="{{ $currentPayrollPeriod->id }}">
+                                                {{ \Carbon\Carbon::parse($currentPayrollPeriod->start_date)->format('F Y') }} (Current)
+                                            </option>
+                                        @endif
+                                        @foreach($upcomingPayrollPeriods as $period)
+                                            <option value="{{ $period->id }}">
+                                                {{ \Carbon\Carbon::parse($period->start_date)->format('F Y') }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">Link loan to specific payroll period for deduction start</small>
                                 </div>
 
                                 <div class="form-group">
