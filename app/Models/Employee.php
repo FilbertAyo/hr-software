@@ -261,6 +261,22 @@ class Employee extends Model
     }
 
     /**
+     * Get all other deductions for this employee
+     */
+    public function otherDeductions()
+    {
+        return $this->hasMany(EmployeeOtherDeduction::class);
+    }
+
+    /**
+     * Get approved other deductions only
+     */
+    public function approvedOtherDeductions()
+    {
+        return $this->otherDeductions()->where('status', 'approved');
+    }
+
+    /**
      * Get active other benefit details only
      */
     public function activeOtherBenefitDetails()

@@ -1,59 +1,4 @@
 
-    <div class="card-header">
-        <strong>NHIF Details</strong>
-    </div>
-    <div class="card-body">
-        <div class="form-row">
-            <div class="col-md-12 mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="nhif_enabled" name="nhif_enabled" value="1"
-                        {{ old('nhif_enabled', $employee->nhifDetails->enabled ?? '') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="nhif_enabled">
-                        <strong>NHIF</strong>
-                    </label>
-                </div>
-            </div>
-        </div>
-
-        <div id="nhif_details" class="form-row" style="display: none;">
-            <div class="col-md-3 mb-3">
-                <label for="nhif_start_date">NHIF Start Date</label>
-                <input type="date" class="form-control" id="nhif_start_date" name="nhif_start_date"
-                    value="{{ old('nhif_start_date', $employee->nhifDetails->start_date ?? '') }}">
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <label for="nhif_employee_no">NHIF Employee No</label>
-                <input type="text" class="form-control" id="nhif_employee_no" name="nhif_employee_no"
-                    value="{{ old('nhif_employee_no', $employee->nhifDetails->employee_no ?? '') }}">
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <label for="nhif_employer_per">NHIF Employer %</label>
-                <input type="number" class="form-control" id="nhif_employer_per" name="nhif_employer_per"
-                    value="{{ old('nhif_employer_per', $employee->nhifDetails->employer_percent ?? '3.00') }}"
-                    min="0" max="100" step="0.01">
-            </div>
-
-            <div class="col-md-3 mb-3">
-                <label for="nhif_employee_per">NHIF Employee %</label>
-                <input type="number" class="form-control" id="nhif_employee_per" name="nhif_employee_per"
-                    value="{{ old('nhif_employee_per', $employee->nhifDetails->employee_percent ?? '3.00') }}"
-                    min="0" max="100" step="0.01">
-            </div>
-
-            <div class="col-md-12 mb-3">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="nhif_fixed_amount" name="nhif_fixed_amount"
-                        value="1"
-                        {{ old('nhif_fixed_amount', $employee->nhifDetails->fixed_amount ?? '') ? 'checked' : '' }}>
-                    <label class="form-check-label" for="nhif_fixed_amount">
-                        NHIF Fixed Amount
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div class="card-header">
         <strong>Absent & Late Details</strong>
@@ -126,7 +71,7 @@
                     value="{{ old('heslb_name_used', $employee->deductionDetails->heslb_name_used ?? '') }}">
             </div>
 
-           
+
         </div>
     </div>
 

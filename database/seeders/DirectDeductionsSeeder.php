@@ -68,6 +68,28 @@ class DirectDeductionsSeeder extends Seeder
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
+            [
+                'name' => 'NHIF (National Health Insurance Fund)',
+                'employer_percent' => null,
+                'employee_percent' => '3.00',
+                'deduction_type' => 'normal',
+                'percentage_of' => 'gross',
+                'status' => 'active',
+                'require_member_no' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'GEPF (Government Employees Pension Fund)',
+                'employer_percent' => '7.50',
+                'employee_percent' => '7.50',
+                'deduction_type' => 'normal',
+                'percentage_of' => 'basic',
+                'status' => 'active',
+                'require_member_no' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
         ]);
     }
 }

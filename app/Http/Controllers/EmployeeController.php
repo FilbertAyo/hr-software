@@ -144,6 +144,12 @@ class EmployeeController extends Controller
                 // Earning Groups
                 'earngroup_ids' => 'nullable|array',
                 'earngroup_ids.*' => 'integer|exists:earngroups,id',
+
+                // Employee Deductions
+                'deduction_ids' => 'nullable|array',
+                'deduction_ids.*' => 'integer|exists:direct_deductions,id',
+                'deduction_member_numbers' => 'nullable|array',
+                'deduction_member_numbers.*' => 'nullable|string|max:255',
             ], [
                 'bank_id.required_if' => 'Please select a bank when payment method is Bank or Both.',
                 'account_no.required_if' => 'Please enter an account number when payment method is Bank or Both.',
@@ -245,6 +251,20 @@ class EmployeeController extends Controller
                         'earngroup_id' => $earngroupId,
                         'status' => 'active',
                     ]);
+                }
+            }
+
+            // Assign deductions to employee
+            if (!empty($validatedData['deduction_ids']) && is_array($validatedData['deduction_ids'])) {
+                foreach ($validatedData['deduction_ids'] as $index => $deductionId) {
+                    if ($deductionId) {
+                        \App\Models\EmployeeDeduction::create([
+                            'employee_id' => $employee->id,
+                            'direct_deduction_id' => $deductionId,
+                            'member_number' => $validatedData['deduction_member_numbers'][$index] ?? null,
+                            'status' => 'active',
+                        ]);
+                    }
                 }
             }
 

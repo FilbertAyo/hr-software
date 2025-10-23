@@ -128,7 +128,7 @@
         <!-- Other Deductions Section -->
         <div class="form-row mb-3">
             <div class="col-12">
-                <label class="font-weight-bold">Other Deductions (NHIF, WCF, SDL, etc.)</label>
+                <label class="font-weight-bold">Direct Deductions (NHIF, WCF, etc.)</label>
                 <small class="form-text text-muted mb-2">Select additional deductions for this employee</small>
             </div>
         </div>
@@ -193,7 +193,7 @@
             <div class="form-row mb-2 deduction-row border-bottom pb-2">
                 <div class="col-md-5">
                     <label>Deduction</label>
-                    <select class="form-control form-control-sm deduction-select" name="deduction_ids[]" required>
+                    <select class="form-control form-control deduction-select" name="deduction_ids[]" required>
                         <option value="">--Select Deduction--</option>
                         @if(isset($deductions))
                             @foreach($deductions as $deduction)
@@ -207,7 +207,7 @@
                 </div>
                 <div class="col-md-5">
                     <label>Member Number</label>
-                    <input type="text" class="form-control form-control-sm member-number-input"
+                    <input type="text" class="form-control form-control member-number-input"
                            name="deduction_member_numbers[]" placeholder="Enter member number if required">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">

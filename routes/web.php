@@ -95,6 +95,19 @@ Route::middleware('auth')->group(function () {
     Route::resource('company', companyController::class);
     Route::post('/company/switch', [companyController::class, 'switch'])->name('company.switch');
     Route::resource('direct-deduction', directdeductionController::class);
+
+    // Other Deductions Routes
+    Route::get('/other-deductions/types', [App\Http\Controllers\OtherDeductionController::class, 'types'])->name('other-deductions.types');
+    Route::get('/other-deductions/employee-deductions', [App\Http\Controllers\OtherDeductionController::class, 'employeeDeductions'])->name('other-deductions.employee-deductions');
+    Route::post('/other-deductions/type', [App\Http\Controllers\OtherDeductionController::class, 'storeType'])->name('other-deductions.type.store');
+    Route::put('/other-deductions/type/{id}', [App\Http\Controllers\OtherDeductionController::class, 'updateType'])->name('other-deductions.type.update');
+    Route::delete('/other-deductions/type/{id}', [App\Http\Controllers\OtherDeductionController::class, 'destroyType'])->name('other-deductions.type.destroy');
+    Route::post('/other-deductions/deduction', [App\Http\Controllers\OtherDeductionController::class, 'storeDeduction'])->name('other-deductions.deduction.store');
+    Route::put('/other-deductions/deduction/{id}', [App\Http\Controllers\OtherDeductionController::class, 'updateDeduction'])->name('other-deductions.deduction.update');
+    Route::delete('/other-deductions/deduction/{id}', [App\Http\Controllers\OtherDeductionController::class, 'destroyDeduction'])->name('other-deductions.deduction.destroy');
+    Route::post('/other-deductions/deduction/{id}/approve', [App\Http\Controllers\OtherDeductionController::class, 'approveDeduction'])->name('other-deductions.deduction.approve');
+    Route::post('/other-deductions/deduction/{id}/reject', [App\Http\Controllers\OtherDeductionController::class, 'rejectDeduction'])->name('other-deductions.deduction.reject');
+
     Route::resource('holiday', holidayController::class);
     Route::resource('religion', ReligionController::class);
     Route::resource('payment', paymentController::class);

@@ -257,18 +257,17 @@
                             <span class="ml-1 item-text">Direct Deduction</span>
                         </a>
                     </li>
-                    {{-- <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Other
-                                Deductions</span></a>
-                    </li>
                     <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Credit
-                                Agency</span></a>
+                        <a class="nav-link pl-3" href="{{ route('other-deductions.types') }}">
+                            <span class="ml-1 item-text">Deduction Types</span>
+                        </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link pl-3" href="./form_validation.html"><span class="ml-1 item-text">Emp
-                                Deductions</span></a>
-                    </li> --}}
+                        <a class="nav-link pl-3" href="{{ route('other-deductions.employee-deductions') }}">
+                            <span class="ml-1 item-text">Employee Deductions</span>
+                        </a>
+                    </li>
 
 
                 </ul>

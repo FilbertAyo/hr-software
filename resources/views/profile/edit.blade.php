@@ -1,27 +1,46 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-profile-information-form')
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <!-- Header Section -->
+                <div class="row align-items-center mb-4 border-bottom">
+                    <div class="col">
+                        <h2 class="mb-1">Profile Settings</h2>
+                        <p class="text-muted mb-0">Manage your account settings and preferences</p>
+                    </div>
                 </div>
-            </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-password-form')
+                <!-- Profile Information Card -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card shadow-none border">
+                            <div class="card-body">
+                                @include('profile.partials.update-profile-information-form')
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
-                <div class="max-w-xl">
-                    @include('profile.partials.delete-user-form')
+                <!-- Update Password Card -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card shadow-none border">
+                            <div class="card-body">
+                                @include('profile.partials.update-password-form')
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Account Card -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card shadow-none border">
+                            <div class="card-body">
+                                @include('profile.partials.delete-user-form')
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
