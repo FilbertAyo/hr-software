@@ -1,7 +1,5 @@
 <x-app-layout>
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-12">
+           
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">
@@ -80,7 +78,7 @@
 
 
                 </div> <!-- .row -->
-            </div> <!-- .container-fluid -->
+
 
 
             <div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel" aria-hidden="true">

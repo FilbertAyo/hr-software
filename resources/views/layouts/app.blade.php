@@ -35,7 +35,7 @@
 <body class="vertical light">
     <div class="wrapper">
 
-        @include('layouts.navigation')
+
         @include('elements.toast')
         @include('layouts.aside')
 
@@ -44,6 +44,9 @@
                 <div class="container">
                     <div class="row justify-content-center">
                         <div class="col-12">
+
+                            @include('layouts.navigation')
+
                             {{ $slot }}
                         </div>
                     </div>

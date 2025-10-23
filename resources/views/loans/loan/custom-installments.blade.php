@@ -1,7 +1,5 @@
 <x-app-layout>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12">
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="mb-0"><i class="fe fe-edit-3"></i> Custom Installment Setup</h4>
                     <a href="{{ route('loan.show', $loan->id) }}" class="btn btn-sm btn-secondary">

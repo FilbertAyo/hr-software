@@ -1,7 +1,5 @@
 <x-app-layout>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12">
+
                 <!-- Header Section -->
                 <div class="row align-items-center mb-4 border-bottom">
                     <div class="col">

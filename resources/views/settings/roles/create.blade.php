@@ -1,8 +1,6 @@
 <x-app-layout>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12">
-                
+
+
                 <div class="card shadow-none border">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">

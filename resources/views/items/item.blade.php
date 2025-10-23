@@ -222,9 +222,7 @@
 
         <main role="main" class="main-content">
             @include('elements.spinner')
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-12">
+           
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">
@@ -360,7 +358,7 @@
                         </div> <!-- end section -->
                     </div> <!-- .col-12 -->
                 </div> <!-- .row -->
-            </div> <!-- .container-fluid -->
+
 
 
             {{-- item registration --}}

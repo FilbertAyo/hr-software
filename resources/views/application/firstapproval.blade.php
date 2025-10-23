@@ -214,9 +214,7 @@
 
         <main role="main" class="main-content">
 
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-12">
+           
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">
@@ -308,7 +306,7 @@
 
 
                 </div> <!-- .row -->
-            </div> <!-- .container-fluid -->
+
 
 
 

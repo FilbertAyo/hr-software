@@ -1,7 +1,5 @@
 <x-app-layout>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-12">
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h4 class="mb-0"><i class="fe fe-edit"></i> Restructure Loan</h4>
                     <div>

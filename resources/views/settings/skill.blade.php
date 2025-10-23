@@ -1,7 +1,5 @@
 <x-app-layout>
-            <div class="container">
-                <div class="row justify-content-center">
-                    <div class="col-12">
+
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">
@@ -53,7 +51,7 @@
                                                                  <span class="fe fe-edit fe-16"></span>
                                                              </a>
 
-                                                                <form action="{{ route('skill.destroy', $skill->id) }}" method="POST"
+                                                                    <form action="{{ route('skill.destroy', $skill->id) }}" method="POST"
                                                                       onsubmit="return confirm('Are you sure you want to delete this item?');">
                                                                     @csrf
                                                                     @method('DELETE')
@@ -75,11 +73,8 @@
 
                                 </div>
                             </div>
-                        </div> <!-- simple table -->
-
-
-                </div> <!-- .row -->
-            </div> <!-- .container-fluid -->
+                        </div>
+                    </div>
 
 
             <div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel" aria-hidden="true">
