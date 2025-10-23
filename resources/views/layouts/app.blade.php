@@ -27,8 +27,7 @@
     <!-- App CSS -->
     <link rel="stylesheet" href="{{ asset('css/app-light.css') }}" id="lightTheme">
     <link rel="stylesheet" href="{{ asset('css/app-dark.css') }}" id="darkTheme" disabled>
-    <!-- Custom Sidebar Navigation CSS -->
-    <link rel="stylesheet" href="{{ asset('css/sidebar-nav-custom.css') }}">
+  
 
 </head>
 
@@ -44,9 +43,7 @@
                 <div class="container">
                     <div class="row justify-content-center">
                         <div class="col-12">
-
                             @include('layouts.navigation')
-
                             {{ $slot }}
                         </div>
                     </div>
@@ -105,7 +102,7 @@
             ]
         });
     </script>
-    <script src="js/apps.js"></script>
+    <script src="{{ asset('js/apps.js') }}"></script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="{{ asset('https://www.googletagmanager.com/gtag/js?id=UA-56159088-1') }}"></script>
     <script>

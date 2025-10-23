@@ -272,43 +272,13 @@
 
                             @if (isset($excludedEmployees) && $excludedEmployees->count() > 0)
                                 <button class="btn btn-sm btn-outline-info ml-2" type="button"
-                                    data-toggle="collapse" data-target="#excludedEmployees" aria-expanded="false">
+                                    data-toggle="modal" data-target="#excludedEmployeesModal">
                                     <i class="fe fe-eye fe-16 mr-1"></i>View Excluded Employees
                                     ({{ $excludedEmployees->count() }})
                                 </button>
                             @endif
                         </div>
 
-                        @if (isset($excludedEmployees) && $excludedEmployees->count() > 0)
-                            <div class="collapse mb-3" id="excludedEmployees">
-                                <div class="card border-info">
-                                    <div class="card-header alert-info text-dark">
-                                        <h6 class="mb-0">
-                                            <i class="fe fe-user-x fe-16 mr-2"></i>Excluded Employees
-                                        </h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            @foreach ($excludedEmployees as $employee)
-                                                <div class="col-md-4 mb-2">
-                                                    <div class="d-flex align-items-center">
-                                                        <span
-                                                            class="badge badge-{{ $employee->employee_status == 'onhold' ? 'warning' : 'danger' }} mr-2">
-                                                            {{ ucfirst($employee->employee_status) }}
-                                                        </span>
-                                                        <span class="text-sm">{{ $employee->employee_name }}</span>
-                                                        @if ($employee->employee_id)
-                                                            <small
-                                                                class="text-muted ml-1">({{ $employee->employee_id }})</small>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
 
                         <form id="payrollForm">
                             @csrf
@@ -545,6 +515,83 @@
             </div>
         </div>
     </div>
+
+    <!-- Excluded Employees Modal -->
+    @if (isset($excludedEmployees) && $excludedEmployees->count() > 0)
+        <div class="modal fade" id="excludedEmployeesModal" tabindex="-1" role="dialog" aria-labelledby="excludedEmployeesModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="excludedEmployeesModalLabel">
+                            <i class="fe fe-user-x fe-16 mr-2"></i>Excluded Employees
+                        </h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fe fe-info fe-16 mr-2"></i>
+                            <strong>Note:</strong> These employees are excluded from payroll processing due to their current status.
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Employee Name</th>
+                                        <th>Employee ID</th>
+                                        <th>Status</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($excludedEmployees as $employee)
+                                        <tr>
+                                            <td>
+                                                <strong>{{ $employee->employee_name }}</strong>
+                                            </td>
+                                            <td>
+                                                @if ($employee->employee_id)
+                                                    {{ $employee->employee_id }}
+                                                @else
+                                                    <span class="text-muted">N/A</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <span class="badge badge-{{ $employee->employee_status == 'onhold' ? 'warning' : 'danger' }}">
+                                                    {{ ucfirst($employee->employee_status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if ($employee->employee_status == 'onhold')
+                                                    Employee is currently on leave
+                                                @elseif ($employee->employee_status == 'inactive')
+                                                    Employee account is inactive
+                                                @else
+                                                    Employee status is not active
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-muted">
+                            <small>
+                                <i class="fe fe-info fe-14 mr-1"></i>
+                                Total excluded employees: <strong>{{ $excludedEmployees->count() }}</strong>
+                            </small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                            <i class="fe fe-x fe-16 mr-1"></i>Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     @if ($payrollPeriod)
         <script>

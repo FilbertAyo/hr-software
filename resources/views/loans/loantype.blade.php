@@ -70,8 +70,6 @@
                         </div>
                     </div>
                 </div> <!-- simple table -->
-
-
         </div> <!-- .row -->
 
 

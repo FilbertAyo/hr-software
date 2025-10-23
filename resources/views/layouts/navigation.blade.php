@@ -1,5 +1,5 @@
-<nav class="topnav navbar navbar-light bg-white border mb-3">
-    <button type="button" class="navbar-toggler text-muted mt-2 p-0 mr-3 collapseSidebar">
+<nav class="navbar navbar-light bg-white border mb-4">
+    <button type="button" class="navbar-toggler text-muted mt-2 px-3 mr-3 collapseSidebar">
         <i class="fe fe-menu navbar-toggler-icon"></i>
     </button>
 
