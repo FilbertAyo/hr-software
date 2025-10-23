@@ -305,6 +305,7 @@
                                             <th>PAYE</th>
                                             <th>Advance</th>
                                             <th>Loan Deduction</th>
+                                            <th>Attendance Deduction</th>
                                             <th>Other Deductions</th>
                                             <th>Total Deductions</th>
                                             <th>Net Salary</th>
@@ -327,6 +328,7 @@
                                                     $totalDeductions = $payroll->total_deductions;
                                                     $advanceAmount = $payroll->advance_salary; // Now using dedicated advance_salary column
                                                     $loanDeduction = $payroll->loan_deduction;
+                                                    $attendanceDeduction = $payroll->attendance_deduction;
                                                     $otherDeductionsAmount = $payroll->other_deductions;
                                                     $payeTax = $payroll->tax_deduction; // PAYE tax
                                                     $netSalary = $payroll->net_salary;
@@ -418,11 +420,21 @@
                                                         );
                                                     }
 
-                                                    // Calculate total deductions (preview: pension + advance + loan + other deductions only)
+                                                    // Get attendance deduction for preview
+                                                    $attendanceDeduction = 0;
+                                                    if ($payrollPeriod) {
+                                                        $attendanceDeduction = $employee->getAttendanceDeductionForPeriod(
+                                                            $payrollPeriod->start_date,
+                                                            $payrollPeriod->end_date,
+                                                        );
+                                                    }
+
+                                                    // Calculate total deductions (preview: pension + advance + loan + attendance + other deductions only)
                                                     $totalDeductions =
                                                         $pensionAmount +
                                                         $advanceAmount +
                                                         $loanDeduction +
+                                                        $attendanceDeduction +
                                                         $otherDeductionsAmount;
 
                                                     // Calculate net salary (gross - total deductions + non-taxable allowances)
@@ -460,6 +472,7 @@
                                                 <td>{{ number_format($payeTax, 2) }}</td>
                                                 <td>{{ number_format($advanceAmount, 2) }}</td>
                                                 <td>{{ number_format($loanDeduction, 2) }}</td>
+                                                <td>{{ number_format($attendanceDeduction, 2) }}</td>
                                                 <td>{{ number_format($otherDeductionsAmount, 2) }}</td>
                                                 <td>{{ number_format($totalDeductions, 2) }}</td>
                                                 <td>{{ number_format($netSalary, 2) }}</td>

@@ -7,7 +7,7 @@ use App\Models\Department;
 use App\Models\DirectDeduction;
 use App\Models\Employee;
 use App\Models\EmployeeContact;
-use App\Models\EmployeeActivity;
+use App\Models\Attendance;
 use App\Models\EmployeeBankDetail;
 use App\Models\EmployeeDepartment;
 use App\Models\EmployeePensionDetail;

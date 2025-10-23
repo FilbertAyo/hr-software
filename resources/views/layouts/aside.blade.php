@@ -119,8 +119,6 @@
                             <span class="ml-1 item-text">Pay grade</span>
                         </a>
                     </li>
-
-
                 </ul>
             </li>
         </ul>
@@ -315,9 +313,24 @@
             <li class="nav-item dropdown">
                 <a href="#attendance" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
                     <i class="fe fe-user-check fe-16"></i>
-                    <span class="ml-3 item-text">Attendance</span>
+                    <span class="ml-3 item-text">Attendance & Leave</span>
                 </a>
                 <ul class="collapse list-unstyled pl-4 w-100" id="attendance">
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('absent-late.index') }}">
+                            <span class="ml-1 item-text">Absent & Late</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('shift.index') }}">
+                            <span class="ml-1 item-text">Shift Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link pl-3" href="{{ route('attendance.index') }}">
+                            <span class="ml-1 item-text">Attendance Management</span>
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('leavetype.index') }}">
                             <span class="ml-1 item-text">Leave Type</span>

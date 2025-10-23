@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Events\Attempting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -37,6 +38,9 @@ class Employee extends Model
 
         // Salary Details
         'basic_salary',
+        'working_days_per_month',
+        'working_hours_per_day',
+        'shift_id',
         'advance_option',
         'advance_percentage',
         'advance_salary',
@@ -79,6 +83,9 @@ class Employee extends Model
     protected $casts = [
         'date_of_birth' => 'date',
         'basic_salary' => 'decimal:2',
+        'working_days_per_month' => 'integer',
+        'working_hours_per_day' => 'integer',
+        'shift_id' => 'integer',
         'advance_percentage' => 'decimal:2',
         'advance_salary' => 'decimal:2',
         'nhif_amount' => 'decimal:2',
@@ -110,7 +117,7 @@ class Employee extends Model
 
     public function activities()
     {
-        return $this->hasMany(EmployeeActivity::class);
+        return $this->hasMany(Attendance::class);
     }
 
     // Department relationship
@@ -174,12 +181,12 @@ class Employee extends Model
 
     public function absentRecords()
     {
-        return $this->activities()->absent();
+        return $this->hasMany(Attendance::class)->where('attendance_type', 'absent');
     }
 
     public function lateRecords()
     {
-        return $this->activities()->late();
+        return $this->hasMany(Attendance::class)->where('attendance_type', 'late');
     }
 
     public function departmentAssignments()
@@ -194,6 +201,48 @@ class Employee extends Model
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    public function shift()
+    {
+        return $this->belongsTo(Shift::class);
+    }
+
+    public function punchRecords()
+    {
+        return $this->hasMany(PunchRecord::class);
+    }
+
+    /**
+     * Get attendance deduction for a specific period
+     */
+    public function getAttendanceDeductionForPeriod($startDate, $endDate)
+    {
+        $totalDeduction = 0;
+        $dailySalary = $this->basic_salary / $this->working_days_per_month;
+        $hourlySalary = $dailySalary / $this->working_hours_per_day;
+
+        // Get absent records for the period
+        $absentRecords = $this->absentRecords()
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($absentRecords as $record) {
+            $totalDeduction += $dailySalary * $record->used_days;
+        }
+
+        // Get late records for the period
+        $lateRecords = $this->lateRecords()
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($lateRecords as $record) {
+            $lateHours = $record->amount ?? 0;
+            $lateDeduction = $hourlySalary * $lateHours;
+            $totalDeduction += $lateDeduction;
+        }
+
+        return round($totalDeduction, 2);
     }
 
 

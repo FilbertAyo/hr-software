@@ -30,24 +30,16 @@ class EmployeeActivity extends Model
         'amount',
         'deduction_percentage',
         'paid_by_employer',
-        'absent',
-        'late',
-        'late_time',
-        'expected_time',
     ];
 
     protected $casts = [
         'activity_date' => 'date',
         'leave_start_date' => 'date',
         'leave_end_date' => 'date',
-        'late_time' => 'datetime',
-        'expected_time' => 'datetime',
         'approved_at' => 'datetime',
         'amount' => 'decimal:2',
         'deduction_percentage' => 'decimal:2',
         'paid_by_employer' => 'boolean',
-        'absent' => 'boolean',
-        'late' => 'boolean',
     ];
 
     public function employee()
@@ -69,16 +61,6 @@ class EmployeeActivity extends Model
     public function scopeDeductions($query)
     {
         return $query->where('activity_type', 'deduction');
-    }
-
-    public function scopeAbsent($query)
-    {
-        return $query->where('activity_type', 'absent');
-    }
-
-    public function scopeLate($query)
-    {
-        return $query->where('activity_type', 'late');
     }
 
     public function scopeDepartment($query)

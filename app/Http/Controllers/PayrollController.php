@@ -192,8 +192,14 @@ class PayrollController extends Controller
                 // Calculate loan deduction from pending installments due in this period
                 $loanDeduction = $this->calculateLoanDeduction($employee, $payrollPeriod);
 
-                // Calculate total deductions (including employee pension, PAYE tax, and advance)
-                $totalDeductions = $employeePensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $otherDeductions + $advanceAmount;
+                // Calculate attendance deductions (absent and late)
+                $attendanceDeduction = $this->calculateAttendanceDeduction($employee, $payrollPeriod);
+
+                // Calculate absent/late deductions from punch records
+                $absentLateDeduction = $this->calculateAbsentLateDeduction($employee, $payrollPeriod);
+
+                // Calculate total deductions (including employee pension, PAYE tax, attendance, and advance)
+                $totalDeductions = $employeePensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $attendanceDeduction + $absentLateDeduction + $otherDeductions + $advanceAmount;
 
                 // Calculate net salary (gross - total deductions + non-taxable allowances)
                 // Non-taxable allowances are added AFTER tax calculation
@@ -219,6 +225,8 @@ class PayrollController extends Controller
                     'tax_deduction' => $taxDeduction,
                     'insurance_deduction' => $insuranceDeduction,
                     'loan_deduction' => $loanDeduction,
+                    'attendance_deduction' => $attendanceDeduction,
+                    'absent_late_deduction' => $absentLateDeduction,
                     'other_deductions' => $otherDeductions,
                     'total_deductions' => $totalDeductions,
                     'net_salary' => $netSalary,
@@ -438,6 +446,108 @@ class PayrollController extends Controller
                 $loan->update(['status' => 'completed']);
             }
         }
+    }
+
+    /**
+     * Calculate attendance deduction for an employee in a payroll period
+     *
+     * @param Employee $employee
+     * @param PayrollPeriod $payrollPeriod
+     * @return float
+     */
+    private function calculateAttendanceDeduction(Employee $employee, PayrollPeriod $payrollPeriod)
+    {
+        $totalDeduction = 0;
+        $dailySalary = $employee->basic_salary / $this->getWorkingDaysInPeriod($payrollPeriod);
+
+        // Absent deductions
+        $absentRecords = $employee->absentRecords()
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($absentRecords as $record) {
+            $totalDeduction += $dailySalary * $record->used_days;
+        }
+
+        // Late deductions (assuming 1 hour late = 0.125 of daily salary)
+        $lateRecords = $employee->lateRecords()
+            ->where('status', 'approved')
+            ->get();
+
+        foreach ($lateRecords as $record) {
+            $lateHours = $record->amount ?? 0; // amount field stores late hours
+            $lateDeduction = ($dailySalary / 8) * $lateHours; // 8 hours per day
+            $totalDeduction += $lateDeduction;
+        }
+
+        return round($totalDeduction, 2);
+    }
+
+    /**
+     * Calculate absent/late deductions from punch records
+     *
+     * @param Employee $employee
+     * @param PayrollPeriod $payrollPeriod
+     * @return float
+     */
+    private function calculateAbsentLateDeduction($employee, $payrollPeriod)
+    {
+        if (!$employee->shift_id) {
+            return 0; // No shift assigned, no deductions
+        }
+
+        $totalDeduction = 0;
+        $dailySalary = $employee->basic_salary / $employee->working_days_per_month;
+        $hourlySalary = $dailySalary / $employee->working_hours_per_day;
+
+        // Get punch records for the payroll period
+        $punchRecords = \App\Models\PunchRecord::where('employee_id', $employee->id)
+            ->whereBetween('punch_date', [$payrollPeriod->start_date, $payrollPeriod->end_date])
+            ->get();
+
+        foreach ($punchRecords as $record) {
+            // Absent deduction (no punch in)
+            if (!$record->punch_in_time) {
+                $totalDeduction += $dailySalary;
+            }
+            // Late deduction
+            elseif ($record->isLate()) {
+                $lateMinutes = $record->getLateMinutes();
+                $lateHours = $lateMinutes / 60;
+                $totalDeduction += $hourlySalary * $lateHours;
+            }
+            // Half day deduction (less than half working hours)
+            elseif ($record->status === 'half_day') {
+                $expectedHours = $employee->shift->working_hours / 2;
+                $actualHours = $record->total_working_hours;
+                $missingHours = max(0, $expectedHours - $actualHours);
+                $totalDeduction += $hourlySalary * $missingHours;
+            }
+        }
+
+        return round($totalDeduction, 2);
+    }
+
+    /**
+     * Get working days in a payroll period (excluding weekends)
+     *
+     * @param PayrollPeriod $payrollPeriod
+     * @return int
+     */
+    private function getWorkingDaysInPeriod($payrollPeriod)
+    {
+        $start = \Carbon\Carbon::parse($payrollPeriod->start_date);
+        $end = \Carbon\Carbon::parse($payrollPeriod->end_date);
+        
+        $workingDays = 0;
+        while ($start->lte($end)) {
+            if ($start->isWeekday()) {
+                $workingDays++;
+            }
+            $start->addDay();
+        }
+        
+        return $workingDays > 0 ? $workingDays : 1; // Prevent division by zero
     }
 
     /**

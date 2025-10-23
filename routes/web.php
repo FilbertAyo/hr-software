@@ -46,6 +46,9 @@ use App\Http\Controllers\RatingScaleController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsersController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\AbsentLateController;
+use App\Http\Controllers\ShiftController;
 
 Route::get('/', function () {
     return redirect('/login');
@@ -257,6 +260,42 @@ Route::middleware('auth')->group(function () {
 
     //enable and disable user
     Route::post('/user/toggle-status/{id}', [ProfileController::class, 'toggleStatus'])->name('user.toggleStatus');
+
+    // Absent & Late Management Routes
+    Route::prefix('absent-late')->name('absent-late.')->group(function () {
+        Route::get('/', [AbsentLateController::class, 'index'])->name('index');
+        Route::post('/', [AbsentLateController::class, 'store'])->name('store');
+        Route::put('/{id}', [AbsentLateController::class, 'update'])->name('update');
+        Route::delete('/{id}', [AbsentLateController::class, 'destroy'])->name('destroy');
+        Route::get('/employee/{id}/summary', [AbsentLateController::class, 'getEmployeeSummary'])->name('employee.summary');
+    });
+
+    // Shift Management Routes
+    Route::prefix('shift')->name('shift.')->group(function () {
+        Route::get('/', [ShiftController::class, 'index'])->name('index');
+        Route::post('/', [ShiftController::class, 'store'])->name('store');
+        Route::put('/{id}', [ShiftController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ShiftController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/toggle', [ShiftController::class, 'toggleStatus'])->name('toggle');
+        Route::post('/punch', [ShiftController::class, 'punch'])->name('punch');
+        Route::post('/bulk-punch', [ShiftController::class, 'bulkPunch'])->name('bulk-punch');
+        Route::get('/punch-records', [ShiftController::class, 'getPunchRecords'])->name('punch-records');
+    });
+
+    // Attendance Management Routes (Advanced)
+    Route::prefix('attendance')->name('attendance.')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('/create', [AttendanceController::class, 'create'])->name('create');
+        Route::post('/', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/bulk-create', [AttendanceController::class, 'bulkCreate'])->name('bulk-create');
+        Route::post('/bulk-store', [AttendanceController::class, 'bulkStore'])->name('bulk-store');
+        Route::get('/{id}', [AttendanceController::class, 'show'])->name('show');
+        Route::delete('/', [AttendanceController::class, 'destroy'])->name('destroy');
+        Route::get('/export/csv', [AttendanceController::class, 'export'])->name('export');
+    });
+
+
+    
 });
 
 
