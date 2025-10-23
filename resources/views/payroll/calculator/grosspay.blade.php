@@ -60,31 +60,49 @@
                                         </div>
                                     </div>
 
-                                    {{-- Mandatory Deductions (Auto-included) --}}
-                                    @if($mandatoryDeductions->count() > 0)
-                                        <div class="form-group">
-                                            <label class="text-success">
-                                                <i class="fe fe-check-circle"></i> Mandatory Deductions (Auto-included)
-                                            </label>
-                                            <div class="row">
-                                                @foreach($mandatoryDeductions as $deduction)
-                                                    <div class="col-md-6">
-                                                        <div class="alert alert-light py-2 px-3 mb-2">
-                                                            <strong>{{ $deduction->name }}</strong>
+                                    {{-- Pension Selection --}}
+                                    <div class="form-group">
+                                        <label class="text-primary">
+                                            <i class="fe fe-shield"></i> Pension Scheme Selection
+                                        </label>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="custom-control custom-radio">
+                                                    <input class="custom-control-input" type="radio" name="pension_selection_gross"
+                                                           id="pension_none_gross" value="" checked>
+                                                    <label class="custom-control-label" for="pension_none_gross">
+                                                        <strong>No Pension</strong>
+                                                        <br>
+                                                        <small class="text-muted">No pension deductions will be applied</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            @foreach($pensionOptions as $pension)
+                                                <div class="col-md-6">
+                                                    <div class="custom-control custom-radio">
+                                                        <input class="custom-control-input" type="radio" name="pension_selection_gross"
+                                                               id="pension_gross_{{ $pension->id }}" value="{{ $pension->id }}"
+                                                               data-name="{{ $pension->name }}"
+                                                               data-employee="{{ $pension->employee_percent }}"
+                                                               data-employer="{{ $pension->employer_percent }}"
+                                                               data-type="{{ $pension->deduction_type }}"
+                                                               data-percentage-of="{{ $pension->percentage_of }}">
+                                                        <label class="custom-control-label" for="pension_gross_{{ $pension->id }}">
+                                                            <strong>{{ $pension->name }}</strong>
                                                             <br>
                                                             <small class="text-muted">
-                                                                Employee: {{ $deduction->employee_percent }}%
-                                                                (of {{ ucfirst($deduction->percentage_of) }})
-                                                                @if($deduction->employer_percent > 0)
-                                                                    | Employer: {{ $deduction->employer_percent }}%
+                                                                Employee: {{ $pension->employee_percent }}%
+                                                                (of {{ ucfirst($pension->percentage_of) }})
+                                                                @if($pension->employer_percent > 0)
+                                                                    | Employer: {{ $pension->employer_percent }}%
                                                                 @endif
                                                             </small>
-                                                        </div>
+                                                        </label>
                                                     </div>
-                                                @endforeach
-                                            </div>
+                                                </div>
+                                            @endforeach
                                         </div>
-                                    @endif
+                                    </div>
 
                                     {{-- Optional Deductions --}}
                                     @if($optionalDeductions->count() > 0)
@@ -246,6 +264,9 @@
                 return;
             }
 
+            // Get selected pension
+            const selectedPensionId = document.querySelector('input[name="pension_selection_gross"]:checked').value || null;
+
             // Get selected optional deductions
             const selectedDeductions = [];
             document.querySelectorAll('.deduction-check:checked').forEach(checkbox => {
@@ -268,6 +289,7 @@
                 body: JSON.stringify({
                     target_net_pay: targetNetPay,
                     allowances: allowances,
+                    selected_pension_id: selectedPensionId,
                     selected_deductions: selectedDeductions
                 })
             })

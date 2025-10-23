@@ -3,15 +3,14 @@
         <i class="fe fe-menu navbar-toggler-icon"></i>
     </button>
 
-    <div class="d-none d-lg-flex">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <button type="button" class="btn btn-search pe-1" disabled>
-                    <i class="bi bi-building-fill"></i>
-                </button>
-            </div>
-            <input type="text" class="form-control" disabled
-                placeholder="{{ optional($selectedCompany)->company_name ?? 'No Company Selected' }}" />
+    <div class="d-none d-lg-flex align-items-center">
+        <div class="d-flex align-items-center bg-light px-3 py-2 rounded border" style="min-width: 200px; max-width: 400px;">
+            <i class="bi bi-building-fill text-primary mr-2"></i>
+            <span class="text-dark font-weight-medium text-truncate"
+                  title="{{ optional($selectedCompany)->company_name ?? 'No Company Selected' }}"
+                  style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                {{ optional($selectedCompany)->company_name ?? 'No Company Selected' }}
+            </span>
         </div>
     </div>
 

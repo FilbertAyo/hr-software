@@ -140,15 +140,7 @@ class ReferenceTablesSeeder extends Seeder
             ['substation_name' => 'Karatu', 'mainstation_id' => 2, 'description' => 'Karatu branch', 'created_at' => now(), 'updated_at' => now()],
         ]);
 
-        // Leave Types
-        DB::table('leave_types')->insert([
-            ['leave_type_name' => 'Annual Leave', 'max_days_per_year' => 28, 'carry_forward' => true, 'description' => 'Regular annual leave', 'created_at' => now(), 'updated_at' => now()],
-            ['leave_type_name' => 'Sick Leave', 'max_days_per_year' => 14, 'carry_forward' => false, 'description' => 'Medical leave', 'created_at' => now(), 'updated_at' => now()],
-            ['leave_type_name' => 'Maternity Leave', 'max_days_per_year' => 84, 'carry_forward' => false, 'description' => 'Maternity leave for mothers', 'created_at' => now(), 'updated_at' => now()],
-            ['leave_type_name' => 'Paternity Leave', 'max_days_per_year' => 3, 'carry_forward' => false, 'description' => 'Paternity leave for fathers', 'created_at' => now(), 'updated_at' => now()],
-            ['leave_type_name' => 'Compassionate Leave', 'max_days_per_year' => 5, 'carry_forward' => false, 'description' => 'Leave for family emergencies', 'created_at' => now(), 'updated_at' => now()],
-            ['leave_type_name' => 'Study Leave', 'max_days_per_year' => 30, 'carry_forward' => false, 'description' => 'Leave for educational purposes', 'created_at' => now(), 'updated_at' => now()],
-        ]);
+        // Leave Types are now handled by LeaveTypesSeeder
 
         // Holidays
         DB::table('holidays')->insert([

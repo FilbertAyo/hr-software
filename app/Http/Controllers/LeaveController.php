@@ -25,12 +25,31 @@ class LeaveController extends Controller
         return view('attendance.leaves.create', compact('employees', 'leaveTypes'));
     }
 
+    // API method to get leave types filtered by employee gender
+    public function getLeaveTypesByGender($employeeId)
+    {
+        $employee = Employee::find($employeeId);
+
+        if (!$employee) {
+            return response()->json(['error' => 'Employee not found'], 404);
+        }
+
+        $leaveTypes = LeaveType::where('status', 'Active')
+            ->where(function($query) use ($employee) {
+                $query->where('gender_restriction', 'All')
+                      ->orWhere('gender_restriction', $employee->gender);
+            })
+            ->get();
+
+        return response()->json($leaveTypes);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'employee_id' => 'required|exists:users,id',
+            'employee_id' => 'required|exists:employees,id',
             'leave_type_id' => 'required|exists:leave_types,id',
-            'leave_action' => 'required|in:proceed_on_leave,sold_leave',
+            'leave_action' => 'required|in:proceed,sold,emergency,compensatory',
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
             'no_of_days' => 'required|integer|min:1',
@@ -45,7 +64,7 @@ class LeaveController extends Controller
 
     public function show(Leave $leave)
     {
-        return view('leaves.show', compact('leave'));
+        return view('attendance.leaves.show', compact('leave'));
     }
 
     public function edit(Leave $leave)
@@ -53,15 +72,15 @@ class LeaveController extends Controller
         $employees = User::where('status', 'Active')->get();
         $leaveTypes = LeaveType::where('status', 'Active')->get();
 
-        return view('leaves.edit', compact('leave', 'employees', 'leaveTypes'));
+        return view('attendance.leaves.edit', compact('leave', 'employees', 'leaveTypes'));
     }
 
     public function update(Request $request, Leave $leave)
     {
         $request->validate([
-            'employee_id' => 'required|exists:users,id',
+            'employee_id' => 'required|exists:employees,id',
             'leave_type_id' => 'required|exists:leave_types,id',
-            'leave_action' => 'required|in:proceed_on_leave,sold_leave',
+            'leave_action' => 'required|in:proceed,sold,emergency,compensatory',
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
             'no_of_days' => 'required|integer|min:1',
@@ -71,13 +90,63 @@ class LeaveController extends Controller
 
         $leave->update($request->all());
 
-        return redirect()->route('attendance.leaves.index')->with('success', 'Leave updated successfully!');
+        return redirect()->route('leaves.index')->with('success', 'Leave updated successfully!');
     }
 
     public function destroy(Leave $leave)
     {
         $leave->delete();
         return redirect()->route('leaves.index')->with('success', 'Leave deleted successfully!');
+    }
+
+    public function approve(Leave $leave)
+    {
+        $leave->update(['status' => 'Approved']);
+
+        // Update employee status based on leave action
+        if ($leave->leave_action === 'proceed') {
+            $leave->employee->update(['employee_status' => 'onhold']);
+        }
+
+        return redirect()->route('leaves.show', $leave->id)->with('success', 'Leave approved successfully!');
+    }
+
+    public function reject(Leave $leave)
+    {
+        $leave->update(['status' => 'Rejected']);
+        return redirect()->route('leaves.show', $leave->id)->with('success', 'Leave rejected successfully!');
+    }
+
+    /**
+     * Check and update employee status for completed leaves
+     */
+    public function checkCompletedLeaves()
+    {
+        $today = now()->toDateString();
+
+        // Find approved leaves that have ended
+        $completedLeaves = Leave::where('status', 'Approved')
+            ->where('leave_action', 'proceed')
+            ->where('to_date', '<', $today)
+            ->with('employee')
+            ->get();
+
+        foreach ($completedLeaves as $leave) {
+            // Check if employee has any other active leaves
+            $hasActiveLeave = Leave::where('employee_id', $leave->employee_id)
+                ->where('status', 'Approved')
+                ->where('leave_action', 'proceed')
+                ->where('from_date', '<=', $today)
+                ->where('to_date', '>=', $today)
+                ->exists();
+
+            // If no active leave, reactivate employee
+            if (!$hasActiveLeave) {
+                $leave->employee->update(['employee_status' => 'active']);
+            }
+        }
+
+        return response()->json(['message' => 'Employee statuses updated successfully']);
     }
 
     // API method to get leave type details

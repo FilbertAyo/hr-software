@@ -13,16 +13,16 @@ class CalculatorController extends Controller
      */
     public function netpay()
     {
-        // Get all active deductions, separate must_include from optional
-        $mandatoryDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', true)
+        // Get all active deductions split by pension vs other
+        $pensionOptions = DirectDeduction::where('status', 'active')
+            ->where('deduction_type', 'pension')
             ->get();
 
         $optionalDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', false)
+            ->where('deduction_type', '!=', 'pension')
             ->get();
 
-        return view("payroll.calculator.netpay", compact("mandatoryDeductions", "optionalDeductions"));
+        return view("payroll.calculator.netpay", compact("pensionOptions", "optionalDeductions"));
     }
 
     /**
@@ -30,16 +30,16 @@ class CalculatorController extends Controller
      */
     public function grosspay()
     {
-        // Get all active deductions, separate must_include from optional
-        $mandatoryDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', true)
+        // Get all active deductions split by pension vs other
+        $pensionOptions = DirectDeduction::where('status', 'active')
+            ->where('deduction_type', 'pension')
             ->get();
 
         $optionalDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', false)
+            ->where('deduction_type', '!=', 'pension')
             ->get();
 
-        return view("payroll.calculator.grosspay", compact("mandatoryDeductions", "optionalDeductions"));
+        return view("payroll.calculator.grosspay", compact("pensionOptions", "optionalDeductions"));
     }
 
     /**
@@ -51,6 +51,7 @@ class CalculatorController extends Controller
         $request->validate([
             'basic_salary' => 'required|numeric|min:0',
             'allowances' => 'nullable|numeric|min:0',
+            'selected_pension_id' => 'nullable|integer|exists:direct_deductions,id',
             'selected_deductions' => 'nullable|array',
             'selected_deductions.*' => 'integer|exists:direct_deductions,id'
         ]);
@@ -58,22 +59,12 @@ class CalculatorController extends Controller
         $basicSalary = (float) $request->basic_salary;
         $allowances = (float) ($request->allowances ?? 0);
         $selectedDeductions = $request->selected_deductions ?? [];
+        $selectedPensionId = $request->selected_pension_id;
 
         // Calculate gross salary
         $grossSalary = $basicSalary + $allowances;
 
-        // Get all deductions
-        $mandatoryDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', true)
-            ->get();
-
-        $optionalDeductions = DirectDeduction::whereIn('id', $selectedDeductions)
-            ->where('status', 'active')
-            ->get();
-
-        $allDeductions = $mandatoryDeductions->merge($optionalDeductions);
-
-        // Separate deductions by type for proper flow
+        // Prepare deductions
         $pensionDeductions = [];
         $otherDeductions = [];
         $employerContributions = [];
@@ -82,39 +73,64 @@ class CalculatorController extends Controller
         $totalOtherDeductions = 0;
         $totalEmployerContributions = 0;
 
-        foreach ($allDeductions as $deduction) {
-            $baseAmount = $deduction->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+        // Apply selected pension if any
+        if ($selectedPensionId) {
+            $pension = DirectDeduction::where('id', $selectedPensionId)
+                ->where('status', 'active')
+                ->where('deduction_type', 'pension')
+                ->first();
+            if ($pension) {
+                $baseAmount = $pension->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                $employeeAmount = ($baseAmount * (float)$pension->employee_percent) / 100;
+                $employerAmount = ($baseAmount * (float)$pension->employer_percent) / 100;
 
-            $employeeAmount = ($baseAmount * (float)$deduction->employee_percent) / 100;
-            $employerAmount = ($baseAmount * (float)$deduction->employer_percent) / 100;
-
-            // Separate pension deductions (applied before tax)
-            if ($deduction->deduction_type === 'pension') {
                 $pensionDeductions[] = [
-                    'name' => $deduction->name,
+                    'name' => $pension->name,
                     'amount' => $employeeAmount,
-                    'is_mandatory' => $deduction->must_include,
-                    'percentage_of' => $deduction->percentage_of
+                    'is_mandatory' => false,
+                    'percentage_of' => $pension->percentage_of
                 ];
                 $totalPensionDeductions += $employeeAmount;
-            } else {
+
+                if ($employerAmount > 0) {
+                    $employerContributions[] = [
+                        'name' => $pension->name,
+                        'amount' => $employerAmount,
+                        'type' => $pension->deduction_type
+                    ];
+                    $totalEmployerContributions += $employerAmount;
+                }
+            }
+        }
+
+        // Apply other selected deductions (exclude pensions)
+        if (!empty($selectedDeductions)) {
+            $otherSelected = DirectDeduction::whereIn('id', $selectedDeductions)
+                ->where('status', 'active')
+                ->where('deduction_type', '!=', 'pension')
+                ->get();
+
+            foreach ($otherSelected as $deduction) {
+                $baseAmount = $deduction->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                $employeeAmount = ($baseAmount * (float)$deduction->employee_percent) / 100;
+                $employerAmount = ($baseAmount * (float)$deduction->employer_percent) / 100;
+
                 $otherDeductions[] = [
                     'name' => $deduction->name,
                     'amount' => $employeeAmount,
-                    'is_mandatory' => $deduction->must_include,
+                    'is_mandatory' => false,
                     'percentage_of' => $deduction->percentage_of
                 ];
                 $totalOtherDeductions += $employeeAmount;
-            }
 
-            // Employer contributions
-            if ($employerAmount > 0) {
-                $employerContributions[] = [
-                    'name' => $deduction->name,
-                    'amount' => $employerAmount,
-                    'type' => $deduction->deduction_type
-                ];
-                $totalEmployerContributions += $employerAmount;
+                if ($employerAmount > 0) {
+                    $employerContributions[] = [
+                        'name' => $deduction->name,
+                        'amount' => $employerAmount,
+                        'type' => $deduction->deduction_type
+                    ];
+                    $totalEmployerContributions += $employerAmount;
+                }
             }
         }
 
@@ -171,6 +187,7 @@ class CalculatorController extends Controller
         $request->validate([
             'target_net_pay' => 'required|numeric|min:0',
             'allowances' => 'nullable|numeric|min:0',
+            'selected_pension_id' => 'nullable|integer|exists:direct_deductions,id',
             'selected_deductions' => 'nullable|array',
             'selected_deductions.*' => 'integer|exists:direct_deductions,id'
         ]);
@@ -178,6 +195,7 @@ class CalculatorController extends Controller
         $targetTakeHome = (float) $request->target_net_pay;
         $allowances = (float) ($request->allowances ?? 0);
         $selectedDeductions = $request->selected_deductions ?? [];
+        $selectedPensionId = $request->selected_pension_id;
 
         // This is an iterative calculation to find the basic salary that results in the target take home
         $basicSalary = $targetTakeHome * 1.3; // Initial guess (take home is usually ~70-80% of basic)
@@ -187,7 +205,7 @@ class CalculatorController extends Controller
 
         for ($i = 0; $i < $maxIterations; $i++) {
             // Calculate what the take home would be with this basic salary
-            $calculationResult = $this->performPayrollCalculation($basicSalary, $allowances, $selectedDeductions);
+            $calculationResult = $this->performPayrollCalculation($basicSalary, $allowances, $selectedDeductions, $selectedPensionId);
 
             $difference = $calculationResult['take_home'] - $targetTakeHome;
 
@@ -216,20 +234,9 @@ class CalculatorController extends Controller
     /**
      * Perform payroll calculation (helper method)
      */
-    private function performPayrollCalculation($basicSalary, $allowances, $selectedDeductions)
+    private function performPayrollCalculation($basicSalary, $allowances, $selectedDeductions, $selectedPensionId = null)
     {
         $grossSalary = $basicSalary + $allowances;
-
-        // Get all deductions
-        $mandatoryDeductions = DirectDeduction::where('status', 'active')
-            ->where('must_include', true)
-            ->get();
-
-        $optionalDeductions = DirectDeduction::whereIn('id', $selectedDeductions)
-            ->where('status', 'active')
-            ->get();
-
-        $allDeductions = $mandatoryDeductions->merge($optionalDeductions);
 
         // Separate deductions by type
         $pensionDeductions = [];
@@ -240,33 +247,60 @@ class CalculatorController extends Controller
         $totalOtherDeductions = 0;
         $totalEmployerContributions = 0;
 
-        foreach ($allDeductions as $deduction) {
-            $baseAmount = $deduction->percentage_of === 'basic' ? $basicSalary : $grossSalary;
-            $employeeAmount = ($baseAmount * (float)$deduction->employee_percent) / 100;
-            $employerAmount = ($baseAmount * (float)$deduction->employer_percent) / 100;
+        // Apply selected pension if any
+        if ($selectedPensionId) {
+            $pension = DirectDeduction::where('id', $selectedPensionId)
+                ->where('status', 'active')
+                ->where('deduction_type', 'pension')
+                ->first();
+            if ($pension) {
+                $baseAmount = $pension->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                $employeeAmount = ($baseAmount * (float)$pension->employee_percent) / 100;
+                $employerAmount = ($baseAmount * (float)$pension->employer_percent) / 100;
 
-            if ($deduction->deduction_type === 'pension') {
                 $pensionDeductions[] = [
-                    'name' => $deduction->name,
+                    'name' => $pension->name,
                     'amount' => $employeeAmount,
-                    'is_mandatory' => $deduction->must_include
+                    'is_mandatory' => false
                 ];
                 $totalPensionDeductions += $employeeAmount;
-            } else {
+
+                if ($employerAmount > 0) {
+                    $employerContributions[] = [
+                        'name' => $pension->name,
+                        'amount' => $employerAmount
+                    ];
+                    $totalEmployerContributions += $employerAmount;
+                }
+            }
+        }
+
+        // Apply other selected deductions (exclude pensions)
+        if (!empty($selectedDeductions)) {
+            $otherSelected = DirectDeduction::whereIn('id', $selectedDeductions)
+                ->where('status', 'active')
+                ->where('deduction_type', '!=', 'pension')
+                ->get();
+
+            foreach ($otherSelected as $deduction) {
+                $baseAmount = $deduction->percentage_of === 'basic' ? $basicSalary : $grossSalary;
+                $employeeAmount = ($baseAmount * (float)$deduction->employee_percent) / 100;
+                $employerAmount = ($baseAmount * (float)$deduction->employer_percent) / 100;
+
                 $otherDeductions[] = [
                     'name' => $deduction->name,
                     'amount' => $employeeAmount,
-                    'is_mandatory' => $deduction->must_include
+                    'is_mandatory' => false
                 ];
                 $totalOtherDeductions += $employeeAmount;
-            }
 
-            if ($employerAmount > 0) {
-                $employerContributions[] = [
-                    'name' => $deduction->name,
-                    'amount' => $employerAmount
-                ];
-                $totalEmployerContributions += $employerAmount;
+                if ($employerAmount > 0) {
+                    $employerContributions[] = [
+                        'name' => $deduction->name,
+                        'amount' => $employerAmount
+                    ];
+                    $totalEmployerContributions += $employerAmount;
+                }
             }
         }
 

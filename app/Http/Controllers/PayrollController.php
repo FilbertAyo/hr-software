@@ -52,7 +52,9 @@ class PayrollController extends Controller
         }
 
         // Get employees with their salary details and existing payroll if any, filtered by company
+        // Only include active employees (exclude inactive and onhold employees)
         $employees = Employee::where('company_id', $companyId)
+            ->where('employee_status', 'active') // Only process active employees
             ->with([
                 'payrolls' => function($query) use ($payrollPeriod) {
                     $query->where('payroll_period_id', $payrollPeriod->id);
@@ -63,6 +65,10 @@ class PayrollController extends Controller
                 }
             ])->get();
 
+        // Get all employees (including inactive/onhold) for statistics
+        $allEmployees = Employee::where('company_id', $companyId)->get();
+        $inactiveEmployees = $allEmployees->where('employee_status', '!=', 'active')->count();
+
         // Get payroll statistics for this period
         $payrollStats = [
             'total_employees' => $employees->count(),
@@ -72,12 +78,16 @@ class PayrollController extends Controller
             'pending_employees' => $employees->filter(function($employee) {
                 return $employee->payrolls->where('status', 'pending')->count() > 0 || $employee->payrolls->count() == 0;
             })->count(),
+            'inactive_employees' => $inactiveEmployees,
             'total_gross' => $payrollPeriod->total_gross_amount,
             'total_deductions' => $payrollPeriod->total_deductions,
             'total_net' => $payrollPeriod->total_net_amount
         ];
 
-        return view("payroll.index", compact("employees", "payrollPeriod", "payrollPeriods", "payrollStats"));
+        // Get excluded employees for reference
+        $excludedEmployees = $allEmployees->where('employee_status', '!=', 'active');
+
+        return view("payroll.index", compact("employees", "payrollPeriod", "payrollPeriods", "payrollStats", "excludedEmployees"));
     }
 
     /**
@@ -104,6 +114,11 @@ class PayrollController extends Controller
                     'earngroups.groupBenefits.allowance.allowanceDetails',
                     'loans.installments'
                 ])->findOrFail($employeeId);
+
+                // Skip processing if employee is not active
+                if ($employee->employee_status !== 'active') {
+                    continue; // Skip this employee
+                }
 
                 // Check if payroll already exists for this period and delete it for reprocessing
                 $existingPayroll = Payroll::where('employee_id', $employeeId)
@@ -161,7 +176,12 @@ class PayrollController extends Controller
 
                 // Other deductions
                 $insuranceDeduction = 0;
-                $otherDeductions = 0;
+
+                // Get other deductions for this payroll period
+                $otherDeductions = $employee->getOtherDeductionsForPeriod(
+                    $payrollPeriod->start_date,
+                    $payrollPeriod->end_date
+                );
 
                 // Get advance amount for this employee in this period
                 $advanceAmount = $employee->advances()
@@ -235,7 +255,9 @@ class PayrollController extends Controller
         ]);
 
         $companyId = session('selected_company_id');
-        $employees = Employee::where('company_id', $companyId)->get();
+        $employees = Employee::where('company_id', $companyId)
+            ->where('employee_status', 'active') // Only process active employees
+            ->get();
         $employeeIds = $employees->pluck('id')->toArray();
 
         $request->merge(['employee_ids' => $employeeIds]);

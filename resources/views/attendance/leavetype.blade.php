@@ -31,17 +31,18 @@
                                     <table class="table table-bordered table-hover datatables" id="dataTable-1">
                                         <thead class="thead-light">
                                             <tr>
-                                                <th width="5%">#</th>
-                                                <th width="15%">Leave Type</th>
-                                                <th width="12%">Other Name</th>
-                                                <th width="8%">Days</th>
-                                                <th width="10%">Monthly Inc.</th>
-                                                <th width="10%">Extra Days</th>
-                                                <th width="8%">Inc. Value</th>
-                                                <th width="8%">Extra Value</th>
-                                                <th width="8%">Web Portal</th>
-                                                <th width="8%">Status</th>
-                                                <th width="8%" class="text-center">Action</th>
+                                                <th>#</th>
+                                                <th>Leave type</th>
+                                                <th>Other name</th>
+                                                <th>Days</th>
+                                                <th>Monthly inc.</th>
+                                                <th>Extra days</th>
+                                                <th>Inc. value</th>
+                                                <th>Extra value</th>
+                                                <th>Carry forward</th>
+                                                <th>Web portal</th>
+                                                <th>Status</th>
+                                                <th class="text-center">Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -50,11 +51,12 @@
                                                     <td>{{ $index + 1 }}</td>
                                                     <td>
                                                         <strong>{{ $leavetype->leave_type_name }}</strong>
+                                                        @if($leavetype->description)
+                                                            <br><small class="text-muted">{{ Str::limit($leavetype->description, 30) }}</small>
+                                                        @endif
                                                     </td>
                                                     <td>{{ $leavetype->other_name ?: '-' }}</td>
-                                                    <td>
-                                                      {{ $leavetype->no_of_days }}
-                                                    </td>
+                                                    <td>{{ $leavetype->no_of_days }}</td>
                                                     <td>
                                                         @if($leavetype->no_monthly_increment)
                                                             <span class="badge badge-success">Yes</span>
@@ -69,11 +71,17 @@
                                                             <span class="badge badge-secondary">No</span>
                                                         @endif
                                                     </td>
+                                                    <td>{{ $leavetype->no_of_monthly_increment ?: '0' }}</td>
+                                                    <td>{{ $leavetype->extra_days ?: '0' }}</td>
                                                     <td>
-                                                        {{ $leavetype->no_of_monthly_increment ?: '0' }}
-                                                    </td>
-                                                    <td>
-                                                       {{ $leavetype->extra_days ?: '0' }}
+                                                        @if($leavetype->carry_forward)
+                                                            <span class="badge badge-success">Yes</span>
+                                                            @if($leavetype->max_carry_forward_days)
+                                                                <br><small class="text-muted">Max: {{ $leavetype->max_carry_forward_days }}</small>
+                                                            @endif
+                                                        @else
+                                                            <span class="badge badge-secondary">No</span>
+                                                        @endif
                                                     </td>
                                                     <td>
                                                         @if($leavetype->show_in_web_portal)
@@ -103,6 +111,13 @@
                                                                 data-leavetype-extradays="{{ $leavetype->extra_days }}"
                                                                 data-leavetype-web="{{ $leavetype->show_in_web_portal }}"
                                                                 data-leavetype-status="{{ $leavetype->status }}"
+                                                                data-leavetype-description="{{ $leavetype->description }}"
+                                                                data-leavetype-gender="{{ $leavetype->gender_restriction }}"
+                                                                data-leavetype-service-days="{{ $leavetype->min_service_days }}"
+                                                                data-leavetype-carry-forward="{{ $leavetype->carry_forward }}"
+                                                                data-leavetype-max-carry-forward="{{ $leavetype->max_carry_forward_days }}"
+                                                                data-leavetype-requires-approval="{{ $leavetype->requires_approval }}"
+                                                                data-leavetype-requires-doc="{{ $leavetype->requires_documentation }}"
                                                                 title="Edit">
                                                                 <i class="fe fe-edit fe-16"></i>
                                                             </button>
@@ -144,7 +159,7 @@
             aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header text-white">
                         <h5 class="modal-title" id="varyModalLabel">
                             <i class="fe fe-plus-circle mr-2"></i>Create New Leave Type
                         </h5>
@@ -164,7 +179,7 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="other_name">Other Name</label>
                                     <input type="text" class="form-control" name="other_name"
-                                        id="other_name" placeholder="Enter other name">
+                                        id="other_name" placeholder="Enter other name (optional)">
                                 </div>
                             </div>
 
@@ -180,6 +195,35 @@
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="description">Description</label>
+                                    <textarea class="form-control" name="description" id="description"
+                                        rows="3" placeholder="Enter description (optional)"></textarea>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="gender_restriction">Gender Restriction</label>
+                                    <select class="form-control" name="gender_restriction" id="gender_restriction">
+                                        <option value="All">All</option>
+                                        <option value="Male">Male Only</option>
+                                        <option value="Female">Female Only</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="min_service_days">Minimum Service Days</label>
+                                    <input type="number" class="form-control" name="min_service_days"
+                                        id="min_service_days" placeholder="0" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="max_carry_forward_days">Max Carry Forward Days</label>
+                                    <input type="number" class="form-control" name="max_carry_forward_days"
+                                        id="max_carry_forward_days" placeholder="0" min="0">
                                 </div>
                             </div>
 
@@ -218,12 +262,42 @@
                             </div>
 
                             <div class="form-row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="carry_forward"
+                                            id="carry_forward" value="1">
+                                        <label class="custom-control-label" for="carry_forward">
+                                            Allow Carry Forward
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="requires_approval"
+                                            id="requires_approval" value="1" checked>
+                                        <label class="custom-control-label" for="requires_approval">
+                                            Requires Approval
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" name="show_in_web_portal"
-                                            id="show_in_web_portal" value="1">
+                                            id="show_in_web_portal" value="1" checked>
                                         <label class="custom-control-label" for="show_in_web_portal">
                                             Show in Web Portal
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-12 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="requires_documentation"
+                                            id="requires_documentation" value="1">
+                                        <label class="custom-control-label" for="requires_documentation">
+                                            Requires Documentation
                                         </label>
                                     </div>
                                 </div>
@@ -248,7 +322,7 @@
             aria-labelledby="editleavetypeModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
-                    <div class="modal-header bg-warning text-dark">
+                    <div class="modal-header text-dark">
                         <h5 class="modal-title" id="editleavetypeModalLabel">
                             <i class="fe fe-edit mr-2"></i>Edit Leave Type
                         </h5>
@@ -268,8 +342,8 @@
                                         name="leave_type_name" required>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="editleavetypeOtherName">Other Name</label>
-                                    <input type="text" class="form-control" id="editleavetypeOtherName"
+                                    <label for="editleavetypeOther">Other Name</label>
+                                    <input type="text" class="form-control" id="editleavetypeOther"
                                         name="other_name">
                                 </div>
                             </div>
@@ -286,6 +360,35 @@
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editleavetypeDescription">Description</label>
+                                    <textarea class="form-control" id="editleavetypeDescription" name="description"
+                                        rows="3"></textarea>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editleavetypeGender">Gender Restriction</label>
+                                    <select class="form-control" id="editleavetypeGender" name="gender_restriction">
+                                        <option value="All">All</option>
+                                        <option value="Male">Male Only</option>
+                                        <option value="Female">Female Only</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="editleavetypeServiceDays">Minimum Service Days</label>
+                                    <input type="number" class="form-control" id="editleavetypeServiceDays"
+                                        name="min_service_days" min="0">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="editleavetypeCarryForward">Max Carry Forward Days</label>
+                                    <input type="number" class="form-control" id="editleavetypeCarryForward"
+                                        name="max_carry_forward_days" min="0">
                                 </div>
                             </div>
 
@@ -324,22 +427,54 @@
                             </div>
 
                             <div class="form-row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="carry_forward"
+                                            id="editCarryForward" value="1">
+                                        <label class="custom-control-label" for="editCarryForward">
+                                            Allow Carry Forward
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="requires_approval"
+                                            id="editRequiresApproval" value="1">
+                                        <label class="custom-control-label" for="editRequiresApproval">
+                                            Requires Approval
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
                                     <div class="custom-control custom-checkbox">
                                         <input type="checkbox" class="custom-control-input" name="show_in_web_portal"
-                                            id="editShowPortal" value="1">
-                                        <label class="custom-control-label" for="editShowPortal">
+                                            id="editShowInPortal" value="1">
+                                        <label class="custom-control-label" for="editShowInPortal">
                                             Show in Web Portal
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
+                            <div class="form-row">
+                                <div class="col-md-12 mb-3">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" name="requires_documentation"
+                                            id="editRequiresDocumentation" value="1">
+                                        <label class="custom-control-label" for="editRequiresDocumentation">
+                                            Requires Documentation
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                     <i class="fe fe-x mr-2"></i>Cancel
                                 </button>
-                                <button type="submit" class="btn btn-warning">
+                                <button type="submit" class="btn btn-primary">
                                     <i class="fe fe-save mr-2"></i>Update Leave Type
                                 </button>
                             </div>
@@ -350,55 +485,6 @@
         </div>
     </div>
 
-    <style>
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            padding: 0.375rem 0.75rem;
-        }
-
-        .btn-group .btn {
-            margin-right: 2px;
-        }
-
-        .btn-group .btn:last-child {
-            margin-right: 0;
-        }
-
-        .modal-header.bg-primary,
-        .modal-header.bg-warning {
-            border-bottom: none;
-        }
-
-        .custom-control-label {
-            font-weight: 500;
-        }
-
-        .table-responsive {
-            border-radius: 0.5rem;
-        }
-
-        .card {
-            border: none;
-            border-radius: 0.75rem;
-        }
-
-        .form-control:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        }
-    </style>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -454,39 +540,57 @@
                 }
             });
 
-            // Handle edit button clicks
-            document.querySelectorAll('.edit-leavetype-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const leavetypeId = this.getAttribute('data-leavetype-id');
-                    const leavetypeName = this.getAttribute('data-leavetype-name');
-                    const leavetypeOther = this.getAttribute('data-leavetype-other');
-                    const leavetypeDays = this.getAttribute('data-leavetype-days');
-                    const leavetypeNoMIncr = this.getAttribute('data-leavetype-nomincr');
-                    const leavetypeExtra = this.getAttribute('data-leavetype-extra');
-                    const leavetypeNoMonth = this.getAttribute('data-leavetype-nomonth');
-                    const leavetypeExtraDays = this.getAttribute('data-leavetype-extradays');
-                    const leavetypeWeb = this.getAttribute('data-leavetype-web');
-                    const leavetypeStatus = this.getAttribute('data-leavetype-status');
+            // Handle edit button clicks using event delegation for DataTables pagination
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.edit-leavetype-btn')) {
+                    const button = e.target.closest('.edit-leavetype-btn');
+                    const leavetypeId = button.getAttribute('data-leavetype-id');
+                    const leavetypeName = button.getAttribute('data-leavetype-name');
+                    const leavetypeOther = button.getAttribute('data-leavetype-other');
+                    const leavetypeDays = button.getAttribute('data-leavetype-days');
+                    const leavetypeNoMIncr = button.getAttribute('data-leavetype-nomincr');
+                    const leavetypeExtra = button.getAttribute('data-leavetype-extra');
+                    const leavetypeNoMonth = button.getAttribute('data-leavetype-nomonth');
+                    const leavetypeExtraDays = button.getAttribute('data-leavetype-extradays');
+                    const leavetypeWeb = button.getAttribute('data-leavetype-web');
+                    const leavetypeStatus = button.getAttribute('data-leavetype-status');
+                    const leavetypeDescription = button.getAttribute('data-leavetype-description');
+                    const leavetypeGender = button.getAttribute('data-leavetype-gender');
+                    const leavetypeServiceDays = button.getAttribute('data-leavetype-service-days');
+                    const leavetypeCarryForward = button.getAttribute('data-leavetype-carry-forward');
+                    const leavetypeMaxCarryForward = button.getAttribute('data-leavetype-max-carry-forward');
+                    const leavetypeRequiresApproval = button.getAttribute('data-leavetype-requires-approval');
+                    const leavetypeRequiresDoc = button.getAttribute('data-leavetype-requires-doc');
 
                     // Set form action
                     document.getElementById('editleavetypeForm').setAttribute('action', `/leavetype/${leavetypeId}`);
 
                     // Populate form fields
                     document.getElementById('editleavetypeName').value = leavetypeName || '';
-                    document.getElementById('editleavetypeOtherName').value = leavetypeOther || '';
+                    document.getElementById('editleavetypeOther').value = leavetypeOther || '';
                     document.getElementById('editleavetypeDays').value = leavetypeDays || '';
                     document.getElementById('editleavetypeIncrement').value = leavetypeNoMonth || '';
                     document.getElementById('editleavetypeExtra').value = leavetypeExtraDays || '';
                     document.getElementById('editleavetypeStatus').value = leavetypeStatus || 'Active';
+                    document.getElementById('editleavetypeDescription').value = leavetypeDescription || '';
+                    document.getElementById('editleavetypeGender').value = leavetypeGender || 'All';
+                    document.getElementById('editleavetypeServiceDays').value = leavetypeServiceDays || '';
+                    document.getElementById('editleavetypeCarryForward').value = leavetypeMaxCarryForward || '';
 
                     // Handle checkboxes
                     const monthlyIncrCheck = document.getElementById('editNoMonthlyIncrement');
                     const extraDaysCheck = document.getElementById('editExtraNoDays');
-                    const webPortalCheck = document.getElementById('editShowPortal');
+                    const webPortalCheck = document.getElementById('editShowInPortal');
+                    const carryForwardCheck = document.getElementById('editCarryForward');
+                    const requiresApprovalCheck = document.getElementById('editRequiresApproval');
+                    const requiresDocCheck = document.getElementById('editRequiresDocumentation');
 
                     monthlyIncrCheck.checked = leavetypeNoMIncr == '1';
                     extraDaysCheck.checked = leavetypeExtra == '1';
                     webPortalCheck.checked = leavetypeWeb == '1';
+                    carryForwardCheck.checked = leavetypeCarryForward == '1';
+                    requiresApprovalCheck.checked = leavetypeRequiresApproval == '1';
+                    requiresDocCheck.checked = leavetypeRequiresDoc == '1';
 
                     // Show/hide fields based on checkbox state
                     if (monthlyIncrCheck.checked) {
@@ -503,7 +607,7 @@
 
                     // Show modal
                     $('#editleavetypeModal').modal('show');
-                });
+                }
             });
 
             // Reset forms when modals are closed

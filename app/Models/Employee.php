@@ -441,6 +441,26 @@ class Employee extends Model
                $this->getNonTaxableOtherBenefits($startDate, $endDate);
     }
 
+    /**
+     * Get employee's other deductions for a specific period
+     * @param string|null $startDate Optional start date filter
+     * @param string|null $endDate Optional end date filter
+     * @return float
+     */
+    public function getOtherDeductionsForPeriod($startDate = null, $endDate = null)
+    {
+        $query = $this->approvedOtherDeductions();
+
+        if ($startDate) {
+            $query->whereDate('deduction_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $query->whereDate('deduction_date', '<=', $endDate);
+        }
+
+        return $query->sum('amount') ?? 0;
+    }
+
     // Get employee's total salary including TAXABLE allowances only (for gross salary calculation)
     public function getTotalSalary()
     {
@@ -470,5 +490,76 @@ class Employee extends Model
     public function hasAdvanceOption()
     {
         return $this->advance_option;
+    }
+
+    /**
+     * Check if employee is active
+     */
+    public function isActive()
+    {
+        return $this->employee_status === 'active';
+    }
+
+    /**
+     * Check if employee is on hold (on leave)
+     */
+    public function isOnHold()
+    {
+        return $this->employee_status === 'onhold';
+    }
+
+    /**
+     * Check if employee is inactive
+     */
+    public function isInactive()
+    {
+        return $this->employee_status === 'inactive';
+    }
+
+    /**
+     * Get employee status badge class for UI
+     */
+    public function getStatusBadgeClassAttribute()
+    {
+        return match($this->employee_status) {
+            'active' => 'badge-success',
+            'onhold' => 'badge-warning',
+            'inactive' => 'badge-danger',
+            default => 'badge-secondary'
+        };
+    }
+
+    /**
+     * Get formatted employee status
+     */
+    public function getFormattedStatusAttribute()
+    {
+        return match($this->employee_status) {
+            'active' => 'Active',
+            'onhold' => 'On Hold',
+            'inactive' => 'Inactive',
+            default => 'Unknown'
+        };
+    }
+
+    /**
+     * Get current active leave for employee
+     */
+    public function getCurrentLeave()
+    {
+        return $this->hasMany(Leave::class)
+            ->where('status', 'Approved')
+            ->where('leave_action', 'proceed')
+            ->where('from_date', '<=', now()->toDateString())
+            ->where('to_date', '>=', now()->toDateString())
+            ->first();
+    }
+
+    /**
+     * Check if employee is currently on leave
+     */
+    public function isOnLeave()
+    {
+        return $this->getCurrentLeave() !== null;
     }
 }

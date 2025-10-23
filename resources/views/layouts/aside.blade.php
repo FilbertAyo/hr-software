@@ -16,8 +16,7 @@
             <li class="nav-item">
                 <a href="{{ route('dashboard') }}" class="nav-link">
                     <i class="fe fe-home fe-16"></i>
-                    <span class="ml-3 item-text">Dashboard</span><span
-                        class="badge badge-pill badge-primary">Analytics</span>
+                    <span class="ml-3 item-text">Dashboard</span>
                 </a>
             </li>
         </ul>

@@ -48,11 +48,15 @@
                                             @foreach ($leaves as $index => $leave)
                                                 <tr>
                                                     <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $leave->employee->name ?? 'N/A' }}</td>
+                                                    <td>{{ $leave->employee->employee_name ?? 'N/A' }}</td>
                                                     <td>{{ $leave->leaveType->leave_type_name ?? 'N/A' }}</td>
                                                     <td>
-                                                        <span class="badge badge-{{ $leave->leave_action == 'proceed_on_leave' ? 'primary' : 'success' }}">
-                                                            {{ ucfirst(str_replace('_', ' ', $leave->leave_action)) }}
+                                                        <span class="badge badge-{{
+                                                            $leave->leave_action == 'proceed' ? 'primary' :
+                                                            ($leave->leave_action == 'sold' ? 'success' :
+                                                            ($leave->leave_action == 'emergency' ? 'danger' : 'info'))
+                                                        }}">
+                                                            {{ ucfirst($leave->leave_action) }}
                                                         </span>
                                                     </td>
                                                     <td>{{ date('M d, Y', strtotime($leave->from_date)) }}</td>

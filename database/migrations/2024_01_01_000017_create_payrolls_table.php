@@ -33,6 +33,7 @@ return new class extends Migration
         $table->decimal('tax_deduction', 15, 2)->default(0);
         $table->decimal('insurance_deduction', 15, 2)->default(0);
         $table->decimal('loan_deduction', 15, 2)->default(0);
+        $table->decimal('normal_deduction',15,2)->default(0);
         $table->decimal('other_deductions', 15, 2)->default(0);
         $table->decimal('total_deductions', 15, 2)->default(0);
         $table->decimal('net_salary', 15, 2);

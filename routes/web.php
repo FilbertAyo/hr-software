@@ -174,10 +174,16 @@ Route::middleware('auth')->group(function () {
         Route::get('/{leave}/edit', [LeaveController::class, 'edit'])->name('edit');
         Route::put('/{leave}', [LeaveController::class, 'update'])->name('update');
         Route::delete('/{leave}', [LeaveController::class, 'destroy'])->name('destroy');
+        Route::patch('/{leave}/approve', [LeaveController::class, 'approve'])->name('approve');
+        Route::patch('/{leave}/reject', [LeaveController::class, 'reject'])->name('reject');
     });
 
     // API route for getting leave type details
     Route::get('/api/leave-types/{id}', [LeaveController::class, 'getLeaveTypeDetails'])->name('api.leave-types.details');
+    // API route for getting leave types filtered by employee gender
+    Route::get('/api/leave-types/employee/{employeeId}', [LeaveController::class, 'getLeaveTypesByGender'])->name('api.leave-types.by-gender');
+    // API route for checking completed leaves
+    Route::get('/api/leaves/check-completed', [LeaveController::class, 'checkCompletedLeaves'])->name('api.leaves.check-completed');
 
 
 

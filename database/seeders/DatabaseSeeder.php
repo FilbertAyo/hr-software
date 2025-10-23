@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(AllowancesBenefitsSeeder::class);
         $this->call(DirectDeductionsSeeder::class);
         $this->call(TaxTableSeeder::class);
+        $this->call(LeaveTypesSeeder::class);
         $this->call(CompanyUserSeeder::class);
         $this->call(EmployeesSeeder::class);
 
