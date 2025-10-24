@@ -31,7 +31,16 @@ class AttendanceController extends Controller
         if ($selectedPeriodId) {
             $payrollPeriod = PayrollPeriod::find($selectedPeriodId);
         } else {
-            $payrollPeriod = $payrollPeriods->first();
+            // Use globally selected current payroll period from session if available
+            $payrollPeriod = session('current_payroll_period');
+            if (!$payrollPeriod) {
+                // Fallback to detecting by dates, then latest
+                $payrollPeriod = PayrollPeriod::where('company_id', $companyId)
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->orderBy('start_date', 'desc')
+                    ->first() ?? $payrollPeriods->first();
+            }
         }
 
         // Get employees with attendance data for the selected period
@@ -50,10 +59,12 @@ class AttendanceController extends Controller
                 ->where('employee_status', 'active')
                 ->with([
                     'absentRecords' => function ($query) use ($payrollPeriod) {
-                        $query->where('status', 'approved');
+                        $query->where('status', 'approved')
+                              ->where('payroll_period_id', $payrollPeriod->id);
                     },
                     'lateRecords' => function ($query) use ($payrollPeriod) {
-                        $query->where('status', 'approved');
+                        $query->where('status', 'approved')
+                              ->where('payroll_period_id', $payrollPeriod->id);
                     }
                 ])
                 ->get();
@@ -61,16 +72,16 @@ class AttendanceController extends Controller
             // Calculate statistics
             $attendanceStats['total_employees'] = $employees->count();
             $attendanceStats['employees_with_absent'] = $employees->filter(function ($emp) {
-                return $emp->absentRecords->count() > 0;
+                return $emp->absentRecords->sum('absent_days') > 0;
             })->count();
             $attendanceStats['employees_with_late'] = $employees->filter(function ($emp) {
-                return $emp->lateRecords->count() > 0;
+                return $emp->lateRecords->sum('late_hours') > 0;
             })->count();
             $attendanceStats['total_absent_days'] = $employees->sum(function ($emp) {
-                return $emp->absentRecords->count();
+                return $emp->absentRecords->sum('absent_days');
             });
             $attendanceStats['total_late_hours'] = $employees->sum(function ($emp) {
-                return $emp->lateRecords->sum('late_minutes') / 60; // Convert minutes to hours
+                return $emp->lateRecords->sum('late_hours');
             });
             $attendanceStats['total_deduction_amount'] = $this->calculateTotalAttendanceDeductions($employees, $payrollPeriod);
         }
@@ -83,212 +94,139 @@ class AttendanceController extends Controller
         ));
     }
 
-    /**
-     * Show form to add attendance records
-     */
-    public function create(Request $request)
+
+        public function create()
     {
         $companyId = session('selected_company_id');
 
-        // Get current payroll period from session (set by middleware)
-        $currentPayrollPeriod = session('current_payroll_period');
+        // Get current payroll period
+        $currentPayrollPeriod = PayrollPeriod::where('company_id', $companyId)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
 
-        if (!$currentPayrollPeriod) {
-            return redirect()->route('absent-late.index')
-                ->with('error', 'No current payroll period found. Please create a payroll period first.');
-        }
-
+        // Get all active employees
         $employees = Employee::where('company_id', $companyId)
             ->where('employee_status', 'active')
             ->orderBy('employee_name')
             ->get();
 
-        return view('attendance.create', compact('employees', 'currentPayrollPeriod'));
+        return view('attendance.create', compact('currentPayrollPeriod', 'employees'));
     }
 
-    /**
-     * Store attendance records
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'employee_id' => 'required|exists:employees,id',
-            'reason' => 'required|string|max:255',
-            'notes' => 'nullable|string|max:500',
-            'absent_days' => 'nullable|integer|min:0|max:31',
-            'late_hours' => 'nullable|numeric|min:0|max:24',
-            'payroll_period_id' => 'required|exists:payroll_periods,id',
-        ]);
-
-        // Ensure at least one attendance type is provided
-        $absentDays = $request->absent_days ?? 0;
-        $lateHours = $request->late_hours ?? 0;
-
-        if ($absentDays == 0 && $lateHours == 0) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Please enter either absent days or late hours.');
-        }
-
-        try {
-            DB::beginTransaction();
-
-            $payrollPeriod = PayrollPeriod::findOrFail($request->payroll_period_id);
-            $employee = Employee::findOrFail($request->employee_id);
-
-            // Check if record already exists for the same date
-            $existingRecord = Attendance::where('employee_id', $request->employee_id)
-                ->whereIn('attendance_type', ['absent', 'late'])
-                ->where('status', 'approved')
-                ->first();
-
-            if ($existingRecord) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', 'Attendance record already exists for this employee on the selected date.');
-            }
-
-            // Create absent record if absent days > 0
-            if ($absentDays > 0) {
-                Attendance::create([
-                    'employee_id' => $request->employee_id,
-                    'attendance_type' => 'absent',
-                    'reason' => $request->reason,
-                    'notes' => $request->notes,
-                    'status' => 'approved',
-                    'approved_by' => Auth::id(),
-                    'approved_at' => now(),
-                    'is_absent' => true,
-                ]);
-            }
-
-            // Create late record if late hours > 0
-            if ($lateHours > 0) {
-                Attendance::create([
-                    'employee_id' => $request->employee_id,
-                    'attendance_type' => 'late',
-                    'reason' => $request->reason,
-                    'notes' => $request->notes,
-                    'status' => 'approved',
-                    'approved_by' => Auth::id(),
-                    'approved_at' => now(),
-                    'is_late' => true,
-                    'late_time' => now()->format('H:i:s'),
-                    'expected_time' => '08:00:00',
-                    'late_minutes' => $lateHours * 60, // Convert hours to minutes
-                ]);
-            }
-
-            DB::commit();
-
-            $message = [];
-            if ($absentDays > 0) $message[] = "{$absentDays} absent day(s)";
-            if ($lateHours > 0) $message[] = "{$lateHours} late hour(s)";
-
-            return redirect()->route('absent-late.index')
-                ->with('success', 'Attendance record added successfully: ' . implode(', ', $message));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error adding attendance record: ' . $e->getMessage());
-        }
-    }
-
-
-
-    public function bulkCreate(Request $request)
-    {
-        $companyId = session('selected_company_id');
-
-        // Get current payroll period from session (set by middleware)
-        $currentPayrollPeriod = session('current_payroll_period');
-
-        if (!$currentPayrollPeriod) {
-            return redirect()->route('absent-late.index')
-                ->with('error', 'No current payroll period found. Please create a payroll period first.');
-        }
-
-        $employees = Employee::where('company_id', $companyId)
-            ->where('employee_status', 'active')
-            ->orderBy('employee_name')
-            ->get();
-
-        return view('attendance.bulk-create', compact('employees', 'currentPayrollPeriod'));
-    }
-
-    /**
-     * Store bulk attendance records
-     */
-    public function bulkStore(Request $request)
-    {
-        $request->validate([
-            'attendance_records' => 'required|array|min:1',
-            'attendance_records.*.employee_id' => 'required|exists:employees,id',
-            'attendance_records.*.attendance_type' => 'required|in:absent,late',
-            'attendance_records.*.reason' => 'required|string|max:255',
-            'attendance_records.*.notes' => 'nullable|string|max:500',
-            'attendance_records.*.absent_days' => 'required_if:attendance_records.*.attendance_type,absent|integer|min:1|max:31',
-            'attendance_records.*.late_hours' => 'required_if:attendance_records.*.attendance_type,late|numeric|min:0.5|max:24',
-            'attendance_records.*.expected_time' => 'required_if:attendance_records.*.attendance_type,late|date_format:H:i',
-            'attendance_records.*.late_time' => 'required_if:attendance_records.*.attendance_type,late|date_format:H:i',
-            'payroll_period_id' => 'required|exists:payroll_periods,id',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $payrollPeriod = PayrollPeriod::findOrFail($request->payroll_period_id);
-            $processedCount = 0;
-
-            foreach ($request->attendance_records as $record) {
-                $activityData = [
-                    'employee_id' => $record['employee_id'],
-                    'attendance_type' => $record['attendance_type'],
-                    'reason' => $record['reason'],
-                    'notes' => $record['notes'] ?? null,
-                    'status' => 'approved',
-                    'approved_by' => Auth::id(),
-                    'approved_at' => now(),
-                ];
-
-                if ($record['attendance_type'] === 'absent') {
-                    $activityData = array_merge($activityData, [
-                        'is_absent' => true,
-                    ]);
-                } else {
-                    $activityData = array_merge($activityData, [
-                        'is_late' => true,
-                        'late_time' => $record['late_time'],
-                        'expected_time' => $record['expected_time'],
-                        'late_minutes' => $record['late_hours'] * 60, // Convert hours to minutes
-                    ]);
-                }
-
-                Attendance::create($activityData);
-                $processedCount++;
-            }
-
-            DB::commit();
-
-            return redirect()->route('absent-late.index')
-                ->with('success', "Successfully added {$processedCount} attendance records.");
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Error adding attendance records: ' . $e->getMessage());
-        }
-    }
 
     /**
      * Show attendance details for an employee
      */
     public function show($id)
     {
-        $employee = Employee::findOrFail($id);
+        $companyId = session('selected_company_id');
+        $currentPeriod = session('current_payroll_period');
+
+        $employee = Employee::with([
+            'absentRecords' => function ($q) use ($currentPeriod) {
+                if ($currentPeriod) {
+                    $q->where('payroll_period_id', $currentPeriod->id);
+                }
+            },
+            'lateRecords' => function ($q) use ($currentPeriod) {
+                if ($currentPeriod) {
+                    $q->where('payroll_period_id', $currentPeriod->id);
+                }
+            }
+        ])->findOrFail($id);
 
         return view('attendance.show', compact('employee'));
+    }
+
+    /**
+     * Show bulk create page for current payroll period
+     */
+    public function bulkCreate(Request $request)
+    {
+        $companyId = session('selected_company_id');
+
+        $currentPayrollPeriod = session('current_payroll_period');
+
+        $employees = Employee::where('company_id', $companyId)
+            ->where('employee_status', 'active')
+            ->orderBy('employee_name')
+            ->get();
+
+        return view('attendance.bulk-create', compact('currentPayrollPeriod', 'employees'));
+    }
+
+    /**
+     * Handle bulk store of attendance records
+     */
+    public function bulkStore(Request $request)
+    {
+        $request->validate([
+            'payroll_period_id' => 'required|exists:payroll_periods,id',
+            'attendance_records' => 'required|array|min:1',
+            'attendance_records.*.employee_id' => 'required|exists:employees,id',
+            'attendance_records.*.attendance_type' => 'required|in:absent,late',
+            'attendance_records.*.reason' => 'required|string|max:500',
+            'attendance_records.*.notes' => 'nullable|string|max:1000',
+            'attendance_records.*.absent_days' => 'nullable|integer|min:1|max:31',
+            'attendance_records.*.expected_time' => 'nullable|string',
+            'attendance_records.*.late_time' => 'nullable|string',
+            'attendance_records.*.late_hours' => 'nullable|numeric|min:0.5|max:24',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $created = 0;
+            foreach ($request->attendance_records as $rec) {
+                $type = $rec['attendance_type'];
+                if ($type === 'absent') {
+                    $days = (int)($rec['absent_days'] ?? 0);
+                    if ($days <= 0) continue;
+                    Attendance::create([
+                        'employee_id' => $rec['employee_id'],
+                        'payroll_period_id' => $request->payroll_period_id,
+                        'attendance_type' => 'absent',
+                        'reason' => $rec['reason'] ?? null,
+                        'notes' => $rec['notes'] ?? null,
+                        'status' => 'approved',
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                        'is_absent' => true,
+                        'absent_days' => $days,
+                    ]);
+                    $created++;
+                } elseif ($type === 'late') {
+                    $hours = (float)($rec['late_hours'] ?? 0);
+                    if ($hours <= 0) continue;
+                    Attendance::create([
+                        'employee_id' => $rec['employee_id'],
+                        'payroll_period_id' => $request->payroll_period_id,
+                        'attendance_type' => 'late',
+                        'reason' => $rec['reason'] ?? null,
+                        'notes' => $rec['notes'] ?? null,
+                        'status' => 'approved',
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                        'is_late' => true,
+                        'expected_time' => $rec['expected_time'] ?? '08:00:00',
+                        'late_time' => $rec['late_time'] ?? now()->format('H:i:s'),
+                        'late_minutes' => (int)round($hours * 60),
+                        'late_hours' => $hours,
+                    ]);
+                    $created++;
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('absent-late.index')
+                ->with('success', "Bulk saved {$created} attendance record(s) successfully.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->withInput()
+                ->with('error', 'Error during bulk save: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -346,19 +284,22 @@ class AttendanceController extends Controller
         // Absent deductions
         $absentRecords = $employee->absentRecords()
             ->where('status', 'approved')
+            ->where('payroll_period_id', $payrollPeriod->id)
             ->get();
 
         foreach ($absentRecords as $record) {
-            $totalDeduction += $dailySalary; // Each absent record counts as 1 day
+            $days = $record->absent_days ?? 0;
+            $totalDeduction += ($dailySalary * $days);
         }
 
         // Late deductions (assuming 1 hour late = 0.125 of daily salary)
         $lateRecords = $employee->lateRecords()
             ->where('status', 'approved')
+            ->where('payroll_period_id', $payrollPeriod->id)
             ->get();
 
         foreach ($lateRecords as $record) {
-            $lateHours = ($record->late_minutes ?? 0) / 60; // Convert minutes to hours
+            $lateHours = $record->late_hours ?? (($record->late_minutes ?? 0) / 60); // Support either field
             $lateDeduction = ($dailySalary / 8) * $lateHours; // 8 hours per day
             $totalDeduction += $lateDeduction;
         }
@@ -400,27 +341,280 @@ class AttendanceController extends Controller
     }
 
     /**
+     * Absent & Late Management (merged from AbsentLateController)
+     */
+    public function absentLateIndex()
+    {
+        $companyId = session('selected_company_id');
+
+        $currentPeriod = session('current_payroll_period');
+
+        if (!$currentPeriod) {
+            return view('attendance.absentlate', [
+                'currentPeriod' => null,
+                'employees' => collect(),
+                'attendanceRecords' => collect()
+            ]);
+        }
+
+        $employees = Employee::where('company_id', $companyId)
+            ->where('employee_status', 'active')
+            ->orderBy('employee_name')
+            ->get();
+
+        $attendanceRecords = Attendance::with('employee')
+            ->where('payroll_period_id', $currentPeriod->id)
+            ->whereIn('attendance_type', ['absent', 'late'])
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('employee_id');
+
+        return view('attendance.absentlate', compact(
+            'currentPeriod',
+            'employees',
+            'attendanceRecords'
+        ));
+    }
+
+    public function absentLateStore(Request $request)
+    {
+        $request->validate([
+            'employee_id' => 'required|exists:employees,id',
+            'payroll_period_id' => 'required|exists:payroll_periods,id',
+            'absent_days' => 'nullable|integer|min:0|max:31',
+            'late_hours' => 'nullable|numeric|min:0|max:24',
+            'reason' => 'required|string|max:500',
+            'notes' => 'nullable|string|max:1000',
+        ], [
+            'employee_id.required' => 'Please select an employee.',
+            'payroll_period_id.required' => 'Payroll period is required.',
+            'reason.required' => 'Please provide a reason for absence or lateness.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $absentDays = $request->absent_days ?? 0;
+            $lateHours = $request->late_hours ?? 0;
+
+            if ($absentDays == 0 && $lateHours == 0) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Please enter either absent days or late hours.');
+            }
+
+            $existingRecord = Attendance::where('employee_id', $request->employee_id)
+                ->where('payroll_period_id', $request->payroll_period_id)
+                ->whereIn('attendance_type', ['absent', 'late'])
+                ->exists();
+
+            if ($existingRecord) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Attendance record already exists for this employee in this payroll period.');
+            }
+
+            if ($absentDays > 0) {
+                Attendance::create([
+                    'employee_id' => $request->employee_id,
+                    'payroll_period_id' => $request->payroll_period_id,
+                    'attendance_type' => 'absent',
+                    'reason' => $request->reason,
+                    'notes' => $request->notes,
+                    'status' => 'approved',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now(),
+                    'is_absent' => true,
+                    'absent_days' => $absentDays,
+                ]);
+            }
+
+            if ($lateHours > 0) {
+                Attendance::create([
+                    'employee_id' => $request->employee_id,
+                    'payroll_period_id' => $request->payroll_period_id,
+                    'attendance_type' => 'late',
+                    'reason' => $request->reason,
+                    'notes' => $request->notes,
+                    'status' => 'approved',
+                    'approved_by' => Auth::id(),
+                    'approved_at' => now(),
+                    'is_late' => true,
+                    'late_time' => now()->format('H:i:s'),
+                    'expected_time' => '08:00:00',
+                    'late_minutes' => $lateHours * 60,
+                    'late_hours' => $lateHours,
+                ]);
+            }
+
+            DB::commit();
+
+            $message = [];
+            if ($absentDays > 0) $message[] = "{$absentDays} absent day(s)";
+            if ($lateHours > 0) $message[] = "{$lateHours} late hour(s)";
+
+            return redirect()->route('absent-late.index')
+                ->with('success', 'Attendance recorded successfully: ' . implode(', ', $message));
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error recording attendance: ' . $e->getMessage());
+        }
+    }
+
+    public function absentLateUpdate(Request $request, $id)
+    {
+        $request->validate([
+            'absent_days' => 'nullable|integer|min:0|max:31',
+            'late_hours' => 'nullable|numeric|min:0|max:24',
+            'reason' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $record = Attendance::findOrFail($id);
+
+            if ($record->attendance_type === 'absent') {
+                $record->update([
+                    'absent_days' => $request->absent_days ?? 0,
+                    'reason' => $request->reason ?? $record->reason,
+                ]);
+            } elseif ($record->attendance_type === 'late') {
+                $lateHours = $request->late_hours ?? 0;
+                $record->update([
+                    'late_hours' => $lateHours,
+                    'late_minutes' => $lateHours * 60,
+                    'reason' => $request->reason ?? $record->reason,
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->back()->with('success', 'Attendance record updated successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Error updating attendance: ' . $e->getMessage());
+        }
+    }
+
+    public function absentLateDestroy($id)
+    {
+        try {
+            $record = Attendance::findOrFail($id);
+            $record->delete();
+
+            return redirect()->back()->with('success', 'Attendance record deleted successfully.');
+
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error deleting attendance: ' . $e->getMessage());
+        }
+    }
+
+    public function getEmployeeSummary($employeeId)
+    {
+        $companyId = session('selected_company_id');
+
+        $currentPeriod = PayrollPeriod::where('company_id', $companyId)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->first();
+
+        if (!$currentPeriod) {
+            return response()->json(['error' => 'No current payroll period found.'], 404);
+        }
+
+        $employee = Employee::findOrFail($employeeId);
+
+        $absentDays = Attendance::where('employee_id', $employeeId)
+            ->where('payroll_period_id', $currentPeriod->id)
+            ->where('attendance_type', 'absent')
+            ->where('status', 'approved')
+            ->sum('absent_days');
+
+        $lateHours = Attendance::where('employee_id', $employeeId)
+            ->where('payroll_period_id', $currentPeriod->id)
+            ->where('attendance_type', 'late')
+            ->where('status', 'approved')
+            ->sum('late_hours');
+
+        $workingDays = $employee->working_days_per_month ?? 26;
+        $workingHours = $employee->working_hours_per_day ?? 8;
+
+        $dailySalary = $employee->basic_salary / $workingDays;
+        $hourlySalary = $dailySalary / $workingHours;
+
+        $absentDeduction = $dailySalary * $absentDays;
+        $lateDeduction = $hourlySalary * $lateHours;
+        $totalDeduction = $absentDeduction + $lateDeduction;
+
+        return response()->json([
+            'employee' => [
+                'id' => $employee->id,
+                'name' => $employee->employee_name,
+                'employee_id' => $employee->employeeID,
+                'basic_salary' => $employee->basic_salary,
+                'working_days_per_month' => $workingDays,
+                'working_hours_per_day' => $workingHours,
+            ],
+            'attendance' => [
+                'absent_days' => $absentDays,
+                'late_hours' => round($lateHours, 2),
+            ],
+            'deductions' => [
+                'daily_salary' => round($dailySalary, 2),
+                'hourly_salary' => round($hourlySalary, 2),
+                'absent_deduction' => round($absentDeduction, 2),
+                'late_deduction' => round($lateDeduction, 2),
+                'total_deduction' => round($totalDeduction, 2),
+            ]
+        ]);
+    }
+
+    /**
      * Export attendance data
      */
     public function export(Request $request)
     {
         $companyId = session('selected_company_id');
         $payrollPeriodId = $request->get('payroll_period_id');
-
-        if (!$payrollPeriodId) {
-            return redirect()->back()->with('error', 'Please select a payroll period to export.');
+        
+        if ($payrollPeriodId) {
+            $payrollPeriod = PayrollPeriod::findOrFail($payrollPeriodId);
+        } else {
+            // Fallbacks: session current period -> active by date -> latest by start_date
+            $payrollPeriod = session('current_payroll_period');
+            if (!$payrollPeriod) {
+                $payrollPeriod = PayrollPeriod::where('company_id', $companyId)
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now())
+                    ->orderBy('start_date', 'desc')
+                    ->first();
+            }
+            if (!$payrollPeriod) {
+                $payrollPeriod = PayrollPeriod::where('company_id', $companyId)
+                    ->orderBy('start_date', 'desc')
+                    ->first();
+            }
+            if (!$payrollPeriod) {
+                return redirect()->back()->with('error', 'Please select a payroll period to export.');
+            }
         }
-
-        $payrollPeriod = PayrollPeriod::findOrFail($payrollPeriodId);
 
         $employees = Employee::where('company_id', $companyId)
             ->where('employee_status', 'active')
             ->with([
                 'absentRecords' => function ($query) use ($payrollPeriod) {
-                    $query->where('status', 'approved');
+                    $query->where('status', 'approved')
+                          ->where('payroll_period_id', $payrollPeriod->id);
                 },
                 'lateRecords' => function ($query) use ($payrollPeriod) {
-                    $query->where('status', 'approved');
+                    $query->where('status', 'approved')
+                          ->where('payroll_period_id', $payrollPeriod->id);
                 }
             ])
             ->get();
@@ -430,8 +624,8 @@ class AttendanceController extends Controller
         $csvData[] = ['Employee ID', 'Employee Name', 'Absent Days', 'Late Hours', 'Total Deduction'];
 
         foreach ($employees as $employee) {
-            $absentDays = $employee->absentRecords->count();
-            $lateHours = $employee->lateRecords->sum('late_minutes') / 60; // Convert minutes to hours
+            $absentDays = $employee->absentRecords->sum('absent_days');
+            $lateHours = $employee->lateRecords->sum('late_hours');
             $deduction = $this->calculateAttendanceDeductions($employee, $payrollPeriod);
 
             $csvData[] = [

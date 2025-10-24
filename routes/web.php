@@ -6,7 +6,6 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\EarngroupController;
 use App\Http\Controllers\EducationController;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\JobController;
 use App\Http\Controllers\JobtitleController;
 use App\Http\Controllers\holidayController;
 use App\Http\Controllers\companyController;
@@ -47,7 +46,6 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\AbsentLateController;
 use App\Http\Controllers\ShiftController;
 
 Route::get('/', function () {
@@ -261,13 +259,13 @@ Route::middleware('auth')->group(function () {
     //enable and disable user
     Route::post('/user/toggle-status/{id}', [ProfileController::class, 'toggleStatus'])->name('user.toggleStatus');
 
-    // Absent & Late Management Routes
+    // Absent & Late Management Routes (merged into AttendanceController)
     Route::prefix('absent-late')->name('absent-late.')->group(function () {
-        Route::get('/', [AbsentLateController::class, 'index'])->name('index');
-        Route::post('/', [AbsentLateController::class, 'store'])->name('store');
-        Route::put('/{id}', [AbsentLateController::class, 'update'])->name('update');
-        Route::delete('/{id}', [AbsentLateController::class, 'destroy'])->name('destroy');
-        Route::get('/employee/{id}/summary', [AbsentLateController::class, 'getEmployeeSummary'])->name('employee.summary');
+        Route::get('/', [AttendanceController::class, 'absentLateIndex'])->name('index');
+        Route::post('/', [AttendanceController::class, 'absentLateStore'])->name('store');
+        Route::put('/{id}', [AttendanceController::class, 'absentLateUpdate'])->name('update');
+        Route::delete('/{id}', [AttendanceController::class, 'absentLateDestroy'])->name('destroy');
+        Route::get('/employee/{id}/summary', [AttendanceController::class, 'getEmployeeSummary'])->name('employee.summary');
     });
 
     // Shift Management Routes
@@ -295,7 +293,7 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    
+
 });
 
 

@@ -420,13 +420,18 @@
                                                         );
                                                     }
 
-                                                    // Get attendance deduction for preview
+                                                    // Get attendance deduction for preview (current period only)
                                                     $attendanceDeduction = 0;
                                                     if ($payrollPeriod) {
-                                                        $attendanceDeduction = $employee->getAttendanceDeductionForPeriod(
-                                                            $payrollPeriod->start_date,
-                                                            $payrollPeriod->end_date,
-                                                        );
+                                                        $workingDays = \Carbon\Carbon::parse($payrollPeriod->start_date)
+                                                            ->diffInDaysFiltered(function($date) { return $date->isWeekday(); }, \Carbon\Carbon::parse($payrollPeriod->end_date)) + 1;
+                                                        $workingDays = max(1, $workingDays);
+                                                        $dailySalary = ($basicSalary ?? 0) / $workingDays;
+
+                                                        $absentDays = $employee->absentRecords->sum('absent_days');
+                                                        $lateHours = $employee->lateRecords->sum('late_hours');
+
+                                                        $attendanceDeduction = ($dailySalary * $absentDays) + (($dailySalary / 8) * $lateHours);
                                                     }
 
                                                     // Calculate total deductions (preview: pension + advance + loan + attendance + other deductions only)

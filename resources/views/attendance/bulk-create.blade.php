@@ -1,32 +1,31 @@
 <x-app-layout>
     <!-- Page Header -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="page-header">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h1 class="page-title">Bulk Add Attendance Records</h1>
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{{ route('attendance.index') }}">Attendance Management</a></li>
-                            <li class="breadcrumb-item active">Bulk Add</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
+        <div class="row align-items-center mb-3 border-bottom no-gutters">
+        <div class="col">
+            <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="absent-late-tab" data-toggle="tab" href="#absent-late" role="tab"
+                        aria-controls="absent-late" aria-selected="true">Bulk Add Attendance Records</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-auto">
+            <a href="{{ route('attendance.index') }}" class="btn btn-sm btn-secondary">
+                <i class="fe fe-arrow-left"></i> Back to Attendance
+            </a>
         </div>
     </div>
+
 
     @if($currentPayrollPeriod)
     <div class="row">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Bulk Attendance Entry</h3>
-                </div>
+             
                 <div class="card-body">
                     <div class="alert alert-info">
-                        <strong>Current Payroll Period:</strong> {{ $currentPayrollPeriod->period_name }} 
+                        <strong>Current Payroll Period:</strong> {{ $currentPayrollPeriod->period_name }}
                         ({{ $currentPayrollPeriod->start_date->format('M d, Y') }} - {{ $currentPayrollPeriod->end_date->format('M d, Y') }})
                     </div>
 
@@ -93,7 +92,7 @@
                                 </select>
                             </div>
                         </div>
-                     
+
                         <div class="col-md-3">
                             <div class="form-group">
                                 <label class="form-label">Reason <span class="text-danger">*</span></label>
@@ -107,7 +106,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Absent Fields -->
                     <div class="row absent-fields" style="display: none;">
                         <div class="col-md-3">
@@ -117,7 +116,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Late Fields -->
                     <div class="row late-fields" style="display: none;">
                         <div class="col-md-2">
@@ -194,13 +193,13 @@
         if (lastRecord.length > 0) {
             addAttendanceRecord();
             const newRecord = $('.attendance-record').last();
-            
+
             // Copy values from last record
             newRecord.find('.employee-select').val(lastRecord.find('.employee-select').val());
             newRecord.find('.attendance-type').val(lastRecord.find('.attendance-type').val());
             newRecord.find('input[name*="[reason]"]').val(lastRecord.find('input[name*="[reason]"]').val());
             newRecord.find('input[name*="[notes]"]').val(lastRecord.find('input[name*="[notes]"]').val());
-            
+
             // Trigger change events
             newRecord.find('.attendance-type').trigger('change');
         } else {
@@ -210,14 +209,11 @@
 
     function addAttendanceRecord() {
         const template = document.getElementById('attendanceRecordTemplate');
-        const clone = template.content.cloneNode(true);
-        
-        // Replace INDEX with actual index
-        clone.innerHTML = clone.innerHTML.replace(/INDEX/g, recordIndex);
-        
-        $('#attendanceRecords').append(clone);
+        const html = template.innerHTML.replace(/INDEX/g, recordIndex);
+
+        $('#attendanceRecords').append(html);
         recordIndex++;
-        
+
         updateSubmitButton();
         attachEventHandlers($('.attendance-record').last());
     }
@@ -228,7 +224,7 @@
             const type = $(this).val();
             const absentFields = record.find('.absent-fields');
             const lateFields = record.find('.late-fields');
-            
+
             if (type === 'absent') {
                 absentFields.show();
                 lateFields.hide();
@@ -256,11 +252,11 @@
         record.find('.expected-time, .late-time').change(function() {
             const expectedTime = record.find('.expected-time').val();
             const lateTime = record.find('.late-time').val();
-            
+
             if (expectedTime && lateTime) {
                 const expected = new Date('2000-01-01 ' + expectedTime);
                 const late = new Date('2000-01-01 ' + lateTime);
-                
+
                 if (late > expected) {
                     const diffMs = late - expected;
                     const diffHours = diffMs / (1000 * 60 * 60);
@@ -301,8 +297,8 @@
             const employeeId = record.find('.employee-select').val();
             const type = record.find('.attendance-type').val();
             const reason = record.find('input[name*="[reason]"]').val();
-            
-            if (!employeeId || !type || !date || !reason) {
+
+            if (!employeeId || !type || !reason) {
                 isValid = false;
                 record.addClass('border-danger');
             } else {

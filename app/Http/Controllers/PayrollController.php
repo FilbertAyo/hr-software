@@ -25,13 +25,13 @@ class PayrollController extends Controller
         $payrollPeriods = PayrollPeriod::where('company_id', $companyId)
             ->orderBy('start_date', 'desc')->get();
 
-        // Get selected payroll period or default to latest
+        // Get selected payroll period or default to session current, else latest
         $selectedPeriodId = $request->get('payroll_period_id');
 
         if ($selectedPeriodId) {
             $payrollPeriod = PayrollPeriod::find($selectedPeriodId);
         } else {
-            $payrollPeriod = $payrollPeriods->first(); // Get latest period
+            $payrollPeriod = session('current_payroll_period') ?: $payrollPeriods->first();
         }
 
         // If no payroll period exists, show empty state
@@ -62,6 +62,14 @@ class PayrollController extends Controller
                 'earngroups.groupBenefits.allowance.allowanceDetails',
                 'loans.installments' => function($query) use ($payrollPeriod) {
                     $query->whereBetween('due_date', [$payrollPeriod->start_date, $payrollPeriod->end_date]);
+                },
+                'absentRecords' => function($q) use ($payrollPeriod) {
+                    $q->where('status', 'approved')
+                      ->where('payroll_period_id', $payrollPeriod->id);
+                },
+                'lateRecords' => function($q) use ($payrollPeriod) {
+                    $q->where('status', 'approved')
+                      ->where('payroll_period_id', $payrollPeriod->id);
                 }
             ])->get();
 
@@ -463,19 +471,22 @@ class PayrollController extends Controller
         // Absent deductions
         $absentRecords = $employee->absentRecords()
             ->where('status', 'approved')
+            ->where('payroll_period_id', $payrollPeriod->id)
             ->get();
 
         foreach ($absentRecords as $record) {
-            $totalDeduction += $dailySalary * $record->used_days;
+            $days = $record->absent_days ?? 0;
+            $totalDeduction += $dailySalary * $days;
         }
 
         // Late deductions (assuming 1 hour late = 0.125 of daily salary)
         $lateRecords = $employee->lateRecords()
             ->where('status', 'approved')
+            ->where('payroll_period_id', $payrollPeriod->id)
             ->get();
 
         foreach ($lateRecords as $record) {
-            $lateHours = $record->amount ?? 0; // amount field stores late hours
+            $lateHours = $record->late_hours ?? (($record->late_minutes ?? 0) / 60);
             $lateDeduction = ($dailySalary / 8) * $lateHours; // 8 hours per day
             $totalDeduction += $lateDeduction;
         }

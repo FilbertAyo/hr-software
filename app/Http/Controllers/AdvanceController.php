@@ -41,10 +41,7 @@ class AdvanceController extends Controller
         return view("advance.index", compact("advances", "employees", "currentPayrollPeriod"));
     }
 
-    public function create()
-    {
-        //
-    }
+  
 
     /**
      * Store a newly created resource in storage.

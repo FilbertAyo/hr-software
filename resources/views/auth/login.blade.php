@@ -85,7 +85,7 @@
                     return response.json();
                 })
                 .then(data => {
-                    companySelect.innerHTML = '<option value="">Select Company</option>';
+                    companySelect.innerHTML = '';
 
                     if (data.companies && data.companies.length > 0) {
                         data.companies.forEach(company => {
@@ -107,7 +107,7 @@
                     companySelect.innerHTML = '<option value="">Error loading companies - Check console for details</option>';
                 });
             } else {
-                companySelect.innerHTML = '<option value="">Select Company</option>';
+                companySelect.innerHTML = '';
             }
         });
     </script>
