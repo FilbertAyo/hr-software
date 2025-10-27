@@ -203,7 +203,8 @@
                     <div class="alert alert-warning">
                         <h6><strong>Late Records:</strong></h6>
                         <p class="mb-2">• Deducted proportionally</p>
-                        <p class="mb-0">• Hourly deduction = Daily salary ÷ 8 hours</p>
+                        <p class="mb-0">• Hourly deduction = Daily salary ÷ Working hours per day</p>
+                        <p class="mb-0 mt-1"><small>(Uses shift working hours if employee has a shift assigned)</small></p>
                     </div>
 
                     <div class="alert alert-secondary">

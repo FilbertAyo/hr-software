@@ -12,13 +12,17 @@ class Factor extends Model
         'general_factor_id',
         'factor_name',
         'description',
-        'weight',
-        'status'
     ];
 
-    protected $casts = [
-        'weight' => 'decimal:2'
-    ];
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::deleting(function ($factor) {
+            // Delete all sub-factors when factor is deleted
+            $factor->subFactors()->delete();
+        });
+    }
 
     public function generalFactor(): BelongsTo
     {

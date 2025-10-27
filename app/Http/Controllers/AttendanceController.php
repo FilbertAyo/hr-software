@@ -58,6 +58,7 @@ class AttendanceController extends Controller
             $employees = Employee::where('company_id', $companyId)
                 ->where('employee_status', 'active')
                 ->with([
+                    'shift',
                     'absentRecords' => function ($query) use ($payrollPeriod) {
                         $query->where('status', 'approved')
                               ->where('payroll_period_id', $payrollPeriod->id);
@@ -235,8 +236,8 @@ class AttendanceController extends Controller
     public function destroy(Request $request)
     {
         $request->validate([
-            'activity_ids' => 'required|array',
-            'activity_ids.*' => 'exists:employee_activities,id'
+            // 'activity_ids' => 'required|array',
+            // 'activity_ids.*' => 'exists:employee_activities,id'
         ]);
 
         try {
@@ -281,6 +282,14 @@ class AttendanceController extends Controller
         $totalDeduction = 0;
         $dailySalary = $employee->basic_salary / $this->getWorkingDaysInPeriod($payrollPeriod);
 
+        // Determine working hours per day - use shift if available
+        $workingHoursPerDay = $employee->working_hours_per_day ?? 8;
+        if ($employee->shift_id && $employee->shift) {
+            $workingHoursPerDay = $employee->shift->working_hours ?? $workingHoursPerDay;
+        }
+
+        $hourlySalary = $dailySalary / $workingHoursPerDay;
+
         // Absent deductions
         $absentRecords = $employee->absentRecords()
             ->where('status', 'approved')
@@ -292,7 +301,7 @@ class AttendanceController extends Controller
             $totalDeduction += ($dailySalary * $days);
         }
 
-        // Late deductions (assuming 1 hour late = 0.125 of daily salary)
+        // Late deductions - use calculated hourly salary based on shift or employee hours
         $lateRecords = $employee->lateRecords()
             ->where('status', 'approved')
             ->where('payroll_period_id', $payrollPeriod->id)
@@ -300,7 +309,7 @@ class AttendanceController extends Controller
 
         foreach ($lateRecords as $record) {
             $lateHours = $record->late_hours ?? (($record->late_minutes ?? 0) / 60); // Support either field
-            $lateDeduction = ($dailySalary / 8) * $lateHours; // 8 hours per day
+            $lateDeduction = $hourlySalary * $lateHours;
             $totalDeduction += $lateDeduction;
         }
 
@@ -545,6 +554,11 @@ class AttendanceController extends Controller
         $workingDays = $employee->working_days_per_month ?? 26;
         $workingHours = $employee->working_hours_per_day ?? 8;
 
+        // Use shift working hours if available
+        if ($employee->shift_id && $employee->shift) {
+            $workingHours = $employee->shift->working_hours ?? $workingHours;
+        }
+
         $dailySalary = $employee->basic_salary / $workingDays;
         $hourlySalary = $dailySalary / $workingHours;
 
@@ -582,7 +596,7 @@ class AttendanceController extends Controller
     {
         $companyId = session('selected_company_id');
         $payrollPeriodId = $request->get('payroll_period_id');
-        
+
         if ($payrollPeriodId) {
             $payrollPeriod = PayrollPeriod::findOrFail($payrollPeriodId);
         } else {
@@ -608,6 +622,7 @@ class AttendanceController extends Controller
         $employees = Employee::where('company_id', $companyId)
             ->where('employee_status', 'active')
             ->with([
+                'shift',
                 'absentRecords' => function ($query) use ($payrollPeriod) {
                     $query->where('status', 'approved')
                           ->where('payroll_period_id', $payrollPeriod->id);

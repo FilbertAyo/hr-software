@@ -3,42 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Evaluation;
-use App\Models\Department;
-use App\Models\GeneralFactor;
-use App\Models\RatingScale;
 use Illuminate\Http\Request;
 
 class EvaluationController extends Controller
 {
     public function index()
     {
-        $evaluations = Evaluation::with(['department', 'generalFactor', 'ratingScale'])->get();
+        $evaluations = Evaluation::query()->get();
         return view('performance.evaluations.index', compact('evaluations'));
     }
 
     public function create()
     {
-        $departments = Department::all();
-        $generalFactors = GeneralFactor::where('status', 'Active')->get();
-        $ratingScales = RatingScale::where('status', 'Active')->get();
-
-        return view('performance.evaluations.create', compact('departments', 'generalFactors', 'ratingScales'));
+        return redirect()->route('evaluations.index');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'evaluation_name' => 'required|string|max:255',
-            'department_id' => 'required|exists:departments,id',
-            'general_factor_id' => 'required|exists:general_factors,id',
-            'rating_scale_id' => 'required|exists:rating_scales,id',
-            'evaluation_period_start' => 'required|date',
-            'evaluation_period_end' => 'required|date|after_or_equal:evaluation_period_start',
-            'description' => 'nullable|string',
-            'status' => 'required|in:Draft,Active,Completed,Inactive'
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'status' => 'required|in:draft,active,completed,cancelled'
         ]);
 
-        Evaluation::create($request->all());
+        Evaluation::create($request->only(['evaluation_name','start_date','end_date','status']));
 
         return redirect()->route('evaluations.index')
                         ->with('success', 'Evaluation created successfully!');
@@ -46,33 +35,25 @@ class EvaluationController extends Controller
 
     public function show(Evaluation $evaluation)
     {
-        $evaluation->load(['department', 'generalFactor', 'ratingScale', 'employeeEvaluations']);
+        $evaluation->load(['employeeEvaluations']);
         return view('performance.evaluations.show', compact('evaluation'));
     }
 
     public function edit(Evaluation $evaluation)
     {
-        $departments = Department::where('status', 'Active')->get();
-        $generalFactors = GeneralFactor::where('status', 'Active')->get();
-        $ratingScales = RatingScale::where('status', 'Active')->get();
-
-        return view('performance.evaluations.edit', compact('evaluation', 'departments', 'generalFactors', 'ratingScales'));
+        return redirect()->route('evaluations.index');
     }
 
     public function update(Request $request, Evaluation $evaluation)
     {
         $request->validate([
             'evaluation_name' => 'required|string|max:255',
-            'department_id' => 'required|exists:departments,id',
-            'general_factor_id' => 'required|exists:general_factors,id',
-            'rating_scale_id' => 'required|exists:rating_scales,id',
-            'evaluation_period_start' => 'required|date',
-            'evaluation_period_end' => 'required|date|after_or_equal:evaluation_period_start',
-            'description' => 'nullable|string',
-            'status' => 'required|in:Draft,Active,Completed,Inactive'
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'status' => 'required|in:draft,active,completed,cancelled'
         ]);
 
-        $evaluation->update($request->all());
+        $evaluation->update($request->only(['evaluation_name','start_date','end_date','status']));
 
         return redirect()->route('evaluations.index')
                         ->with('success', 'Evaluation updated successfully!');
@@ -80,14 +61,10 @@ class EvaluationController extends Controller
 
     public function destroy(Evaluation $evaluation)
     {
-        if ($evaluation->employeeEvaluations()->count() > 0) {
-            return redirect()->route('evaluations.index')
-                            ->with('error', 'Cannot delete evaluation that has employee evaluations!');
-        }
-
         $evaluation->delete();
 
         return redirect()->route('evaluations.index')
                         ->with('success', 'Evaluation deleted successfully!');
     }
 }
+

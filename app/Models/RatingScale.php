@@ -10,12 +10,11 @@ class RatingScale extends Model
     protected $fillable = [
         'scale_name',
         'description',
-        'status'
     ];
 
     public function ratingScaleItems(): HasMany
     {
-        return $this->hasMany(RatingScaleItem::class)->orderBy('sort_order');
+        return $this->hasMany(RatingScaleItem::class);
     }
 
     public function evaluations(): HasMany

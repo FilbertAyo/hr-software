@@ -23,7 +23,7 @@
         <!-- Shifts Management Tab -->
         <div class="tab-pane fade show active" id="shifts" role="tabpanel" aria-labelledby="shifts-tab">
             <div class="row">
-                <div class="col-md-8">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Shifts</h3>
@@ -67,7 +67,7 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group" role="group">
-                                                    <button type="button" class="btn btn-sm btn-primary edit-shift" 
+                                                    <button type="button" class="btn btn-sm btn-primary edit-shift"
                                                             data-id="{{ $shift->id }}"
                                                             data-name="{{ $shift->shift_name }}"
                                                             data-start="{{ $shift->start_time }}"
@@ -76,11 +76,11 @@
                                                             data-description="{{ $shift->description }}">
                                                         <i class="fe fe-edit"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-sm btn-{{ $shift->is_active ? 'warning' : 'success' }} toggle-shift" 
+                                                    <button type="button" class="btn btn-sm btn-{{ $shift->is_active ? 'warning' : 'success' }} toggle-shift"
                                                             data-id="{{ $shift->id }}">
                                                         <i class="fe fe-{{ $shift->is_active ? 'pause' : 'play' }}"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-sm btn-danger delete-shift" 
+                                                    <button type="button" class="btn btn-sm btn-danger delete-shift"
                                                             data-id="{{ $shift->id }}"
                                                             data-name="{{ $shift->shift_name }}">
                                                         <i class="fe fe-trash-2"></i>
@@ -101,7 +101,7 @@
         <!-- Punch In/Out Tab -->
         <div class="tab-pane fade" id="punch" role="tabpanel" aria-labelledby="punch-tab">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Punch In/Out</h3>
@@ -344,7 +344,7 @@
         // Toggle shift status
         $('.toggle-shift').click(function() {
             const shiftId = $(this).data('id');
-            
+
             if (confirm('Are you sure you want to toggle this shift status?')) {
                 $.ajax({
                     url: `/shift/${shiftId}/toggle`,
@@ -366,7 +366,7 @@
         $('.delete-shift').click(function() {
             const shiftId = $(this).data('id');
             const shiftName = $(this).data('name');
-            
+
             if (confirm(`Are you sure you want to delete "${shiftName}"? This action cannot be undone.`)) {
                 $.ajax({
                     url: `/shift/${shiftId}`,
@@ -388,7 +388,7 @@
         $('.punch-action').click(function() {
             const employeeId = $('#punch_employee_id').val();
             const action = $(this).data('action');
-            
+
             if (!employeeId) {
                 alert('Please select an employee first.');
                 return;
@@ -426,10 +426,10 @@
         // Bulk punch form
         $('#bulkPunchForm').submit(function(e) {
             e.preventDefault();
-            
+
             const formData = new FormData(this);
             const employeeIds = $('#bulk_employee_ids').val();
-            
+
             if (!employeeIds || employeeIds.length === 0) {
                 alert('Please select at least one employee.');
                 return;

@@ -3,41 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Evaluation extends Model
 {
     protected $fillable = [
         'evaluation_name',
-        'department_id',
-        'general_factor_id',
-        'rating_scale_id',
-        'evaluation_period_start',
-        'evaluation_period_end',
+        'start_date',
+        'end_date',
         'description',
         'status'
     ];
 
     protected $casts = [
-        'evaluation_period_start' => 'date',
-        'evaluation_period_end' => 'date'
+        'start_date' => 'date',
+        'end_date' => 'date'
     ];
-
-    public function department(): BelongsTo
-    {
-        return $this->belongsTo(Department::class);
-    }
-
-    public function generalFactor(): BelongsTo
-    {
-        return $this->belongsTo(GeneralFactor::class);
-    }
-
-    public function ratingScale(): BelongsTo
-    {
-        return $this->belongsTo(RatingScale::class);
-    }
 
     public function employeeEvaluations(): HasMany
     {
@@ -46,11 +27,13 @@ class Evaluation extends Model
 
     public function getStatusBadgeClassAttribute(): string
     {
-        return match($this->status) {
-            'Active' => 'badge-success',
-            'Completed' => 'badge-info',
-            'Inactive' => 'badge-secondary',
-            default => 'badge-warning'
+        return match(strtolower($this->status)) {
+            'active' => 'badge-success',
+            'completed' => 'badge-info',
+            'cancelled' => 'badge-secondary',
+            'draft' => 'badge-warning',
+            default => 'badge-secondary'
         };
     }
 }
+

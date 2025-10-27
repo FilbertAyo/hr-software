@@ -10,14 +10,13 @@ class RatingScaleItem extends Model
 {
     protected $fillable = [
         'rating_scale_id',
-        'name',
+        'item_name',
         'score',
         'description',
-        'sort_order'
     ];
 
     protected $casts = [
-        'score' => 'decimal:2'
+        'score' => 'integer'
     ];
 
     public function ratingScale(): BelongsTo

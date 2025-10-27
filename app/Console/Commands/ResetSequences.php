@@ -71,7 +71,6 @@ class ResetSequences extends Command
             'payments',
             'tax_tables',
             'employee_contacts',
-            'employee_activities',
             'employee_departments',
         ];
 

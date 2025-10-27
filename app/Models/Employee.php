@@ -56,10 +56,6 @@ class Employee extends Model
         'pension_details',
         'employee_pension_no',
 
-        // NHIF Details
-        'nhif',
-        'nhif_fixed_amount',
-        'nhif_amount',
 
         // Overtime Details
         'overtime_given',
@@ -88,7 +84,7 @@ class Employee extends Model
         'shift_id' => 'integer',
         'advance_percentage' => 'decimal:2',
         'advance_salary' => 'decimal:2',
-        'nhif_amount' => 'decimal:2',
+
         'overtime_rate_weekday' => 'decimal:2',
         'overtime_rate_saturday' => 'decimal:2',
         'overtime_rate_weekend_holiday' => 'decimal:2',
@@ -99,8 +95,6 @@ class Employee extends Model
         'paye_exempt' => 'boolean',
         'is_primary_bank' => 'boolean',
         'pension_details' => 'boolean',
-        'nhif' => 'boolean',
-        'nhif_fixed_amount' => 'boolean',
         'overtime_given' => 'boolean',
         'overtime_do_not_start_immediately' => 'boolean',
         'use_office_timing' => 'boolean',
@@ -219,8 +213,18 @@ class Employee extends Model
     public function getAttendanceDeductionForPeriod($startDate, $endDate)
     {
         $totalDeduction = 0;
-        $dailySalary = $this->basic_salary / $this->working_days_per_month;
-        $hourlySalary = $dailySalary / $this->working_hours_per_day;
+        
+        // Use shift working hours if available, otherwise use employee's working hours
+        $workingDaysPerMonth = $this->working_days_per_month ?? 26;
+        $workingHoursPerDay = $this->working_hours_per_day ?? 8;
+        
+        // If employee has a shift assigned, use shift's working hours
+        if ($this->shift_id && $this->shift) {
+            $workingHoursPerDay = $this->shift->working_hours ?? $workingHoursPerDay;
+        }
+        
+        $dailySalary = $this->basic_salary / $workingDaysPerMonth;
+        $hourlySalary = $dailySalary / $workingHoursPerDay;
 
         // Get absent records for the period
         $absentRecords = $this->absentRecords()
@@ -228,7 +232,7 @@ class Employee extends Model
             ->get();
 
         foreach ($absentRecords as $record) {
-            $totalDeduction += $dailySalary * $record->used_days;
+            $totalDeduction += $dailySalary * ($record->absent_days ?? $record->used_days ?? 0);
         }
 
         // Get late records for the period
@@ -237,7 +241,7 @@ class Employee extends Model
             ->get();
 
         foreach ($lateRecords as $record) {
-            $lateHours = $record->amount ?? 0;
+            $lateHours = $record->late_hours ?? $record->amount ?? 0;
             $lateDeduction = $hourlySalary * $lateHours;
             $totalDeduction += $lateDeduction;
         }

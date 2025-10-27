@@ -48,89 +48,11 @@
     </div>
 
     @if ($payrollPeriod)
-        <!-- Payroll Statistics -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card border-left-primary">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                    Total Employees
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{ $payrollStats['total_employees'] }}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fe fe-users fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-left-success">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                    Processed
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{ $payrollStats['processed_employees'] }}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fe fe-check-circle fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-left-warning">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                    Pending
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    {{ $payrollStats['pending_employees'] }}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fe fe-clock fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-left-info">
-                    <div class="card-body">
-                        <div class="row no-gutters align-items-center">
-                            <div class="col mr-2">
-                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                    Total Net Amount
-                                </div>
-                                <div class="h5 mb-0 font-weight-bold text-gray-800">
-                                    TZS {{ number_format($payrollStats['total_net'], 2) }}
-                                </div>
-                            </div>
-                            <div class="col-auto">
-                                <i class="fe fe-dollar-sign fa-2x text-gray-300"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Additional Statistics Row -->
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card border-left-danger">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
@@ -151,7 +73,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card border-left-secondary">
                     <div class="card-body">
                         <div class="row no-gutters align-items-center">
@@ -174,6 +96,25 @@
                     </div>
                 </div>
             </div>
+                 <div class="col-md-4">
+                <div class="card border-left-info">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                    Total Net Amount
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    TZS {{ number_format($payrollStats['total_net'], 2) }}
+                                </div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fe fe-dollar-sign fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 
@@ -181,7 +122,6 @@
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">
-
                     <!-- Progress Bar for Payroll Processing -->
                     <div id="progressContainer" style="display: none;">
                         <div class="card border-0">
@@ -296,6 +236,7 @@
                                                 </div>
                                             </th>
                                             <th>Employee Name</th>
+                                            <th>Tax name</th>
                                             <th>Basic Salary</th>
                                             <th>Taxable Allowances</th>
                                             <th>Non-Taxable Allowances</th>
@@ -309,6 +250,8 @@
                                             <th>Other Deductions</th>
                                             <th>Total Deductions</th>
                                             <th>Net Salary</th>
+                                            <th>WCF</th>
+                                            <th>SDL</th>
                                             <th>Payroll Status</th>
                                         </tr>
                                     </thead>
@@ -324,6 +267,8 @@
                                                     $nonTaxableAllowances = $payroll->non_taxable_allowances;
                                                     $grossSalary = $payroll->gross_salary;
                                                     $pensionAmount = $payroll->employee_pension_amount;
+                                                    $wcfAmount = $payroll->wcf_amount;
+                                                    $sdlAmount = $payroll->sdl_amount;
                                                     $taxableIncome = $payroll->taxable_income;
                                                     $totalDeductions = $payroll->total_deductions;
                                                     $advanceAmount = $payroll->advance_salary; // Now using dedicated advance_salary column
@@ -375,6 +320,17 @@
 
                                                     // Calculate taxable income (gross salary minus employee pension)
                                                     $taxableIncome = $grossSalary - $pensionAmount;
+
+                                                    // Calculate WCF and SDL for preview
+                                                    $company = $employee->company;
+                                                    $wcfAmount = 0;
+                                                    $sdlAmount = 0;
+                                                    if ($company) {
+                                                        $wcfAmount = ($grossSalary * ($company->wcf_rate ?? 0)) / 100;
+                                                        if (!$company->sdl_exempt) {
+                                                            $sdlAmount = ($grossSalary * ($company->sdl_rate ?? 0)) / 100;
+                                                        }
+                                                    }
 
                                                     $payeTax = 0; // No PAYE until processed
 
@@ -435,6 +391,7 @@
                                                     }
 
                                                     // Calculate total deductions (preview: pension + advance + loan + attendance + other deductions only)
+                                                    // Note: WCF and SDL are NOT included in total deductions - they are employer contributions shown separately
                                                     $totalDeductions =
                                                         $pensionAmount +
                                                         $advanceAmount +
@@ -468,6 +425,8 @@
                                                     </div>
                                                 </td>
 
+                                                <td>{{ $employee->taxRate->tax_name }}</td>
+
                                                 <td>{{ number_format($basicSalary, 2) }}</td>
                                                 <td>{{ number_format($taxableAllowances, 2) }}</td>
                                                 <td>{{ number_format($nonTaxableAllowances, 2) }}</td>
@@ -481,6 +440,8 @@
                                                 <td>{{ number_format($otherDeductionsAmount, 2) }}</td>
                                                 <td>{{ number_format($totalDeductions, 2) }}</td>
                                                 <td>{{ number_format($netSalary, 2) }}</td>
+                                                <td>{{ number_format($wcfAmount, 2) }}</td>
+                                                <td>{{ number_format($sdlAmount, 2) }}</td>
                                                 <td>
                                                     @if ($payroll)
                                                         @if ($payroll->status == 'processed')

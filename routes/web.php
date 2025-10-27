@@ -225,6 +225,10 @@ Route::middleware('auth')->group(function () {
         Route::get('factors/{id}/sub-factors', [FactorController::class, 'getSubFactors'])
             ->name('factors.sub-factors');
 
+        // Get factor details
+        Route::get('factors/{id}', [FactorController::class, 'getFactor'])
+            ->name('factors.show-api');
+
         // Get rating scale items by rating scale
         Route::get('rating-scales/{id}/items', [RatingScaleController::class, 'getRatingScaleItems'])
             ->name('rating-scales.items');
@@ -242,11 +246,19 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees/{employee}/edit', [EmployeeController::class, 'edit'])->name('employee.edit');
     Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employee.update');
     Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->name('employee.destroy');
+    Route::post('employee/session/save', [EmployeeController::class, 'saveFormSession'])
+        ->name('employee.session.save');
 
+    Route::post('employee/session/navigate', [EmployeeController::class, 'navigateStep'])
+        ->name('employee.session.navigate');
+
+    Route::post('employee/session/clear', [EmployeeController::class, 'clearFormSession'])
+        ->name('employee.session.clear');
     // Additional routes for AJAX requests
     Route::get('/api/banks', [EmployeeController::class, 'getBanks'])->name('api.banks');
     Route::get('/api/substations', [EmployeeController::class, 'getSubstations'])->name('api.substations');
     Route::get('/api/departments', [EmployeeController::class, 'getDepartments'])->name('api.departments');
+
 
 
     Route::get('payroll/process', [PayrollController::class, 'index'])->name('payroll.index');
@@ -291,12 +303,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/', [AttendanceController::class, 'destroy'])->name('destroy');
         Route::get('/export/csv', [AttendanceController::class, 'export'])->name('export');
     });
-
-
-
 });
 
 
 require __DIR__ . '/auth.php';
-
-

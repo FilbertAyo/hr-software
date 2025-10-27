@@ -11,7 +11,7 @@
                 <div class="col-md-3 mb-3">
                     <label for="basic_salary">Basic Salary</label>
                     <input type="number" class="form-control" id="basic_salary" name="basic_salary"
-                        value="{{ old('basic_salary', $employee->basic_salary ?? '') }}" min="0" step="0.01">
+                        value="{{ getFormValue('basic_salary', $employee->basic_salary ?? '') }}" min="0" step="0.01">
                 </div>
                 <!-- Earning Groups -->
                 <div class="col-md-9 mb-3">
@@ -43,7 +43,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="advance_option" name="advance_option" value="1"
-                            {{ old('advance_option', $employee->advance_option ?? false) ? 'checked' : '' }}>
+                            {{ isChecked('advance_option', '1') ? 'checked' : '' }}>
                         <label class="form-check-label" for="advance_option">
                             <strong>Enable Advance Salary</strong>
                         </label>
@@ -54,7 +54,7 @@
                 <div class="col-md-3 mb-3 d-none" id="advance_percentage_field">
                     <label for="advance_percentage">Advance Percentage (%)</label>
                     <input type="number" class="form-control" id="advance_percentage" name="advance_percentage"
-                        value="{{ old('advance_percentage', $employee->advance_percentage ?? 50) }}" min="0" max="100" step="0.01">
+                        value="{{ getFormValue('advance_percentage', $employee->advance_percentage ?? 50) }}" min="0" max="100" step="0.01">
                 </div>
 
                 <!-- Advance Salary -->
@@ -70,7 +70,7 @@
                 <div class="col-md-3 mb-3">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="paye_exempt" name="paye_exempt" value="1"
-                            {{ old('paye_exempt', $employee->paye_exempt ?? false) ? 'checked' : '' }}>
+                            {{ isChecked('paye_exempt', '1') ? 'checked' : '' }}>
                         <label class="form-check-label" for="paye_exempt">
                             <strong>PAYE Exempt</strong>
                         </label>
@@ -93,7 +93,7 @@
             <div class="col-md-4">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="pension_details" name="pension_details" value="1"
-                        {{ old('pension_details', $employee->pension_details ?? false) ? 'checked' : '' }}>
+                        {{ isChecked('pension_details', '1') ? 'checked' : '' }}>
                     <label class="form-check-label" for="pension_details">
                         <strong>Enable Pension Details</strong>
                     </label>
@@ -109,7 +109,7 @@
                     <option value="">--Select Pension--</option>
                     @foreach ($pensions as $pension)
                         <option value="{{ $pension->id }}"
-                            {{ old('pension_id', $employee->pension_id ?? '') == $pension->id ? 'selected' : '' }}>
+                            {{ isSelected('pension_id', $pension->id) ? 'selected' : '' }}>
                             {{ $pension->name }} (Employee: {{ $pension->employee_percent }}%, Employer: {{ $pension->employer_percent }}%)
                         </option>
                     @endforeach
@@ -121,7 +121,7 @@
             <div class="col-md-4 mb-3">
                 <label for="employee_pension_no">Pension No</label>
                 <input type="text" class="form-control" id="employee_pension_no" name="employee_pension_no"
-                    value="{{ old('employee_pension_no', $employee->employee_pension_no ?? '') }}">
+                    value="{{ getFormValue('employee_pension_no', $employee->employee_pension_no ?? '') }}">
             </div>
         </div>
 
@@ -206,7 +206,7 @@
                     </select>
                 </div>
                 <div class="col-md-5">
-                    <label>Member Number</label>
+                    <label>Member Number/Index No</label>
                     <input type="text" class="form-control form-control member-number-input"
                            name="deduction_member_numbers[]" placeholder="Enter member number if required">
                 </div>

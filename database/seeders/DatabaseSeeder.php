@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ShiftSeeder::class);
         $this->call(CompanyUserSeeder::class);
         $this->call(EmployeesSeeder::class);
+        $this->call(PerformanceSeeder::class);
 
         // Reset PostgreSQL sequences after seeding
         if (DB::connection()->getDriverName() === 'pgsql') {
@@ -37,3 +38,4 @@ class DatabaseSeeder extends Seeder
     }
 
 }
+

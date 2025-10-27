@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('employees', function (Blueprint $table) {
-            $table->unsignedBigInteger('shift_id')->nullable()->after('working_hours_per_day');
+            $table->unsignedBigInteger('shift_id')->nullable()->after('photo_path');
             $table->foreign('shift_id')->references('id')->on('shifts')->onDelete('set null');
         });
     }

@@ -358,11 +358,6 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link pl-3" href="{{ route('factors.index') }}">
-                            <span class="ml-1 item-text">Factors</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link pl-3" href="{{ route('sub-factors.index') }}">
                             <span class="ml-1 item-text">Sub Factor</span>
                         </a>

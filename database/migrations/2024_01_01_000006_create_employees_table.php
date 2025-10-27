@@ -37,7 +37,7 @@ return new class extends Migration
             $table->string('photo_path')->nullable();
             $table->unsignedBigInteger('company_id')->nullable();
             $table->string('registration_step')->default('pending');
-
+            
             // Salary Details (consolidated from employee_salary_details)
             $table->decimal('basic_salary', 15, 2)->default(0);
             $table->boolean('advance_option')->default(false);
@@ -54,11 +54,6 @@ return new class extends Migration
             $table->unsignedBigInteger('pension_id')->nullable();
             $table->boolean('pension_details')->default(false);
             $table->string('employee_pension_no')->nullable();
-
-            // NHIF Details (consolidated from employee_nhif_details)
-            $table->boolean('nhif')->default(false);
-            $table->boolean('nhif_fixed_amount')->default(false);
-            $table->decimal('nhif_amount', 10, 2)->default(0);
 
             // Overtime Details (consolidated from employee_overtime_details)
             $table->boolean('overtime_given')->default(false);

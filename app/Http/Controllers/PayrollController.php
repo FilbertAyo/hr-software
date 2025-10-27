@@ -182,6 +182,19 @@ class PayrollController extends Controller
                 // Calculate PAYE tax based on employee's tax rate
                 $taxDeduction = $this->calculatePAYE($employee, $taxableIncome);
 
+                // Calculate WCF and SDL from company rates
+                $company = $employee->company;
+                $wcfAmount = 0;
+                $sdlAmount = 0;
+                if ($company) {
+                    // WCF is calculated on gross salary
+                    $wcfAmount = ($grossSalary * ($company->wcf_rate ?? 0)) / 100;
+                    // SDL is calculated on gross salary (unless company is SDL exempt)
+                    if (!$company->sdl_exempt) {
+                        $sdlAmount = ($grossSalary * ($company->sdl_rate ?? 0)) / 100;
+                    }
+                }
+
                 // Other deductions
                 $insuranceDeduction = 0;
 
@@ -207,6 +220,7 @@ class PayrollController extends Controller
                 $absentLateDeduction = $this->calculateAbsentLateDeduction($employee, $payrollPeriod);
 
                 // Calculate total deductions (including employee pension, PAYE tax, attendance, and advance)
+                // Note: WCF and SDL are NOT included in total deductions - they are employer contributions shown separately
                 $totalDeductions = $employeePensionAmount + $taxDeduction + $insuranceDeduction + $loanDeduction + $attendanceDeduction + $absentLateDeduction + $otherDeductions + $advanceAmount;
 
                 // Calculate net salary (gross - total deductions + non-taxable allowances)
@@ -229,6 +243,8 @@ class PayrollController extends Controller
                     'gross_salary' => $grossSalary,
                     'employee_pension_amount' => $employeePensionAmount,
                     'employer_pension_amount' => $employerPensionAmount,
+                    'wcf_amount' => $wcfAmount,
+                    'sdl_amount' => $sdlAmount,
                     'taxable_income' => $taxableIncome,
                     'tax_deduction' => $taxDeduction,
                     'insurance_deduction' => $insuranceDeduction,

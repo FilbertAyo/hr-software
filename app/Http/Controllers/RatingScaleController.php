@@ -19,35 +19,28 @@ class RatingScaleController extends Controller
 
     public function create()
     {
-        return view('performance.rating-scales.create');
+        return redirect()->route('rating-scales.index');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'scale_name' => 'required|string|max:255|unique:rating_scales',
-            'description' => 'nullable|string',
-            'status' => 'required|in:Active,Inactive',
             'items' => 'required|array|min:1',
-            'items.*.name' => 'required|string|max:255',
-            'items.*.score' => 'required|numeric|min:0',
-            'items.*.description' => 'nullable|string'
+            'items.*.item_name' => 'required|string|max:255',
+            'items.*.score' => 'required|numeric|min:0'
         ]);
 
         DB::transaction(function () use ($request) {
             $ratingScale = RatingScale::create([
                 'scale_name' => $request->scale_name,
-                'description' => $request->description,
-                'status' => $request->status
             ]);
 
             foreach ($request->items as $index => $item) {
                 RatingScaleItem::create([
                     'rating_scale_id' => $ratingScale->id,
-                    'name' => $item['name'],
+                    'item_name' => $item['item_name'],
                     'score' => $item['score'],
-                    'description' => $item['description'] ?? null,
-                    'sort_order' => $index + 1
                 ]);
             }
         });
@@ -64,28 +57,20 @@ class RatingScaleController extends Controller
 
     public function edit(RatingScale $ratingScale)
     {
-        $ratingScale->load('ratingScaleItems');
-        return view('performance.rating-scales.edit', compact('ratingScale'));
+        return redirect()->route('rating-scales.index');
     }
 
     public function update(Request $request, RatingScale $ratingScale)
     {
         $request->validate([
             'scale_name' => 'required|string|max:255|unique:rating_scales,scale_name,' . $ratingScale->id,
-            'description' => 'nullable|string',
-            'status' => 'required|in:Active,Inactive',
             'items' => 'required|array|min:1',
-            'items.*.name' => 'required|string|max:255',
-            'items.*.score' => 'required|numeric|min:0',
-            'items.*.description' => 'nullable|string'
+            'items.*.item_name' => 'required|string|max:255',
+            'items.*.score' => 'required|numeric|min:0'
         ]);
 
         DB::transaction(function () use ($request, $ratingScale) {
-            $ratingScale->update([
-                'scale_name' => $request->scale_name,
-                'description' => $request->description,
-                'status' => $request->status
-            ]);
+            $ratingScale->update($request->only(['scale_name']));
 
             // Delete existing items and create new ones
             $ratingScale->ratingScaleItems()->delete();
@@ -93,10 +78,8 @@ class RatingScaleController extends Controller
             foreach ($request->items as $index => $item) {
                 RatingScaleItem::create([
                     'rating_scale_id' => $ratingScale->id,
-                    'name' => $item['name'],
+                    'item_name' => $item['item_name'],
                     'score' => $item['score'],
-                    'description' => $item['description'] ?? null,
-                    'sort_order' => $index + 1
                 ]);
             }
         });
@@ -107,11 +90,6 @@ class RatingScaleController extends Controller
 
     public function destroy(RatingScale $ratingScale)
     {
-        if ($ratingScale->evaluations()->count() > 0) {
-            return redirect()->route('rating-scales.index')
-                            ->with('error', 'Cannot delete Rating Scale that is being used in evaluations!');
-        }
-
         DB::transaction(function () use ($ratingScale) {
             $ratingScale->ratingScaleItems()->delete();
             $ratingScale->delete();
@@ -129,3 +107,4 @@ class RatingScaleController extends Controller
         return response()->json($items ?? []);
     }
 }
+

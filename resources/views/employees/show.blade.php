@@ -160,10 +160,6 @@
                                                         <td>{{ $employee->mobile_no ?? 'N/A' }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="text-muted">Telephone:</td>
-                                                        <td>{{ $employee->telephone_no ?? 'N/A' }}</td>
-                                                    </tr>
-                                                    <tr>
                                                         <td class="text-muted">Address:</td>
                                                         <td>{{ $employee->address ?? 'N/A' }}</td>
                                                     </tr>
@@ -349,37 +345,6 @@
                                                 </div>
                                             @endif
 
-                                            <!-- NHIF Details -->
-                                            @if($employee->nhif)
-                                                <div class="col-md-6 mb-4">
-                                                    <h6 class="text-primary mb-3">NHIF Details</h6>
-                                                    <table class="table table-sm table-borderless">
-                                                        <tr>
-                                                            <td class="text-muted" width="50%">NHIF Enrolled:</td>
-                                                            <td>
-                                                                <span class="badge badge-{{ $employee->nhif ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->nhif ? 'Yes' : 'No' }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td class="text-muted">Fixed Amount:</td>
-                                                            <td>
-                                                                <span class="badge badge-{{ $employee->nhif_fixed_amount ? 'success' : 'secondary' }}">
-                                                                    {{ $employee->nhif_fixed_amount ? 'Yes' : 'No' }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                        @if($employee->nhif_amount > 0)
-                                                            <tr>
-                                                                <td class="text-muted">Amount:</td>
-                                                                <td>TZS {{ number_format($employee->nhif_amount, 2) }}</td>
-                                                            </tr>
-                                                        @endif
-                                                    </table>
-                                                </div>
-                                            @endif
-
                                             <!-- Overtime Details -->
                                             @if($employee->overtime_given)
                                                 <div class="col-12">
@@ -411,9 +376,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
     <style>
         .nav-tabs .nav-link {
