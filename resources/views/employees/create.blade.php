@@ -29,6 +29,11 @@
                     <div class="step-circle">2</div>
                     <div class="step-label">Payment & Salary</div>
                 </div>
+                <div class="step-line"></div>
+                <div class="step" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Family & Guarantor</div>
+                </div>
             </div>
         </div>
     </div>
@@ -89,15 +94,11 @@
                             </div>
 
                             <div class="card shadow-none border">
-                                @include('employees.partials.personal')
-                                @include('employees.partials.departments')
+                                @include('employees.partials.personal', ['employee' => null])
+                                @include('employees.partials.departments', ['employee' => null])
                             </div>
 
-                            <div class="step-actions mt-4">
-                                <button type="button" class="btn btn-primary" onclick="nextStep()">
-                                    Next <i class="fe fe-arrow-right ml-1"></i>
-                                </button>
-                            </div>
+                          
                         </div>
 
                         <!-- Step 2: Payment & Salary -->
@@ -110,8 +111,33 @@
                             </div>
 
                             <div class="card shadow-none border">
-                                @include('employees.partials.payments')
-                                @include('employees.partials.salary')
+                                @include('employees.partials.payments', ['employee' => null])
+                                @include('employees.partials.salary', ['employee' => null])
+                            </div>
+
+                            <div class="step-actions mt-4">
+                                <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
+                                    <i class="fe fe-arrow-left mr-1"></i> Previous
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">
+                                    Next <i class="fe fe-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+
+{{-- step 3 --}}
+                        <div class="form-step" id="step3">
+                            <div class="step-header mb-4">
+                                <h4 class="text-primary mb-2">
+                                    <i class="fe fe-users mr-2"></i>Family Relationships and Guarantor
+                                </h4>
+                                <p class="text-muted">Add family members and guarantors (optional - can be added after employee creation)</p>
+                            </div>
+
+                            <div class="card shadow-none border">
+                                @include('employees.partials.family', ['employee' => null])
+                                @include('employees.partials.gurantor', ['employee' => null])
                             </div>
 
                             <div class="step-actions mt-4">
@@ -123,6 +149,8 @@
                                 </button>
                             </div>
                         </div>
+
+
                     </form>
                 </div>
             </div>

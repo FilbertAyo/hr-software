@@ -1,7 +1,7 @@
 {{-- Shared JavaScript for Employee Forms --}}
 <script>
     let currentStep = {{ $currentStep ?? 1 }};
-    const totalSteps = 2;
+    const totalSteps = 3;
 
     // Auto-save form data to session periodically
     let autoSaveTimeout;

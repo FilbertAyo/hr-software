@@ -60,6 +60,7 @@ class EmployeeController extends Controller
             ->whereNotNull('employee_percent')
             ->get();
         $shifts = Shift::where('is_active', true)->get();
+        $relationships = \App\Models\Relation::all();
 
         // Get form data from session if exists
         $formData = session('employee_form_data', []);
@@ -68,7 +69,7 @@ class EmployeeController extends Controller
         return view('employees.create', compact(
             'substations', 'pensions', 'deductions', 'banks', 'departments',
             'nationalities', 'religions', 'tax_rates', 'mainstations',
-            'jobtitles', 'level_names', 'earngroups', 'shifts',
+            'jobtitles', 'level_names', 'earngroups', 'shifts', 'relationships',
             'formData', 'currentStep'
         ));
     }
@@ -362,7 +363,9 @@ class EmployeeController extends Controller
             'bank',
             'pension',
             'earngroups',
-            'employeeDeductions.directDeduction'
+            'employeeDeductions.directDeduction',
+            'family.relationship',
+            'guarantors'
         ]);
 
         // Get data for dropdowns
@@ -382,11 +385,12 @@ class EmployeeController extends Controller
             ->whereNotNull('employee_percent')
             ->get();
         $shifts = Shift::where('is_active', true)->get();
+        $relationships = \App\Models\Relation::all();
 
         return view('employees.edit', compact(
             'employee', 'substations', 'pensions', 'deductions', 'banks',
             'departments', 'nationalities', 'religions', 'tax_rates',
-            'mainstations', 'jobtitles', 'level_names', 'earngroups', 'shifts'
+            'mainstations', 'jobtitles', 'level_names', 'earngroups', 'shifts', 'relationships'
         ));
     }
 

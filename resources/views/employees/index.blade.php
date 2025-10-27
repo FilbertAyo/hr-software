@@ -17,7 +17,7 @@
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
-                        <a href="{{ route('employee.create') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('employee.create') }}" class="btn btn-primary btn-sm" onclick="clearEmployeeSession(event)">
                             <i class="fe fe-plus"></i> Add New Employee
                         </a>
                     </div>
@@ -305,6 +305,31 @@
             document.getElementById('employeeName').textContent = employeeName;
             document.getElementById('deleteForm').action = `/employees/${employeeId}`;
             $('#deleteModal').modal('show');
+        }
+
+        // Clear employee session before creating new employee
+        function clearEmployeeSession(event) {
+            event.preventDefault();
+            const link = event.currentTarget.href;
+            
+            fetch('{{ route('employee.session.clear') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Navigate to create page after clearing session
+                window.location.href = link;
+            })
+            .catch(error => {
+                console.error('Error clearing session:', error);
+                // Navigate anyway even if there's an error
+                window.location.href = link;
+            });
         }
     </script>
 

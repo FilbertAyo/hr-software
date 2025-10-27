@@ -149,7 +149,12 @@ class Employee extends Model
     // Specific contact type relationships
     public function guarantors()
     {
-        return $this->contacts()->guarantors();
+        return $this->hasMany(EmployeeGuarantor::class);
+    }
+
+    public function family()
+    {
+        return $this->hasMany(EmployeeFamily::class);
     }
 
     public function nextOfKin()

@@ -10,7 +10,7 @@
         <div class="col-md-3 mb-3">
             <label for="joining_date">Date of Joining *</label>
             <input type="date" class="form-control" id="joining_date" name="joining_date"
-                value="{{ getFormValue('joining_date', optional($employee->department)->joining_date?->format('Y-m-d') ?? '') }}" required>
+                value="{{ getFormValue('joining_date', optional(optional($employee ?? null)->department)->joining_date?->format('Y-m-d') ?? '') }}" required>
         </div>
 
         <!-- Main Station -->
@@ -20,7 +20,7 @@
                 <option value="">Select Main Station</option>
                 @foreach ($mainstations as $station)
                     <option value="{{ $station->id }}"
-                        {{ isSelected('mainstation_id', $station->id, $employee->department->mainstation_id ?? '') ? 'selected' : '' }}>
+                        {{ isSelected('mainstation_id', $station->id, optional(optional($employee ?? null)->department)->mainstation_id ?? '') ? 'selected' : '' }}>
                         {{ $station->station_name }}
                     </option>
                 @endforeach
@@ -34,7 +34,7 @@
                 <option value="">Select Sub Station</option>
                 @foreach ($substations as $substation)
                     <option value="{{ $substation->id }}"
-                        {{ isSelected('substation_id', $substation->id, $employee->department->substation_id ?? '') ? 'selected' : '' }}>
+                        {{ isSelected('substation_id', $substation->id, optional(optional($employee ?? null)->department)->substation_id ?? '') ? 'selected' : '' }}>
                         {{ $substation->substation_name }}
                     </option>
                 @endforeach
@@ -48,7 +48,7 @@
                 <option value="">Select Department</option>
                 @foreach ($departments as $department)
                     <option value="{{ $department->id }}"
-                        {{ isSelected('department_id', $department->id, $employee->department->department_id ?? '') ? 'selected' : '' }}>
+                        {{ isSelected('department_id', $department->id, optional(optional($employee ?? null)->department)->department_id ?? '') ? 'selected' : '' }}>
                         {{ $department->department_name }}
                     </option>
                 @endforeach
@@ -62,7 +62,7 @@
                 <option value="">Select Job Title</option>
                 @foreach ($jobtitles as $title)
                     <option value="{{ $title->id }}"
-                        {{ isSelected('jobtitle_id', $title->id, $employee->department->jobtitle_id ?? '') ? 'selected' : '' }}>
+                        {{ isSelected('jobtitle_id', $title->id, optional(optional($employee ?? null)->department)->jobtitle_id ?? '') ? 'selected' : '' }}>
                         {{ $title->job_title }}
                     </option>
                 @endforeach
@@ -76,7 +76,7 @@
                 <option value="">Select Staff Level</option>
                 @foreach ($level_names as $level)
                     <option value="{{ $level->id }}"
-                        {{ isSelected('staff_level_id', $level->id, $employee->department->staff_level_id ?? '') ? 'selected' : '' }}>
+                        {{ isSelected('staff_level_id', $level->id, optional(optional($employee ?? null)->department)->staff_level_id ?? '') ? 'selected' : '' }}>
                         {{ $level->level_name }}
                     </option>
                 @endforeach
@@ -88,7 +88,7 @@
             <div class="form-check mt-4">
                 <input type="hidden" name="hod" value="0">
                 <input class="form-check-input" type="checkbox" name="hod" id="hod" value="1"
-                    {{ isChecked('hod', '1', $employee->department->hod ?? '') ? 'checked' : '' }}>
+                    {{ isChecked('hod', '1', optional(optional($employee ?? null)->department)->hod ?? '') ? 'checked' : '' }}>
                 <label class="form-check-label" for="hod">Head of Department</label>
             </div>
         </div>

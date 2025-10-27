@@ -254,6 +254,17 @@ Route::middleware('auth')->group(function () {
 
     Route::post('employee/session/clear', [EmployeeController::class, 'clearFormSession'])
         ->name('employee.session.clear');
+    
+    // Employee Family Routes
+    Route::post('/employees/{employee}/family', [App\Http\Controllers\EmployeeFamilyController::class, 'store'])->name('employee.family.store');
+    Route::put('/employees/{employee}/family/{family}', [App\Http\Controllers\EmployeeFamilyController::class, 'update'])->name('employee.family.update');
+    Route::delete('/employees/{employee}/family/{family}', [App\Http\Controllers\EmployeeFamilyController::class, 'destroy'])->name('employee.family.destroy');
+    
+    // Employee Guarantor Routes
+    Route::post('/employees/{employee}/guarantor', [App\Http\Controllers\EmployeeGuarantorController::class, 'store'])->name('employee.guarantor.store');
+    Route::put('/employees/{employee}/guarantor/{guarantor}', [App\Http\Controllers\EmployeeGuarantorController::class, 'update'])->name('employee.guarantor.update');
+    Route::delete('/employees/{employee}/guarantor/{guarantor}', [App\Http\Controllers\EmployeeGuarantorController::class, 'destroy'])->name('employee.guarantor.destroy');
+    
     // Additional routes for AJAX requests
     Route::get('/api/banks', [EmployeeController::class, 'getBanks'])->name('api.banks');
     Route::get('/api/substations', [EmployeeController::class, 'getSubstations'])->name('api.substations');

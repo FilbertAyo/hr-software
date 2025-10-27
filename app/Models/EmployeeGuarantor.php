@@ -11,11 +11,14 @@ class EmployeeGuarantor extends Model
 
     protected $fillable = [
         'employee_id',
-        'guarantor_name',
-        'guarantor_phone',
-        'guarantor_email',
-        'guarantor_address',
-        'relationship'
+        'full_name',
+        'relationship',
+        'mobile',
+        'email',
+        'occupation',
+        'id_number',
+        'address',
+        'attachment',
     ];
 
     public function employee()

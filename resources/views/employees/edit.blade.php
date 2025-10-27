@@ -28,6 +28,11 @@
                     <div class="step-circle">2</div>
                     <div class="step-label">Payment & Salary</div>
                 </div>
+                <div class="step-line"></div>
+                <div class="step {{ $employee->registration_step == 'completed' ? 'active completed' : '' }}" data-step="3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Family & Guarantor</div>
+                </div>
             </div>
         </div>
     </div>
@@ -92,11 +97,7 @@
                                 @include('employees.partials.departments')
                             </div>
 
-                            <div class="step-actions mt-4">
-                                <button type="button" class="btn btn-primary" onclick="nextStep()">
-                                    Next <i class="fe fe-arrow-right ml-1"></i>
-                                </button>
-                            </div>
+                           
                         </div>
 
                         <!-- Step 2: Payment & Salary -->
@@ -117,6 +118,30 @@
                                 <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
                                     <i class="fe fe-arrow-left mr-1"></i> Previous
                                 </button>
+                                <button type="button" class="btn btn-primary" onclick="nextStep()">
+                                    Next <i class="fe fe-arrow-right ml-1"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Family & Guarantor -->
+                        <div class="form-step" id="step3">
+                            <div class="step-header mb-4">
+                                <h4 class="text-primary mb-2">
+                                    <i class="fe fe-users mr-2"></i>Family Relationships and Guarantor
+                                </h4>
+                                <p class="text-muted">Manage family members and guarantors</p>
+                            </div>
+
+                            <div class="card shadow-none border">
+                                @include('employees.partials.family')
+                                @include('employees.partials.gurantor')
+                            </div>
+
+                            <div class="step-actions mt-4">
+                                <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
+                                    <i class="fe fe-arrow-left mr-1"></i> Previous
+                                </button>
                                 <button type="submit" class="btn btn-success">
                                     <i class="fe fe-save mr-1"></i> Update Employee
                                 </button>
@@ -127,6 +152,12 @@
             </div>
         </div>
     </div>
+
+    <!-- Modals (outside main form to avoid nesting) -->
+    @if(isset($employee) && $employee && $employee->exists)
+        @include('employees.partials.family-modal')
+        @include('employees.partials.guarantor-modal')
+    @endif
 
     @include('employees.partials.form-styles')
 
