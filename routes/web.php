@@ -46,6 +46,7 @@ use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\RolesController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShiftController;
 
 Route::get('/', function () {
@@ -254,17 +255,17 @@ Route::middleware('auth')->group(function () {
 
     Route::post('employee/session/clear', [EmployeeController::class, 'clearFormSession'])
         ->name('employee.session.clear');
-    
+
     // Employee Family Routes
     Route::post('/employees/{employee}/family', [App\Http\Controllers\EmployeeFamilyController::class, 'store'])->name('employee.family.store');
     Route::put('/employees/{employee}/family/{family}', [App\Http\Controllers\EmployeeFamilyController::class, 'update'])->name('employee.family.update');
     Route::delete('/employees/{employee}/family/{family}', [App\Http\Controllers\EmployeeFamilyController::class, 'destroy'])->name('employee.family.destroy');
-    
+
     // Employee Guarantor Routes
     Route::post('/employees/{employee}/guarantor', [App\Http\Controllers\EmployeeGuarantorController::class, 'store'])->name('employee.guarantor.store');
     Route::put('/employees/{employee}/guarantor/{guarantor}', [App\Http\Controllers\EmployeeGuarantorController::class, 'update'])->name('employee.guarantor.update');
     Route::delete('/employees/{employee}/guarantor/{guarantor}', [App\Http\Controllers\EmployeeGuarantorController::class, 'destroy'])->name('employee.guarantor.destroy');
-    
+
     // Additional routes for AJAX requests
     Route::get('/api/banks', [EmployeeController::class, 'getBanks'])->name('api.banks');
     Route::get('/api/substations', [EmployeeController::class, 'getSubstations'])->name('api.substations');
@@ -314,6 +315,26 @@ Route::middleware('auth')->group(function () {
         Route::delete('/', [AttendanceController::class, 'destroy'])->name('destroy');
         Route::get('/export/csv', [AttendanceController::class, 'export'])->name('export');
     });
+
+
+    // Reports Routes
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('index');
+        Route::get('/employees', [ReportController::class, 'employeeReport'])->name('employees');
+        Route::get('/payroll', [ReportController::class, 'payrollReport'])->name('payroll');
+        Route::get('/loans', [ReportController::class, 'loanReport'])->name('loans');
+        Route::get('/leaves', [ReportController::class, 'leaveReport'])->name('leaves');
+        Route::get('/attendance', [ReportController::class, 'attendanceReport'])->name('attendance');
+        Route::get('/departments', [ReportController::class, 'departmentReport'])->name('departments');
+        Route::get('/advances', [ReportController::class, 'advanceReport'])->name('advances');
+        Route::get('/tax', [ReportController::class, 'taxReport'])->name('tax');
+        Route::get('/pension', [ReportController::class, 'pensionReport'])->name('pension');
+        Route::get('/salary-analysis', [ReportController::class, 'salaryAnalysisReport'])->name('salary-analysis');
+        Route::get('/payslip', [ReportController::class, 'payslipReport'])->name('payslip');
+        Route::get('/bank-salary', [ReportController::class, 'bankSalaryReport'])->name('bank-salary');
+        Route::get('/earning-group', [ReportController::class, 'earningGroupReport'])->name('earning-group');
+    });
+
 });
 
 

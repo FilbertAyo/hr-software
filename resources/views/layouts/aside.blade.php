@@ -408,23 +408,11 @@
         </p>
         <ul class="navbar-nav flex-fill w-100">
             <li class="nav-item dropdown">
-                <a href="#pages" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle nav-link">
+                <a href="{{ route('reports.index') }}" class="nav-link">
                     <i class="fe fe-file fe-16"></i>
                     <span class="ml-3 item-text">Reports</span>
                 </a>
-                <ul class="collapse list-unstyled pl-4 w-100 w-100" id="pages">
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./page-orders.html">
-                            <span class="ml-1 item-text">Detailed Report</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link pl-3" href="./page-timeline.html">
-                            <span class="ml-1 item-text">Summarized Report</span>
-                        </a>
-                    </li>
 
-                </ul>
             </li>
         </ul>
 

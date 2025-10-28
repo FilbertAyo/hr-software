@@ -8,11 +8,9 @@
                     <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
                         aria-controls="home" aria-selected="true">Banks</a>
                 </li>
-
             </ul>
         </div>
         <div class="col-auto">
-
             <button type="button" class="btn btn-sm" onclick="reloadPage()">
                 <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
             </button>

@@ -1,6 +1,7 @@
 <div class="card-header">
     <strong>Family Relationships</strong>
 </div>
+
 <div class="card-body">
     @if(isset($employee) && $employee && $employee->exists)
     <div class="card">

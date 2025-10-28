@@ -98,7 +98,7 @@
                                 @include('employees.partials.departments', ['employee' => null])
                             </div>
 
-                          
+
                         </div>
 
                         <!-- Step 2: Payment & Salary -->
@@ -126,7 +126,6 @@
                         </div>
 
 
-{{-- step 3 --}}
                         <div class="form-step" id="step3">
                             <div class="step-header mb-4">
                                 <h4 class="text-primary mb-2">
