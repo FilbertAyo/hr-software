@@ -11,22 +11,17 @@
             </ul>
         </div>
         <div class="col-auto">
-            <button type="button" class="btn btn-sm" onclick="reloadPage()">
-                <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
-            </button>
-            <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal" data-target="#varyModal"
-                data-whatever="@mdo">New bank<span class="fe fe-plus fe-16 ml-2"></span></button>
+            <x-modal-button>
+                {{ __('Add Bank') }}
+            </x-modal-button>
         </div>
     </div>
 
     <div class="row my-2">
-        <!-- Small table -->
 
-        @include('elements.spinner')
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">
-                    <!-- table -->
                     <table class="table table-bordered datatables" id="dataTable-1">
                         <thead class="thead-light">
                             <tr>
@@ -99,9 +94,12 @@
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn mb-2 btn-secondary"
-                                        data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn mb-2 btn-primary">Save and Close</button>
+                                    <x-secondary-button data-dismiss="modal">
+                                        {{ __('Close') }}
+                                    </x-secondary-button>
+                                    <x-primary-button>
+                                        {{ __('Save') }}
+                                    </x-primary-button>
                                 </div>
                             </form>
                         </div>
@@ -129,16 +127,19 @@
 
                                 <div class="form-row">
                                     <div class="col-md-12 mb-3">
-                                        <input type="text" class="form-control" id="editbankName"
-                                            name="bank_name" required>
+                                        <input type="text" class="form-control" id="editbankName" name="bank_name"
+                                            required>
                                         <div class="valid-feedback"> Looks good! </div>
                                     </div>
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn mb-2 btn-secondary"
-                                        data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
+                                    <x-secondary-button data-dismiss="modal">
+                                        {{ __('Close') }}
+                                    </x-secondary-button>
+                                    <x-primary-button>
+                                        {{ __('Update') }}
+                                    </x-primary-button>
                                 </div>
                             </form>
                         </div>

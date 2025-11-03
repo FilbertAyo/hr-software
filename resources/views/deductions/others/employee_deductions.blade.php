@@ -241,7 +241,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Save Deduction</button>
                         </div>
                     </form>
@@ -345,7 +347,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Update Deduction</button>
                         </div>
                     </form>

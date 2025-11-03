@@ -18,73 +18,54 @@
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row mb-3">
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Advances</h6>
-                    <h3 class="text-primary">{{ number_format($summary['total_advances'], 2) }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Recovered</h6>
-                    <h3 class="text-success">{{ number_format($summary['total_recovered'], 2) }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Remaining</h6>
-                    <h3 class="text-danger">{{ number_format($summary['total_remaining'], 2) }}</h3>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h6 class="text-muted">Pending Count</h6>
-                    <h3 class="text-warning">{{ $summary['pending_count'] }}</h3>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Filters -->
     <div class="row mb-3">
         <div class="col-md-12">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <form method="GET" action="{{ route('reports.advances') }}">
                         <div class="row">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label>Payroll Period</label>
-                                <select name="period_id" class="form-control">
-                                    <option value="">All Periods</option>
+                                <select name="payroll_period_id" class="form-control">
+                                    <option value="all" {{ request('payroll_period_id') == 'all' ? 'selected' : '' }}>All Periods</option>
                                     @foreach($periods as $period)
-                                        <option value="{{ $period->id }}" {{ request('period_id') == $period->id ? 'selected' : '' }}>
-                                            {{ $period->period_name }} ({{ date('M Y', strtotime($period->start_date)) }})
+                                        <option value="{{ $period->id }}" {{ (request('payroll_period_id') == $period->id || $currentPeriod?->id == $period->id) ? 'selected' : '' }}>
+                                            {{ $period->period_name }} ({{ $period->start_date->format('d M Y') }} - {{ $period->end_date->format('d M Y') }})
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <label>Status</label>
-                                <select name="status" class="form-control">
-                                    <option value="">All Status</option>
-                                    <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="approved" {{ request('status') == 'approved' ? 'selected' : '' }}>Approved</option>
-                                    <option value="rejected" {{ request('status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
+
+                            <div class="col-md-3">
+                                <label>Branch</label>
+                                <select name="branch_id" class="form-control">
+                                    <option value="">All Branches</option>
+                                    @foreach($branches ?? [] as $branch)
+                                        <option value="{{ $branch->id }}" {{ request('branch_id') == $branch->id ? 'selected' : '' }}>
+                                            {{ $branch->station_name }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-4">
+
+                            <div class="col-md-3">
+                                <label>Department</label>
+                                <select name="department_id" class="form-control">
+                                    <option value="">All Departments</option>
+                                    @foreach($departments ?? [] as $dept)
+                                        <option value="{{ $dept->id }}" {{ request('department_id') == $dept->id ? 'selected' : '' }}>
+                                            {{ $dept->department_name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
                                 <label>&nbsp;</label>
                                 <button type="submit" class="btn btn-primary btn-block">
-                                    <i class="fe fe-filter mr-1"></i> Filter
+                                    <i class="fe fe-filter mr-1"></i> Get Report
                                 </button>
                             </div>
                         </div>
@@ -95,7 +76,7 @@
     </div>
 
     <div class="row my-2">
-        @include('elements.spinner')
+
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">
@@ -105,10 +86,8 @@
                             <tr>
                                 <th>No</th>
                                 <th>Employee</th>
+
                                 <th>Advance Amount</th>
-                                <th>Remaining</th>
-                                <th>Recovery Amount</th>
-                                <th>Status</th>
                                 <th>Date</th>
                             </tr>
                         </thead>
@@ -117,18 +96,19 @@
                                 <tr>
                                     <td>{{ $index + 1 }}</td>
                                     <td>{{ $advance->employee->employee_name ?? 'N/A' }}</td>
-                                    <td>{{ number_format($advance->advance_amount, 2) }}</td>
-                                    <td>{{ number_format($advance->remaining_amount, 2) }}</td>
-                                    <td>{{ number_format($advance->recovery_amount, 2) }}</td>
-                                    <td>
-                                        <span class="badge badge-{{ $advance->status == 'approved' ? 'success' : ($advance->status == 'pending' ? 'warning' : 'danger') }}">
-                                            {{ ucfirst($advance->status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ date('d M Y', strtotime($advance->created_at)) }}</td>
+
+                                    <td class="text-right">{{ number_format($advance->advance_amount, 2) }}</td>
+                                    <td>{{ $advance->created_at->format('d M Y') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
+                        <tfoot>
+                            <tr class="font-weight-bold">
+                                <td colspan="2" class="text-right">Total:</td>
+                                <td class="text-right">{{ number_format($advances->sum('advance_amount'), 2) }}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>

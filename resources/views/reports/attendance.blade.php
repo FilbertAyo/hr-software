@@ -95,7 +95,7 @@
     </div>
 
     <div class="row my-2">
-        @include('elements.spinner')
+
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">

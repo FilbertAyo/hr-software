@@ -21,26 +21,26 @@
     <!-- Summary Cards -->
     <div class="row mb-3">
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Employees</h6>
-                    <h3 class="text-primary">{{ $analysis['total_employees'] }}</h3>
+                    <h4>{{ $analysis['total_employees'] }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Basic Salary</h6>
-                    <h3 class="text-success">{{ number_format($analysis['total_basic_salary'], 2) }}</h3>
+                    <h4>{{ number_format($analysis['total_basic_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Average Salary</h6>
-                    <h3 class="text-info">{{ number_format($analysis['average_salary'], 2) }}</h3>
+                    <h4>{{ number_format($analysis['average_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
@@ -48,26 +48,26 @@
 
     <div class="row mb-3">
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Highest Salary</h6>
-                    <h3 class="text-warning">{{ number_format($analysis['highest_salary'], 2) }}</h3>
+                    <h4>{{ number_format($analysis['highest_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Lowest Salary</h6>
-                    <h3 class="text-danger">{{ number_format($analysis['lowest_salary'], 2) }}</h3>
+                    <h4>{{ number_format($analysis['lowest_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Median Salary</h6>
-                    <h3 class="text-secondary">{{ number_format($analysis['median_salary'], 2) }}</h3>
+                    <h4>{{ number_format($analysis['median_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@
 
     <!-- Salary by Department -->
     <div class="row my-2">
-        @include('elements.spinner')
+
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">

@@ -214,8 +214,8 @@
         </aside>
 
         <main role="main" class="main-content">
-            @include('elements.spinner')
-           
+
+
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">

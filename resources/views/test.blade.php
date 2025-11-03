@@ -18,7 +18,7 @@
             <div class="row my-2">
                 <!-- Small table -->
 
-                @include('elements.spinner')
+
                 <div class="col-md-12">
                     <div class="card shadow-none border">
 

@@ -37,8 +37,7 @@ class UsersController extends Controller
             'name' => $request->name,
             'phone' => $request->phone,
             'email' => $request->email,
-            'status' => 'active', // default status
-            'level' => 1, // default level (1 = regular user, 0 = super admin)
+            'status' => $request->status, // default status
             'password' => Hash::make($request->password),
         ]);
 

@@ -15,15 +15,15 @@
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
                         {{-- <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
-                            data-target="#varyModal" data-whatever="@mdo">New taxtable<span
-                                class="fe fe-plus fe-16 ml-2"></span></button> --}}
+                            data-target="#varyModal" data-whatever="@mdo">New taxtable') }}
+            </x-modal-button> --}}
                     </div>
                 </div>
 
                 <div class="row my-2">
                     <!-- Small table -->
 
-                    @include('elements.spinner')
+
                     <div class="col-md-12">
                         <div class="card shadow-none border">
                             <div class="card-body">
@@ -110,9 +110,12 @@
                                 </div>
 
                                 <div class="modal-footer">
-                                    <button type="button" class="btn mb-2 btn-secondary"
-                                        data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
+                                    <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
+                                    <x-primary-button>
+                                {{ __('Update') }}
+                            </x-primary-button>
                                 </div>
                             </form>
                         </div>

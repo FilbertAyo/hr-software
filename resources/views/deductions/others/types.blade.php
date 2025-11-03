@@ -35,7 +35,7 @@
                 @endif
 
                 <div class="row my-2">
-                    @include('elements.spinner')
+
                     <div class="col-md-12">
                         <div class="card shadow">
                             <div class="card-body">
@@ -158,7 +158,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Save Deduction Type</button>
                         </div>
                     </form>
@@ -209,7 +211,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Update Deduction Type</button>
                         </div>
                     </form>

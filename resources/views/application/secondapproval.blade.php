@@ -217,7 +217,7 @@
 
         <main role="main" class="main-content">
 
-           
+
 
                         <div class="row align-items-center mb-3 border-bottom no-gutters">
                             <div class="col">
@@ -239,7 +239,7 @@
                         </div>
 
 
-                        @include('elements.spinner')
+
                     <div class="row my-2">
                         <!-- Small table -->
                         <div class="col-md-12">

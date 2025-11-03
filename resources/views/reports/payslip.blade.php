@@ -23,7 +23,7 @@
     <!-- Filters -->
     <div class="row mb-3 no-print">
         <div class="col-md-12">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Filter Payslips</h5>
                     <form method="GET" action="{{ route('reports.payslip') }}" id="payslipFilterForm">
@@ -80,7 +80,7 @@
                                 <label class="font-weight-bold">Select Employees</label>
                                 <select name="selected_employees[]" class="form-control" multiple size="8">
                                     @foreach($employees as $employee)
-                                        <option value="{{ $employee->id }}" 
+                                        <option value="{{ $employee->id }}"
                                             {{ in_array($employee->id, (array)request('selected_employees', [])) ? 'selected' : '' }}>
                                             {{ $employee->employee_name }} ({{ $employee->employeeID }})
                                         </option>
@@ -125,34 +125,34 @@
         <!-- Summary Cards -->
         <div class="row mb-3 no-print">
             <div class="col-md-3">
-                <div class="card shadow-sm">
+                <div class="card shadow-none border">
                     <div class="card-body">
                         <h6 class="text-muted">Total Employees</h6>
-                        <h3 class="text-info">{{ $payslips->count() }}</h3>
+                        <h4>{{ $payslips->count() }}</h4>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm">
+                <div class="card shadow-none border">
                     <div class="card-body">
                         <h6 class="text-muted">Total Gross Salary</h6>
-                        <h3 class="text-success">{{ number_format($payslips->sum('gross_salary'), 2) }}</h3>
+                        <h4>{{ number_format($payslips->sum('gross_salary'), 2) }}</h4>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm">
+                <div class="card shadow-none border">
                     <div class="card-body">
                         <h6 class="text-muted">Total Deductions</h6>
-                        <h3 class="text-danger">{{ number_format($payslips->sum('total_deductions'), 2) }}</h3>
+                        <h4>{{ number_format($payslips->sum('total_deductions'), 2) }}</h4>
                     </div>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card shadow-sm">
+                <div class="card shadow-none border">
                     <div class="card-body">
                         <h6 class="text-muted">Total Net Salary</h6>
-                        <h3 class="text-primary">{{ number_format($payslips->sum('net_salary'), 2) }}</h3>
+                        <h4>{{ number_format($payslips->sum('net_salary'), 2) }}</h4>
                     </div>
                 </div>
             </div>
@@ -162,7 +162,7 @@
         <div class="row">
             @foreach($payslips as $payslip)
                 <div class="col-md-12 mb-4 payslip-page">
-                    <div class="card shadow-sm">
+                    <div class="card shadow-none border">
                         <div class="card-body">
                             <!-- Header -->
                             <div class="row mb-3 border-bottom pb-3">
@@ -170,8 +170,8 @@
                                     <h3 class="mb-1">{{ $payslip->employee->company->company_name ?? 'Company Name' }}</h3>
                                     <h5 class="text-muted mb-0">PAYSLIP</h5>
                                     <p class="text-muted mb-0">
-                                        Period: {{ $payslip->payrollPeriod->period_name ?? 'N/A' }} 
-                                        ({{ date('d M Y', strtotime($payslip->payrollPeriod->start_date ?? '')) }} - 
+                                        Period: {{ $payslip->payrollPeriod->period_name ?? 'N/A' }}
+                                        ({{ date('d M Y', strtotime($payslip->payrollPeriod->start_date ?? '')) }} -
                                         {{ date('d M Y', strtotime($payslip->payrollPeriod->end_date ?? '')) }})
                                     </p>
                                 </div>
@@ -364,7 +364,7 @@
                                     @endif
                                 </div>
                                 <div class="col-md-6 text-right">
-                                    <p class="mb-1"><small><strong>Status:</strong> 
+                                    <p class="mb-1"><small><strong>Status:</strong>
                                         <span class="badge badge-{{ $payslip->status == 'paid' ? 'success' : ($payslip->status == 'processed' ? 'info' : 'warning') }}">
                                             {{ ucfirst($payslip->status) }}
                                         </span>

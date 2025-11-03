@@ -47,49 +47,17 @@
                                     </div>
                                 @endif
 
-                                <!-- Search and Filter Section -->
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <div class="input-group">
-                                            <input type="text" class="form-control" id="searchInput"
-                                                placeholder="Search employees...">
-                                            <div class="input-group-append">
-                                                <button class="btn btn-outline-secondary" type="button" id="searchBtn">
-                                                    <i class="fe fe-search"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select class="form-control" id="departmentFilter">
-                                            <option value="">All Departments</option>
-                                            <!-- Populate dynamically -->
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <select class="form-control" id="statusFilter">
-                                            <option value="">All Status</option>
-                                            <option value="active">Active</option>
-                                            <option value="inactive">Inactive</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button class="btn btn-secondary btn-block" id="resetFilters">Reset</button>
-                                    </div>
-                                </div>
-
                                 <!-- Employee Table -->
                                 <div class="table-responsive">
                                     <table class="table table-bordered datatables" id="dataTable-1">
                                         <thead class="thead-light">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Photo</th>
                                                 <th>Employee Name</th>
                                                 <th>Department</th>
                                                 <th>Position</th>
                                                 <th>Join Date</th>
-                                                <th>Basic Salary</th>
+                                                <th>Basic Salary TZS</th>
                                                 <th>Status</th>
                                                 <th>Actions</th>
                                             </tr>
@@ -99,24 +67,13 @@
                                                 <tr>
                                                     <td>{{ $loop->iteration + ($employees->currentPage() - 1) * $employees->perPage() }}
                                                     </td>
-                                                    <td>
-                                                        @if ($employee->photo_path)
-                                                            <img src="{{ asset('storage/' . $employee->photo_path) }}"
-                                                                alt="Photo" class="rounded-circle" width="40"
-                                                                height="40">
-                                                        @else
-                                                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white"
-                                                                style="width: 40px; height: 40px; font-size: 14px;">
-                                                                {{ strtoupper(substr($employee->employee_name, 0, 2)) }}
-                                                            </div>
-                                                        @endif
-                                                    </td>
+
                                                     <td>
                                                         <div>
                                                             <strong>{{ $employee->employee_name }}</strong>
-                                                            @if ($employee->mobile_no)
+                                                            @if ($employee->employeeID)
                                                                 <br><small
-                                                                    class="text-muted">{{ $employee->mobile_no }}</small>
+                                                                    class="text-muted">{{ $employee->employeeID }}</small>
                                                             @endif
                                                         </div>
                                                     </td>
@@ -131,9 +88,8 @@
                                                     </td>
                                                     <td>
                                                         @if ($employee->basic_salary)
-                                                            <span class="text-success font-weight-bold">
-                                                                TZS {{ number_format($employee->basic_salary, 2) }}
-                                                            </span>
+                                                                {{ number_format($employee->basic_salary, 2) }}
+
                                                         @else
                                                             <span class="text-muted">Not Set</span>
                                                         @endif
@@ -152,7 +108,7 @@
                                                                 id="dropdownMenuButton{{ $employee->id }}"
                                                                 data-toggle="dropdown" aria-haspopup="true"
                                                                 aria-expanded="false">
-                                                                Actions
+                                                                <i class="fe fe-action"></i>
                                                             </button>
                                                             <div class="dropdown-menu"
                                                                 aria-labelledby="dropdownMenuButton{{ $employee->id }}">
@@ -175,7 +131,7 @@
                                                 </tr>
                                             @empty
                                                 <tr>
-                                                    <td colspan="9" class="text-center py-4">
+                                                    <td colspan="8" class="text-center py-4">
                                                         <div class="text-muted">
                                                             <i class="fe fe-users mb-3" style="font-size: 48px;"></i>
                                                             <h5>No employees found</h5>
@@ -311,7 +267,7 @@
         function clearEmployeeSession(event) {
             event.preventDefault();
             const link = event.currentTarget.href;
-            
+
             fetch('{{ route('employee.session.clear') }}', {
                 method: 'POST',
                 headers: {

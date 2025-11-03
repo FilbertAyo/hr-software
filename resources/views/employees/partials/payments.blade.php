@@ -19,7 +19,7 @@
                     <label class="form-check-label" for="paymentBank">Bank</label>
                 </div>
 
-                <div class="form-check form-check-inline">
+                {{-- <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="payment_method" id="paymentBoth" value="both"
                         {{ old('payment_method', $employee->payment_method ?? '') == 'both' ? 'checked' : '' }}>
                     <label class="form-check-label" for="paymentBoth">Both (Bank + Cash)</label>
@@ -29,7 +29,7 @@
                     <input class="form-check-input" type="radio" name="payment_method" id="paymentOther" value="other"
                         {{ old('payment_method', $employee->payment_method ?? '') == 'other' ? 'checked' : '' }}>
                     <label class="form-check-label" for="paymentOther">Other</label>
-                </div>
+                </div> --}}
             </div>
         </div>
 

@@ -21,18 +21,23 @@
         }
     </style>
 
-    <div class="row align-items-center mb-3 border-bottom no-gutters">
+
+      <div class="row align-items-center mb-3 border-bottom no-gutters">
         <div class="col">
-            <h2 class="mb-0">Process Payroll
+            <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                        aria-controls="home" aria-selected="true">Process Payroll
                 @if ($payrollPeriod)
                     - {{ $payrollPeriod->period_name }}
-                @endif
-            </h2>
+                @endif</a>
+                </li>
+            </ul>
         </div>
         <div class="col-auto">
-            @if ($payrollPeriod)
+              @if ($payrollPeriod)
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary" id="processSelectedBtn" disabled>
+                    <button type="button" class="btn btn-sm btn-primary" id="processSelectedBtn" disabled>
                         <i class="fe fe-check"></i> Process Selected
                     </button>
                     <button type="button" class="btn btn-success" id="processAllBtn">
@@ -40,12 +45,14 @@
                     </button>
                 </div>
             @else
-                <a href="{{ route('payroll.payperiod') }}" class="btn btn-primary">
+                <a href="{{ route('payroll.payperiod') }}" class="btn btn-sm btn-primary">
                     <i class="fe fe-plus"></i> Create Pay Period
                 </a>
             @endif
         </div>
     </div>
+
+
 
     @if ($payrollPeriod)
 
@@ -425,7 +432,7 @@
                                                     </div>
                                                 </td>
 
-                                                <td>{{ $employee->taxRate->tax_name }}</td>
+                                                <td>{{ $employee->taxRate->tax_name ?? ''}}</td>
 
                                                 <td>{{ number_format($basicSalary, 2) }}</td>
                                                 <td>{{ number_format($taxableAllowances, 2) }}</td>

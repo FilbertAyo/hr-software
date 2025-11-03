@@ -26,29 +26,18 @@
 
 
     <ul class="nav">
-        <li class="nav-item">
-            <a class="nav-link text-muted my-2" href="#" id="modeSwitcher" data-mode="light">
-                <i class="fe fe-sun fe-16"></i>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link text-muted my-2" href="./#" data-toggle="modal" data-target=".modal-shortcut">
-                <span class="fe fe-grid fe-16"></span>
-            </a>
-        </li>
-        <li class="nav-item nav-notif">
-            <a class="nav-link text-muted my-2" href="./#" data-toggle="modal" data-target=".modal-notif">
-                <span class="fe fe-bell fe-16"></span>
-                <span class="dot dot-md bg-danger"></span>
-            </a>
-        </li>
+
 
         <li class="nav-item dropdown">
-            <a class="nav-link text-muted" href="{{ route('profile.edit') }}">
-                <span class="avatar avatar-sm ">
-                    <img src="{{ asset('images/photo.jpeg') }}" alt="..." class="avatar-img rounded-circle">
+
+               <a class="nav-link text-muted d-flex align-items-center" href="{{ route('profile.edit') }}">
+                <span class="avatar avatar-sm m-1"
+                    style="width: 32px; height: 32px; overflow: hidden; display: inline-block;">
+                    <img src="{{ asset('images/photo.jpeg') }}" alt="..."
+                        class="avatar-img rounded-circle"
+                        style="width: 100%; height: 100%; object-fit: cover; object-position: center; display: block;">
                 </span>
-                <div>{{ Auth::user()->name }}</div>
+                <span class="fw-bold">{{ Auth::user()->name }}</span>
             </a>
 
         </li>

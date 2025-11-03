@@ -1,177 +1,181 @@
 <x-app-layout>
 
 
-                <div class="row align-items-center mb-3 border-bottom no-gutters">
-                    <div class="col">
-                        <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                                    aria-controls="home" aria-selected="true">Tax rates</a>
-                            </li>
+    <div class="row align-items-center mb-3 border-bottom no-gutters">
+        <div class="col">
+            <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                        aria-controls="home" aria-selected="true">Tax rates</a>
+                </li>
 
-                        </ul>
-                    </div>
-                    {{-- <div class="col-auto">
+            </ul>
+        </div>
+        {{-- <div class="col-auto">
 
                         <button type="button" class="btn btn-sm" onclick="reloadPage()">
                             <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
                         </button>
                         <button type="button" class="btn mb-2 btn-primary btn-sm" data-toggle="modal"
-                            data-target="#varyModal" data-whatever="@mdo">New taxrate<span
-                                class="fe fe-plus fe-16 ml-2"></span></button>
+                            data-target="#varyModal" data-whatever="@mdo">New taxrate') }}
+            </x-modal-button>
                     </div> --}}
+    </div>
+
+    <div class="row my-2">
+        <!-- Small table -->
+
+
+        <div class="col-md-12">
+            <div class="card shadow-none border">
+                <div class="card-body">
+                    <!-- table -->
+                    <table class="table table-bordered datatables" id="dataTable-1">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>No</th>
+                                <th>Tax Name</th>
+                                <th>Tax Rate (%)</th>
+                                <th class="text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($taxrates as $index => $taxrate)
+                                <tr>
+                                    <td>{{ $index + 1 }}</td>
+                                    <td>{{ $taxrate->tax_name }}</td>
+                                    <td>{{ number_format($taxrate->rate, 2) }}</td>
+                                    <td class="text-right">
+                                        <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                                            <a href="javascript:void(0);"
+                                                class="btn btn-sm btn-primary edit-taxrate-btn"
+                                                data-taxrate-id="{{ $taxrate->id }}"
+                                                data-taxrate-table-name="{{ $taxrate->tax_name }}"
+                                                data-taxrate-rate="{{ $taxrate->rate }}">
+                                                <span class="fe fe-edit fe-16"></span>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+
+                        </tbody>
+                    </table>
+
                 </div>
+            </div>
+        </div> <!-- simple table -->
 
-                <div class="row my-2">
-                    <!-- Small table -->
 
-                    @include('elements.spinner')
-                    <div class="col-md-12">
-                        <div class="card shadow-none border">
-                            <div class="card-body">
-                                <!-- table -->
-                                <table class="table table-bordered datatables" id="dataTable-1">
-                                     <thead class="thead-light">
-                                        <tr>
-                                            <th>No</th>
-                                            <th>Tax Name</th>
-                                            <th>Tax Rate (%)</th>
-                                            <th class="text-right">Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                            @foreach ($taxrates as $index => $taxrate)
-                                                <tr>
-                                                    <td>{{ $index + 1 }}</td>
-                                                    <td>{{ $taxrate->tax_name }}</td>
-                                                    <td>{{ number_format($taxrate->rate, 2) }}</td>
-                                                    <td class="text-right">
-                                                        <div
-                                                            style="display: flex; gap: 4px; justify-content: flex-end;">
-                                                            <a href="javascript:void(0);"
-                                                                class="btn btn-sm btn-primary edit-taxrate-btn"
-                                                                data-taxrate-id="{{ $taxrate->id }}"
-                                                                data-taxrate-table-name="{{ $taxrate->tax_name }}"
-                                                                data-taxrate-rate="{{ $taxrate->rate }}">
-                                                                <span class="fe fe-edit fe-16"></span>
-                                                            </a>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
+    </div> <!-- .row -->
+    </div>
 
-                                    </tbody>
-                                </table>
 
+    <div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="varyModalLabel">New taxrate</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="{{ route('taxrate.store') }}" validate>
+                        @csrf
+
+                        <div class="form-row">
+                            <div class="col-md-12 mb-3">
+                                <label>Tax Name</label>
+                                <input type="text" class="form-control" name="tax_name" required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Tax Rate (%)</label>
+                                <input type="number" step="0.01" class="form-control" name="rate" required>
                             </div>
                         </div>
-                    </div> <!-- simple table -->
 
+                        <div class="modal-footer">
+                            <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
+                            <x-primary-button>
+                                {{ __('Save') }}
+                            </x-primary-button>
+                        </div>
+                    </form>
 
-                </div> <!-- .row -->
+                </div>
+
             </div>
+        </div>
+    </div>
 
 
-            <div class="modal fade" id="varyModal" tabindex="-1" role="dialog" aria-labelledby="varyModalLabel"
-                aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="varyModalLabel">New taxrate</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="{{ route('taxrate.store') }}" validate>
-                                @csrf
+    <!-- Edit taxrate Modal -->
+    <div class="modal fade" id="edittaxrateModal" tabindex="-1" role="dialog" aria-labelledby="edittaxrateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="edittaxrateModalLabel">Edit taxrate</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST" action="" id="edittaxrateForm">
+                        @csrf
+                        @method('PUT')
 
-                                <div class="form-row">
-                                    <div class="col-md-12 mb-3">
-                                        <label>Tax Name</label>
-                                        <input type="text" class="form-control" name="tax_name" required>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                        <label>Tax Rate (%)</label>
-                                        <input type="number" step="0.01" class="form-control" name="rate"
-                                            required>
-                                    </div>
-                                </div>
-
-                                <div class="modal-footer">
-                                    <button type="button" class="btn mb-2 btn-secondary"
-                                        data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn mb-2 btn-primary">Save and Close</button>
-                                </div>
-                            </form>
-
+                        <div class="form-row">
+                            <div class="col-md-12 mb-3">
+                                <label>Tax Name</label>
+                                <input type="text" class="form-control" id="editTaxrateTableName" name="tax_name"
+                                    required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label>Tax Rate (%)</label>
+                                <input type="number" step="0.01" class="form-control" id="editTaxrateRate"
+                                    name="rate" required>
+                            </div>
                         </div>
 
-                    </div>
+                        <div class="modal-footer">
+                            <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
+                            <x-primary-button>
+                                {{ __('Update') }}
+                            </x-primary-button>
+                        </div>
+                    </form>
+
                 </div>
             </div>
+        </div>
+    </div>
 
+    <script>
+        document.querySelectorAll('.edit-taxrate-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const taxrateId = this.getAttribute('data-taxrate-id');
+                const taxrateTableName = this.getAttribute('data-taxrate-table-name');
+                const taxrateRate = this.getAttribute('data-taxrate-rate');
 
-            <!-- Edit taxrate Modal -->
-            <div class="modal fade" id="edittaxrateModal" tabindex="-1" role="dialog"
-                aria-labelledby="edittaxrateModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="edittaxrateModalLabel">Edit taxrate</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <form method="POST" action="" id="edittaxrateForm">
-                                @csrf
-                                @method('PUT')
+                // Set form action
+                document.getElementById('edittaxrateForm')
+                    .setAttribute('action', `/taxrate/${taxrateId}`);
 
-                                <div class="form-row">
-                                    <div class="col-md-12 mb-3">
-                                        <label>Tax Name</label>
-                                        <input type="text" class="form-control" id="editTaxrateTableName"
-                                            name="tax_name" required>
-                                    </div>
-                                    <div class="col-md-12 mb-3">
-                                        <label>Tax Rate (%)</label>
-                                        <input type="number" step="0.01" class="form-control"
-                                            id="editTaxrateRate" name="rate" required>
-                                    </div>
-                                </div>
+                // Populate fields
+                document.getElementById('editTaxrateTableName').value = taxrateTableName;
+                document.getElementById('editTaxrateRate').value = taxrateRate;
 
-                                <div class="modal-footer">
-                                    <button type="button" class="btn mb-2 btn-secondary"
-                                        data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn mb-2 btn-primary">Save Changes</button>
-                                </div>
-                            </form>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                document.querySelectorAll('.edit-taxrate-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const taxrateId = this.getAttribute('data-taxrate-id');
-                        const taxrateTableName = this.getAttribute('data-taxrate-table-name');
-                        const taxrateRate = this.getAttribute('data-taxrate-rate');
-
-                        // Set form action
-                        document.getElementById('edittaxrateForm')
-                            .setAttribute('action', `/taxrate/${taxrateId}`);
-
-                        // Populate fields
-                        document.getElementById('editTaxrateTableName').value = taxrateTableName;
-                        document.getElementById('editTaxrateRate').value = taxrateRate;
-
-                        // Show modal
-                        $('#edittaxrateModal').modal('show');
-                    });
-                });
-            </script>
+                // Show modal
+                $('#edittaxrateModal').modal('show');
+            });
+        });
+    </script>
 
 </x-app-layout>

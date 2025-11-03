@@ -21,34 +21,34 @@
     <!-- Summary Cards -->
     <div class="row mb-3">
         <div class="col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Loans</h6>
-                    <h3 class="text-primary">{{ number_format($summary['total_loans'], 2) }}</h3>
+                    <h4>{{ number_format($summary['total_loans'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Paid</h6>
-                    <h3 class="text-success">{{ number_format($summary['total_paid'], 2) }}</h3>
+                    <h4>{{ number_format($summary['total_paid'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Remaining</h6>
-                    <h3 class="text-danger">{{ number_format($summary['total_remaining'], 2) }}</h3>
+                    <h4>{{ number_format($summary['total_remaining'], 2) }}</h4>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Active Loans</h6>
-                    <h3 class="text-warning">{{ $summary['active_loans'] }}</h3>
+                    <h4>{{ $summary['active_loans'] }}</h4>
                 </div>
             </div>
         </div>
@@ -57,7 +57,7 @@
     <!-- Filters -->
     <div class="row mb-3">
         <div class="col-md-12">
-            <div class="card shadow-sm">
+            <div class="card shadow-none border">
                 <div class="card-body">
                     <form method="GET" action="{{ route('reports.loans') }}">
                         <div class="row">
@@ -96,7 +96,7 @@
     </div>
 
     <div class="row my-2">
-        @include('elements.spinner')
+
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">

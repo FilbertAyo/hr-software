@@ -316,13 +316,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/export/csv', [AttendanceController::class, 'export'])->name('export');
     });
 
-
     // Reports Routes
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('index');
         Route::get('/employees', [ReportController::class, 'employeeReport'])->name('employees');
         Route::get('/payroll', [ReportController::class, 'payrollReport'])->name('payroll');
         Route::get('/loans', [ReportController::class, 'loanReport'])->name('loans');
+        Route::get('/other-benefits', [ReportController::class, 'otherBenefitsReport'])->name('other-benefits');
         Route::get('/leaves', [ReportController::class, 'leaveReport'])->name('leaves');
         Route::get('/attendance', [ReportController::class, 'attendanceReport'])->name('attendance');
         Route::get('/departments', [ReportController::class, 'departmentReport'])->name('departments');
@@ -332,6 +332,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/salary-analysis', [ReportController::class, 'salaryAnalysisReport'])->name('salary-analysis');
         Route::get('/payslip', [ReportController::class, 'payslipReport'])->name('payslip');
         Route::get('/bank-salary', [ReportController::class, 'bankSalaryReport'])->name('bank-salary');
+        Route::get('/cash-salary', [ReportController::class, 'cashSalaryReport'])->name('cash-salary');
         Route::get('/earning-group', [ReportController::class, 'earningGroupReport'])->name('earning-group');
     });
 

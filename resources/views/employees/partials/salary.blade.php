@@ -54,17 +54,10 @@
                 <div class="col-md-3 mb-3 d-none" id="advance_percentage_field">
                     <label for="advance_percentage">Advance Percentage (%)</label>
                     <input type="number" class="form-control" id="advance_percentage" name="advance_percentage"
-                        value="{{ getFormValue('advance_percentage', $employee->advance_percentage ?? 50) }}" min="0" max="100" step="0.01">
+                        value="{{ getFormValue('advance_percentage', $employee->advance_percentage ??  optional($selectedCompany)->advance_rate  ) }}" min="0" max="100" step="0.01">
                 </div>
 
-                <!-- Advance Salary -->
-                {{-- Do not fill this input automatically by percentage; leave it empty for later use --}}
-                <div class="col-md-3 mb-3 d-none" id="advance_salary_field">
-                    <label for="advance_salary">Advance Salary</label>
-                    <input type="number" class="form-control" id="advance_salary" name="advance_salary"
-                        value="" readonly>
-                </div>
-
+         
                    <!-- PAYE Exemption -->
 
                 <div class="col-md-3 mb-3">
@@ -217,8 +210,6 @@
                 </div>
             </div>
         </template>
-
-
 
     </div>
 

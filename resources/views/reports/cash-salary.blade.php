@@ -4,7 +4,7 @@
             <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
                 <li class="nav-item">
                     <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
-                        aria-controls="home" aria-selected="true">Payroll Report</a>
+                        aria-controls="home" aria-selected="true">Cash Salary Report</a>
                 </li>
             </ul>
         </div>
@@ -20,27 +20,19 @@
 
     <!-- Summary Cards -->
     <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card shadow-none border">
                 <div class="card-body">
-                    <h6 class="text-muted">Total Gross Salary</h6>
-                    <h4>{{ number_format($summary['total_gross'], 2) }}</h4>
+                    <h6 class="text-muted">Total Employees</h6>
+                    <h4>{{ number_format($summary['employee_count']) }}</h4>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card shadow-none border">
-                <div class="card-body">
-                    <h6 class="text-muted">Total Deductions</h6>
-                    <h4>{{ number_format($summary['total_deductions'], 2) }}</h4>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="card shadow-none border">
                 <div class="card-body">
                     <h6 class="text-muted">Total Net Salary</h6>
-                    <h4>{{ number_format($summary['total_net'], 2) }}</h4>
+                    <h4>{{ number_format($summary['total_net_salary'], 2) }}</h4>
                 </div>
             </div>
         </div>
@@ -51,7 +43,7 @@
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">
-                    <form method="GET" action="{{ route('reports.payroll') }}" id="filterForm">
+                    <form method="GET" action="{{ route('reports.cash-salary') }}" id="filterForm">
                         <div class="row">
                             <div class="col-md-3">
                                 <label>Payroll Period <span class="text-danger">*</span></label>
@@ -96,17 +88,6 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <label>Tax Rate</label>
-                                <select name="tax_rate_id" class="form-control">
-                                    <option value="">All Tax Rates</option>
-                                    @foreach($taxRates as $taxRate)
-                                        <option value="{{ $taxRate->id }}" {{ request('tax_rate_id') == $taxRate->id ? 'selected' : '' }}>
-                                            {{ $taxRate->tax_name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-2">
                                 <label>&nbsp;</label>
                                 <button type="submit" class="btn btn-primary btn-block">
                                     <i class="fe fe-file-text mr-1"></i> Get Report
@@ -142,57 +123,37 @@
         <div class="col-md-12">
             <div class="card shadow-none border">
                 <div class="card-body">
-                    <h5 class="card-title mb-3">Payroll Records: {{ $payrolls->count() }}</h5>
-                    @if($payrolls->count() > 0)
+                    <h5 class="card-title mb-3">Cash Salary Records: {{ $employees->count() }}</h5>
+                    @if($employees->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-sm table-bordered datatables">
                                 <thead class="thead-light">
                                     <tr>
                                         <th>SN</th>
-                                        <th>Employee Name</th>
-                                        <th>Tax name</th>
-                                        <th>Basic Salary</th>
-                                        <th>Taxable Allowances</th>
-                                        <th>Non-Taxable Allowances</th>
-                                        <th>Gross Salary</th>
-                                        <th>Pension</th>
-                                        <th>Taxable Income</th>
-                                        <th>PAYE</th>
-                                        <th>Advance</th>
-                                        <th>Loan Deduction</th>
-                                        <th>Attendance Deduction</th>
-                                        <th>Other Deductions</th>
-                                        <th>Total Deductions</th>
+                                        <th>Emp ID</th>
+                                        <th>Name</th>
                                         <th>Net Salary</th>
-                                        <th>WCF</th>
-                                        <th>SDL</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($payrolls as $index => $payroll)
+                                    @foreach($employees as $index => $employee)
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
-                                            <td>{{ $payroll->employee->employee_name ?? 'N/A' }}
+                                            <td>{{ $employee->employeeID ?? 'N/A' }}</td>
+                                            <td>
+                                             {{ $employee->employee_name ?? 'N/A' }}
+
                                             </td>
-                                            <td>{{ $payroll->employee->taxRate->tax_name ?? 'N/A' }}</td>
-                                            <td>{{ number_format($payroll->basic_salary, 2) }}</td>
-                                            <td>{{ number_format($payroll->taxable_allowances, 2) }}</td>
-                                            <td>{{ number_format($payroll->non_taxable_allowances, 2) }}</td>
-                                            <td>{{ number_format($payroll->gross_salary, 2) }}</td>
-                                            <td>{{ number_format($payroll->employee_pension_amount, 2) }}</td>
-                                            <td>{{ number_format($payroll->taxable_income, 2) }}</td>
-                                            <td>{{ number_format($payroll->tax_deduction, 2) }}</td>
-                                            <td>{{ number_format($payroll->advance_salary, 2) }}</td>
-                                            <td>{{ number_format($payroll->loan_deduction, 2) }}</td>
-                                            <td>{{ number_format($payroll->attendance_deduction, 2) }}</td>
-                                            <td>{{ number_format($payroll->other_deductions, 2) }}</td>
-                                            <td>{{ number_format($payroll->total_deductions, 2) }}</td>
-                                            <td><strong>{{ number_format($payroll->net_salary, 2) }}</strong></td>
-                                            <td>{{ number_format($payroll->wcf_amount, 2) }}</td>
-                                            <td>{{ number_format($payroll->sdl_amount, 2) }}</td>
+                                            <td><strong>{{ number_format($employee->net_salary ?? 0, 2) }}</strong></td>
                                         </tr>
                                     @endforeach
                                 </tbody>
+                                <tfoot class="thead-light">
+                                    <tr>
+                                        <th colspan="3" class="text-right">Total:</th>
+                                        <th><strong>{{ number_format($summary['total_net_salary'], 2) }}</strong></th>
+                                    </tr>
+                                </tfoot>
                             </table>
                         </div>
                     @else

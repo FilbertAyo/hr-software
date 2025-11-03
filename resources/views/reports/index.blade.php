@@ -19,7 +19,7 @@
     </div>
 
     <div class="row my-2">
-        @include('elements.spinner')
+
 
         <div class="col-md-4">
             <div class="card shadow-none border">
@@ -117,6 +117,14 @@
             </div>
         </div>
 
+         <div class="col-md-4">
+            <div class="card shadow-none border">
+                <div class="card-body">
+                    <a href="{{ route('reports.cash-salary') }}">Cash Salary Report</a>
+                </div>
+            </div>
+        </div>
+
         <div class="col-md-4">
             <div class="card shadow-none border">
                 <div class="card-body">
@@ -125,6 +133,13 @@
             </div>
         </div>
 
+        <div class="col-md-4">
+            <div class="card shadow-none border">
+                <div class="card-body">
+                    <a href="{{ route('reports.other-benefits') }}">Other Benefits Report</a>
+                </div>
+            </div>
+        </div>
     </div>
 
 </x-app-layout>

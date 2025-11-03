@@ -40,7 +40,7 @@
                 @endif
 
                 <div class="row my-2">
-                    @include('elements.spinner')
+
                     <div class="col-md-12">
                         <div class="card shadow-none border">
                             <div class="card-body">
@@ -171,7 +171,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Save Sub Factors</button>
                         </div>
                     </form>
@@ -195,7 +197,7 @@
                         @csrf
                         @method('PUT')
                         <input type="hidden" id="edit_factor_id" name="factor_id">
-                        
+
                         <div class="form-row">
                             <div class="col-md-12 mb-3">
                                 <label>Factor: <strong id="edit_factor_name_display"></strong></label>
@@ -231,7 +233,9 @@
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                             <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                             <button type="submit" class="btn mb-2 btn-primary">Update Sub Factors</button>
                         </div>
                     </form>
@@ -276,7 +280,9 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn mb-2 btn-secondary" data-dismiss="modal">Close</button>
+                     <x-secondary-button data-dismiss="modal">
+                                {{ __('Close') }}
+                            </x-secondary-button>
                 </div>
             </div>
         </div>
