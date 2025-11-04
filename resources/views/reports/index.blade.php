@@ -88,6 +88,14 @@
         <div class="col-md-4">
             <div class="card shadow-none border">
                 <div class="card-body">
+                    <a href="{{ route('reports.paye') }}">PAYE Report</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-none border">
+                <div class="card-body">
                     <a href="{{ route('reports.pension') }}">Pension Report</a>
                 </div>
             </div>

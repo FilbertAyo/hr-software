@@ -1,7 +1,5 @@
 <x-app-layout>
 
-
-
                 <div class="row align-items-center mb-3 border-bottom no-gutters">
                     <div class="col">
                         <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
@@ -9,14 +7,10 @@
                                 <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
                                     aria-controls="home" aria-selected="true">Employee Management</a>
                             </li>
-
                         </ul>
                     </div>
                     <div class="col-auto">
 
-                        <button type="button" class="btn btn-sm" onclick="reloadPage()">
-                            <i class="fe fe-16 fe-refresh-ccw text-muted"></i>
-                        </button>
                         <a href="{{ route('employee.create') }}" class="btn btn-primary btn-sm" onclick="clearEmployeeSession(event)">
                             <i class="fe fe-plus"></i> Add New Employee
                         </a>

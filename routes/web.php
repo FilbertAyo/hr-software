@@ -328,6 +328,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/departments', [ReportController::class, 'departmentReport'])->name('departments');
         Route::get('/advances', [ReportController::class, 'advanceReport'])->name('advances');
         Route::get('/tax', [ReportController::class, 'taxReport'])->name('tax');
+        Route::get('/paye', [ReportController::class, 'payeReport'])->name('paye');
         Route::get('/pension', [ReportController::class, 'pensionReport'])->name('pension');
         Route::get('/salary-analysis', [ReportController::class, 'salaryAnalysisReport'])->name('salary-analysis');
         Route::get('/payslip', [ReportController::class, 'payslipReport'])->name('payslip');

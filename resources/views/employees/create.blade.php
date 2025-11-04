@@ -2,15 +2,18 @@
 
     @include('employees.partials.helpers')
 
-    <!-- Header Section -->
-    <div class="row align-items-center mb-4 border-bottom">
+    <div class="row align-items-center mb-3 border-bottom no-gutters">
         <div class="col">
-            <h2 class="mb-1">Employee Registration</h2>
-            <p class="text-muted mb-0">Register a new employee in the system</p>
-
+            <ul class="nav nav-tabs border-0" id="myTab" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="home-tab" data-toggle="tab" href="#home" role="tab"
+                        aria-controls="home" aria-selected="true">Employee Registration</a>
+                </li>
+            </ul>
         </div>
         <div class="col-auto">
-            <a href="{{ route('employee.index') }}" class="btn btn-outline-secondary">
+            <a href="{{ route('employee.index') }}" class="btn btn-secondary btn-sm"
+                onclick="clearEmployeeSession(event)">
                 <i class="fe fe-arrow-left"></i> Back to List
             </a>
         </div>
@@ -28,11 +31,6 @@
                 <div class="step" data-step="2">
                     <div class="step-circle">2</div>
                     <div class="step-label">Payment & Salary</div>
-                </div>
-                <div class="step-line"></div>
-                <div class="step" data-step="3">
-                    <div class="step-circle">3</div>
-                    <div class="step-label">Family & Guarantor</div>
                 </div>
             </div>
         </div>
@@ -101,7 +99,9 @@
 
                         </div>
 
-                        <!-- Step 2: Payment & Salary -->
+
+
+                        <!-- Step 2: Payment & Salary (Final Step) -->
                         <div class="form-step" id="step2">
                             <div class="step-header mb-4">
                                 <h4 class="text-primary mb-2">
@@ -113,30 +113,6 @@
                             <div class="card shadow-none border">
                                 @include('employees.partials.payments', ['employee' => null])
                                 @include('employees.partials.salary', ['employee' => null])
-                            </div>
-
-                            <div class="step-actions mt-4">
-                                <button type="button" class="btn btn-outline-secondary mr-2" onclick="prevStep()">
-                                    <i class="fe fe-arrow-left mr-1"></i> Previous
-                                </button>
-                                <button type="button" class="btn btn-primary" onclick="nextStep()">
-                                    Next <i class="fe fe-arrow-right ml-1"></i>
-                                </button>
-                            </div>
-                        </div>
-
-
-                        <div class="form-step" id="step3">
-                            <div class="step-header mb-4">
-                                <h4 class="text-primary mb-2">
-                                    <i class="fe fe-users mr-2"></i>Family Relationships and Guarantor
-                                </h4>
-                                <p class="text-muted">Add family members and guarantors (optional - can be added after employee creation)</p>
-                            </div>
-
-                            <div class="card shadow-none border">
-                                @include('employees.partials.family', ['employee' => null])
-                                @include('employees.partials.gurantor', ['employee' => null])
                             </div>
 
                             <div class="step-actions mt-4">
@@ -156,8 +132,5 @@
         </div>
     </div>
 
-    @include('employees.partials.form-styles')
-
-    @include('employees.partials.form-scripts')
 
 </x-app-layout>

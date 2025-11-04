@@ -48,8 +48,9 @@
     <div class="toast fade show bg-success" role="alert" aria-live="assertive" aria-atomic="true" id="toast-notification">
       <div class="toast-header">
         <strong class="mr-auto">Success!</strong>
-        <small>Now</small>
-
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="toast-body bg-white">{{ session('success') }}</div>
     </div>
@@ -59,8 +60,9 @@
     <div class="toast fade show bg-danger" role="alert" aria-live="assertive" aria-atomic="true" id="toast-notification">
       <div class="toast-header">
         <strong class="mr-auto">Error!</strong>
-        <small>Now</small>
-
+        <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
       </div>
       <div class="toast-body bg-white">{{ session('error') }} </div>
     </div>
@@ -80,10 +82,10 @@ function closeToast() {
 
 // Auto-dismiss after 5 seconds
 @if (session('success') || session('error'))
-setTimeout(() => {
-  closeToast();
-}, 5000);
+document.querySelectorAll('.toast .close').forEach(btn => {
+  btn.addEventListener('click', () => {
+    closeToast();
+  });
+});
 @endif
 </script>
-
-

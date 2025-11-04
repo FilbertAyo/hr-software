@@ -397,6 +397,50 @@ public function advanceReport(Request $request)
         return view('reports.tax', compact('taxByPeriod', 'periods'));
     }
 
+    // PAYE Reports
+    public function payeReport(Request $request)
+    {
+        $companyId = $this->getCompanyId();
+        $currentPeriod = $this->getCurrentPeriod();
+
+        // Get all periods for the dropdown
+        $periods = PayrollPeriod::where('company_id', $companyId)->orderBy('start_date', 'desc')->get();
+
+        // If no period is selected in the request but we have a current period, use it
+        if (!$request->filled('period_id') && $currentPeriod) {
+            $request->merge(['period_id' => $currentPeriod->id]);
+        }
+
+        $payrolls = collect();
+        $selectedPeriod = null;
+
+        // If we have a period to show (either from request or current period)
+        if ($request->filled('period_id')) {
+            $selectedPeriod = $request->period_id;
+            
+            $query = Payroll::with([
+                'employee.department.department',
+                'employee.department.mainstation',
+                'employee.taxRate',
+                'payrollPeriod'
+            ])
+            ->whereHas('employee', function($q) use ($companyId) {
+                $q->where('company_id', $companyId);
+            })
+            ->where('payroll_period_id', $selectedPeriod)
+            ->where('tax_deduction', '>', 0); // Only include records with PAYE deductions
+
+            $payrolls = $query->orderBy('created_at', 'desc')->get();
+        }
+
+        return view('reports.paye', [
+            'payrolls' => $payrolls,
+            'periods' => $periods,
+            'selectedPeriod' => $selectedPeriod ?? null,
+            'currentPeriod' => $currentPeriod
+        ]);
+    }
+
     // Pension Reports
     public function pensionReport(Request $request)
     {

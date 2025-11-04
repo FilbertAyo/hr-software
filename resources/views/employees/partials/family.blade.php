@@ -56,9 +56,6 @@
             </div>
         </div>
     </div>
-    @else
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> Family members can be added after the employee is created.
-    </div>
+  
     @endif
 </div>
